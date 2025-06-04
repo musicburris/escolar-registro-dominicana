@@ -6,10 +6,21 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
-import { Award, Calculator, MessageSquare, Save, RefreshCw } from 'lucide-react';
+import { Award, Calculator, MessageSquare, Save, BookOpen, Target } from 'lucide-react';
+
+interface Competencia {
+  codigo: string;
+  descripcion: string;
+}
+
+interface BloquePuntuaciones {
+  ce1?: number;
+  ce2?: number;
+  ce3?: number;
+}
 
 interface StudentGrade {
   id: string;
@@ -17,16 +28,27 @@ interface StudentGrade {
   name: string;
   rne: string;
   avatar?: string;
-  p1?: number;
-  p2?: number;
-  p3?: number;
-  p4?: number;
+  // Puntuaciones por competencia específica en cada bloque
+  pc1: BloquePuntuaciones;
+  pc2: BloquePuntuaciones;
+  pc3: BloquePuntuaciones;
+  pc4: BloquePuntuaciones;
+  // Recuperaciones pedagógicas
   rp1?: number;
   rp2?: number;
   rp3?: number;
   rp4?: number;
-  blockAverage: number;
-  finalAverage: number;
+  // Promedios calculados
+  promedioPc1: number;
+  promedioPc2: number;
+  promedioPc3: number;
+  promedioPc4: number;
+  // Notas definitivas (considerando RP)
+  definitivaP1: number;
+  definitivaP2: number;
+  definitivaP3: number;
+  definitivaP4: number;
+  promedioFinal: number;
   observations?: string;
 }
 
@@ -61,22 +83,53 @@ const GradesManagement: React.FC = () => {
     'Formación Integral'
   ];
 
+  // Competencias por asignatura (ejemplo para Lengua Española)
+  const competenciasPorBloque = {
+    'PC1': [
+      { codigo: 'CE1', descripcion: 'Analiza textos narrativos' },
+      { codigo: 'CE2', descripcion: 'Identifica ideas principales' },
+      { codigo: 'CE3', descripcion: 'Comprende vocabulario contextual' }
+    ],
+    'PC2': [
+      { codigo: 'CE1', descripcion: 'Redacta ideas con coherencia' },
+      { codigo: 'CE2', descripcion: 'Utiliza conectores apropiados' },
+      { codigo: 'CE3', descripcion: 'Aplica reglas ortográficas' }
+    ],
+    'PC3': [
+      { codigo: 'CE1', descripcion: 'Interpreta textos poéticos' },
+      { codigo: 'CE2', descripcion: 'Reconoce figuras literarias' },
+      { codigo: 'CE3', descripcion: 'Expresa creatividad escrita' }
+    ],
+    'PC4': [
+      { codigo: 'CE1', descripcion: 'Argumenta puntos de vista' },
+      { codigo: 'CE2', descripcion: 'Estructura textos argumentativos' },
+      { codigo: 'CE3', descripcion: 'Defiende posiciones críticas' }
+    ]
+  };
+
   const mockStudents: StudentGrade[] = [
     {
       id: '1',
       studentId: 'EST001',
       name: 'Ana María González',
       rne: '20240001',
-      p1: 85,
-      p2: 78,
-      p3: 92,
-      p4: 88,
+      pc1: { ce1: 85, ce2: 78, ce3: 92 },
+      pc2: { ce1: 80, ce2: 85, ce3: 88 },
+      pc3: { ce1: 90, ce2: 87, ce3: 85 },
+      pc4: { ce1: 88, ce2: 90, ce3: 92 },
       rp1: undefined,
-      rp2: 82,
+      rp2: undefined,
       rp3: undefined,
       rp4: undefined,
-      blockAverage: 86.75,
-      finalAverage: 86.75,
+      promedioPc1: 85,
+      promedioPc2: 84.33,
+      promedioPc3: 87.33,
+      promedioPc4: 90,
+      definitivaP1: 85,
+      definitivaP2: 84.33,
+      definitivaP3: 87.33,
+      definitivaP4: 90,
+      promedioFinal: 86.67,
       observations: 'Excelente participación en clase'
     },
     {
@@ -84,34 +137,24 @@ const GradesManagement: React.FC = () => {
       studentId: 'EST002',
       name: 'Carlos Rodríguez Pérez',
       rne: '20240002',
-      p1: 72,
-      p2: 68,
-      p3: 75,
-      p4: 70,
+      pc1: { ce1: 72, ce2: 68, ce3: 75 },
+      pc2: { ce1: 70, ce2: 75, ce3: 72 },
+      pc3: { ce1: 78, ce2: 70, ce3: 73 },
+      pc4: { ce1: 75, ce2: 77, ce3: 80 },
       rp1: undefined,
-      rp2: 75,
+      rp2: 78,
       rp3: undefined,
       rp4: undefined,
-      blockAverage: 72.5,
-      finalAverage: 72.5,
+      promedioPc1: 71.67,
+      promedioPc2: 72.33,
+      promedioPc3: 73.67,
+      promedioPc4: 77.33,
+      definitivaP1: 71.67,
+      definitivaP2: 78,
+      definitivaP3: 73.67,
+      definitivaP4: 77.33,
+      promedioFinal: 75.17,
       observations: 'Necesita refuerzo en comprensión lectora'
-    },
-    {
-      id: '3',
-      studentId: 'EST003',
-      name: 'María José Martínez',
-      rne: '20240003',
-      p1: 95,
-      p2: 90,
-      p3: 88,
-      p4: 93,
-      rp1: undefined,
-      rp2: undefined,
-      rp3: undefined,
-      rp4: undefined,
-      blockAverage: 91.5,
-      finalAverage: 91.5,
-      observations: 'Estudiante destacada, líder natural'
     }
   ];
 
@@ -125,7 +168,32 @@ const GradesManagement: React.FC = () => {
     }
   };
 
-  const updateGrade = (studentId: string, field: keyof StudentGrade, value: number) => {
+  const calculatePromedioBloque = (bloque: BloquePuntuaciones): number => {
+    const values = Object.values(bloque).filter(v => v !== undefined && v !== null) as number[];
+    if (values.length === 0) return 0;
+    return Math.round((values.reduce((sum, v) => sum + v, 0) / values.length) * 100) / 100;
+  };
+
+  const calculateNotaDefinitiva = (promedioBloque: number, rp?: number): number => {
+    if (rp !== undefined && rp > promedioBloque) {
+      return rp;
+    }
+    return promedioBloque;
+  };
+
+  const calculatePromedioFinal = (grade: StudentGrade): number => {
+    const definitivas = [
+      grade.definitivaP1,
+      grade.definitivaP2,
+      grade.definitivaP3,
+      grade.definitivaP4
+    ].filter(d => d > 0);
+    
+    if (definitivas.length === 0) return 0;
+    return Math.round((definitivas.reduce((sum, d) => sum + d, 0) / definitivas.length) * 100) / 100;
+  };
+
+  const updateCompetenciaGrade = (studentId: string, bloque: 'pc1' | 'pc2' | 'pc3' | 'pc4', competencia: 'ce1' | 'ce2' | 'ce3', value: number) => {
     if (value < 0 || value > 100) {
       toast({
         title: "Error",
@@ -137,40 +205,57 @@ const GradesManagement: React.FC = () => {
 
     setGrades(prev => prev.map(grade => {
       if (grade.id === studentId) {
-        const updated = { ...grade, [field]: value };
+        const updated = { ...grade };
+        updated[bloque] = { ...updated[bloque], [competencia]: value };
+        
         // Recalcular promedios
-        updated.blockAverage = calculateBlockAverage(updated);
-        updated.finalAverage = updated.blockAverage;
+        updated.promedioPc1 = calculatePromedioBloque(updated.pc1);
+        updated.promedioPc2 = calculatePromedioBloque(updated.pc2);
+        updated.promedioPc3 = calculatePromedioBloque(updated.pc3);
+        updated.promedioPc4 = calculatePromedioBloque(updated.pc4);
+        
+        // Recalcular notas definitivas
+        updated.definitivaP1 = calculateNotaDefinitiva(updated.promedioPc1, updated.rp1);
+        updated.definitivaP2 = calculateNotaDefinitiva(updated.promedioPc2, updated.rp2);
+        updated.definitivaP3 = calculateNotaDefinitiva(updated.promedioPc3, updated.rp3);
+        updated.definitivaP4 = calculateNotaDefinitiva(updated.promedioPc4, updated.rp4);
+        
+        // Recalcular promedio final
+        updated.promedioFinal = calculatePromedioFinal(updated);
+        
         return updated;
       }
       return grade;
     }));
   };
 
-  const calculateBlockAverage = (grade: StudentGrade): number => {
-    const periods = [
-      grade.rp1 && grade.rp1 > (grade.p1 || 0) ? grade.rp1 : grade.p1 || 0,
-      grade.rp2 && grade.rp2 > (grade.p2 || 0) ? grade.rp2 : grade.p2 || 0,
-      grade.rp3 && grade.rp3 > (grade.p3 || 0) ? grade.rp3 : grade.p3 || 0,
-      grade.rp4 && grade.rp4 > (grade.p4 || 0) ? grade.rp4 : grade.p4 || 0
-    ];
-    
-    const validPeriods = periods.filter(p => p > 0);
-    return validPeriods.length > 0 ? 
-      Math.round((validPeriods.reduce((sum, p) => sum + p, 0) / validPeriods.length) * 100) / 100 : 0;
-  };
+  const updateRecuperacion = (studentId: string, bloque: 'rp1' | 'rp2' | 'rp3' | 'rp4', value: number | undefined) => {
+    if (value !== undefined && (value < 0 || value > 100)) {
+      toast({
+        title: "Error",
+        description: "Las calificaciones de recuperación deben estar entre 0 y 100",
+        variant: "destructive"
+      });
+      return;
+    }
 
-  const calculateAllAverages = () => {
-    setGrades(prev => prev.map(grade => ({
-      ...grade,
-      blockAverage: calculateBlockAverage(grade),
-      finalAverage: calculateBlockAverage(grade)
-    })));
-    
-    toast({
-      title: "Promedios calculados",
-      description: "Todos los promedios han sido recalculados automáticamente",
-    });
+    setGrades(prev => prev.map(grade => {
+      if (grade.id === studentId) {
+        const updated = { ...grade, [bloque]: value };
+        
+        // Recalcular notas definitivas
+        updated.definitivaP1 = calculateNotaDefinitiva(updated.promedioPc1, updated.rp1);
+        updated.definitivaP2 = calculateNotaDefinitiva(updated.promedioPc2, updated.rp2);
+        updated.definitivaP3 = calculateNotaDefinitiva(updated.promedioPc3, updated.rp3);
+        updated.definitivaP4 = calculateNotaDefinitiva(updated.promedioPc4, updated.rp4);
+        
+        // Recalcular promedio final
+        updated.promedioFinal = calculatePromedioFinal(updated);
+        
+        return updated;
+      }
+      return grade;
+    }));
   };
 
   const saveGrades = () => {
@@ -208,10 +293,10 @@ const GradesManagement: React.FC = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-title font-montserrat text-minerd-blue">
-            Gestión de Calificaciones
+            Gestión de Calificaciones por Bloques de Competencias
           </h1>
           <p className="text-body font-opensans text-gray-600">
-            Sistema de calificaciones por bloques de competencias
+            Sistema de calificaciones por competencias específicas
           </p>
         </div>
         <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
@@ -227,7 +312,7 @@ const GradesManagement: React.FC = () => {
             Selección de Sección y Asignatura
           </CardTitle>
           <CardDescription className="font-opensans">
-            Selecciona la sección y asignatura para gestionar las calificaciones
+            Selecciona la sección y asignatura para gestionar las calificaciones por competencias
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -283,17 +368,17 @@ const GradesManagement: React.FC = () => {
           <CardContent className="pt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div>
-                <h4 className="font-semibold text-blue-900 mb-2">¿Qué significa RP?</h4>
+                <h4 className="font-semibold text-blue-900 mb-2">Sistema de Bloques de Competencias</h4>
                 <p className="text-blue-800">
-                  <strong>RP (Recuperación Pedagógica):</strong> Si el estudiante no alcanza el mínimo en un período, 
-                  puede realizar actividades de refuerzo. Si la nota RP es mayor que P, se usa RP para el cálculo.
+                  Cada bloque contiene competencias específicas (CE) que se evalúan individualmente. 
+                  El promedio del bloque se calcula automáticamente.
                 </p>
               </div>
               <div>
-                <h4 className="font-semibold text-blue-900 mb-2">Cálculo de Promedios</h4>
+                <h4 className="font-semibold text-blue-900 mb-2">Recuperación Pedagógica (RP)</h4>
                 <p className="text-blue-800">
-                  El promedio se calcula automáticamente considerando la mejor nota entre P y RP para cada período.
-                  Escala: 0-100 puntos.
+                  Si la RP es mayor que el promedio del bloque, se toma la RP como nota definitiva. 
+                  El promedio final es el promedio de las 4 notas definitivas.
                 </p>
               </div>
             </div>
@@ -301,108 +386,142 @@ const GradesManagement: React.FC = () => {
         </Card>
       )}
 
-      {/* Grades Table */}
+      {/* Grades by Student */}
       {grades.length > 0 && (
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <div>
-                <CardTitle className="font-montserrat">
-                  Calificaciones - {selectedSubject}
-                </CardTitle>
-                <CardDescription className="font-opensans">
-                  {sections.find(s => s.id === selectedSection)?.name} • {grades.length} estudiantes
-                </CardDescription>
-              </div>
-              <div className="flex space-x-2">
-                <Button 
-                  variant="outline" 
-                  onClick={calculateAllAverages}
-                  className="flex items-center"
-                >
-                  <Calculator className="w-4 h-4 mr-2" />
-                  Calcular Promedios
-                </Button>
-                <Button 
-                  onClick={saveGrades}
-                  className="bg-minerd-green hover:bg-green-700 flex items-center"
-                >
-                  <Save className="w-4 h-4 mr-2" />
-                  Guardar Cambios
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left p-2 sticky left-0 bg-white z-10 min-w-[200px]">Estudiante</th>
-                    <th className="text-center p-2 min-w-[80px]">P1</th>
-                    <th className="text-center p-2 min-w-[80px]">RP1</th>
-                    <th className="text-center p-2 min-w-[80px]">P2</th>
-                    <th className="text-center p-2 min-w-[80px]">RP2</th>
-                    <th className="text-center p-2 min-w-[80px]">P3</th>
-                    <th className="text-center p-2 min-w-[80px]">RP3</th>
-                    <th className="text-center p-2 min-w-[80px]">P4</th>
-                    <th className="text-center p-2 min-w-[80px]">RP4</th>
-                    <th className="text-center p-2 min-w-[100px] bg-blue-50">Promedio</th>
-                    <th className="text-center p-2 min-w-[80px]">Obs.</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {grades.map((grade, index) => (
-                    <tr key={grade.id} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                      <td className="p-2 sticky left-0 bg-inherit z-10">
-                        <div className="flex items-center space-x-3">
-                          <Avatar className="h-8 w-8">
-                            <AvatarImage src={grade.avatar} />
-                            <AvatarFallback className="text-xs">
-                              {grade.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium text-sm">{grade.name}</p>
-                            <p className="text-xs text-gray-500">RNE: {grade.rne}</p>
+        <div className="space-y-6">
+          {grades.map((grade) => (
+            <Card key={grade.id}>
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center space-x-3">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={grade.avatar} />
+                      <AvatarFallback>
+                        {grade.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <CardTitle className="text-lg">{grade.name}</CardTitle>
+                      <CardDescription>RNE: {grade.rne}</CardDescription>
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <div className="bg-blue-100 p-3 rounded-lg">
+                      <p className="text-sm text-blue-700 font-medium">Promedio Final</p>
+                      <p className="text-2xl font-bold text-blue-900">{grade.promedioFinal.toFixed(2)}</p>
+                    </div>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4">
+                  {['PC1', 'PC2', 'PC3', 'PC4'].map((bloqueNombre, bloqueIndex) => {
+                    const bloqueProp = `pc${bloqueIndex + 1}` as 'pc1' | 'pc2' | 'pc3' | 'pc4';
+                    const rpProp = `rp${bloqueIndex + 1}` as 'rp1' | 'rp2' | 'rp3' | 'rp4';
+                    const promedioProp = `promedioPc${bloqueIndex + 1}` as 'promedioPc1' | 'promedioPc2' | 'promedioPc3' | 'promedioPc4';
+                    const definitivaProp = `definitivaP${bloqueIndex + 1}` as 'definitivaP1' | 'definitivaP2' | 'definitivaP3' | 'definitivaP4';
+                    
+                    return (
+                      <Card key={bloqueNombre} className="border-l-4 border-l-blue-500">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-sm flex items-center">
+                            <Target className="w-4 h-4 mr-1" />
+                            {bloqueNombre} - Bloque {bloqueIndex + 1}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          {/* Competencias */}
+                          <div className="space-y-2">
+                            <h5 className="text-xs font-semibold text-gray-600">Competencias Específicas:</h5>
+                            {competenciasPorBloque[bloqueNombre as keyof typeof competenciasPorBloque].map((comp, compIndex) => (
+                              <div key={comp.codigo} className="space-y-1">
+                                <Badge variant="outline" className="text-xs mb-1">
+                                  {comp.codigo}: {comp.descripcion}
+                                </Badge>
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  max="100"
+                                  placeholder="0-100"
+                                  value={grade[bloqueProp][`ce${compIndex + 1}` as 'ce1' | 'ce2' | 'ce3'] || ''}
+                                  onChange={(e) => updateCompetenciaGrade(
+                                    grade.id, 
+                                    bloqueProp, 
+                                    `ce${compIndex + 1}` as 'ce1' | 'ce2' | 'ce3', 
+                                    Number(e.target.value)
+                                  )}
+                                  className="h-8 text-sm"
+                                />
+                              </div>
+                            ))}
                           </div>
-                        </div>
-                      </td>
-                      {['p1', 'rp1', 'p2', 'rp2', 'p3', 'rp3', 'p4', 'rp4'].map((field) => (
-                        <td key={field} className="p-1">
-                          <Input
-                            type="number"
-                            min="0"
-                            max="100"
-                            value={grade[field as keyof StudentGrade] || ''}
-                            onChange={(e) => updateGrade(grade.id, field as keyof StudentGrade, Number(e.target.value))}
-                            className="w-full text-center h-8"
-                            placeholder="--"
-                          />
-                        </td>
-                      ))}
-                      <td className="p-2 text-center bg-blue-50">
-                        <Badge variant="secondary" className="font-bold">
-                          {grade.finalAverage.toFixed(1)}
-                        </Badge>
-                      </td>
-                      <td className="p-1 text-center">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => openObservationModal(grade.id, grade.observations)}
-                          className="h-8 w-8 p-0"
-                        >
-                          <MessageSquare className="h-4 w-4" />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+                          
+                          {/* Promedio del Bloque */}
+                          <div className="bg-gray-50 p-2 rounded">
+                            <label className="text-xs font-semibold text-gray-600">Promedio {bloqueNombre}:</label>
+                            <div className="text-lg font-bold text-blue-700">
+                              {grade[promedioProp].toFixed(2)}
+                            </div>
+                          </div>
+                          
+                          {/* Recuperación Pedagógica */}
+                          <div className="space-y-1">
+                            <label className="text-xs font-semibold text-gray-600">RP{bloqueIndex + 1}:</label>
+                            <Input
+                              type="number"
+                              min="0"
+                              max="100"
+                              placeholder="Opcional"
+                              value={grade[rpProp] || ''}
+                              onChange={(e) => updateRecuperacion(
+                                grade.id, 
+                                rpProp, 
+                                e.target.value ? Number(e.target.value) : undefined
+                              )}
+                              className="h-8 text-sm"
+                            />
+                          </div>
+                          
+                          {/* Nota Definitiva */}
+                          <div className="bg-green-50 p-2 rounded border border-green-200">
+                            <label className="text-xs font-semibold text-green-700">Nota Definitiva:</label>
+                            <div className="text-lg font-bold text-green-800">
+                              {grade[definitivaProp].toFixed(2)}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+                
+                {/* Observaciones */}
+                <div className="mt-4 flex justify-end">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => openObservationModal(grade.id, grade.observations)}
+                    className="flex items-center"
+                  >
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    Observaciones
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+          
+          {/* Save Button */}
+          <div className="flex justify-center">
+            <Button 
+              onClick={saveGrades}
+              className="bg-minerd-green hover:bg-green-700 flex items-center px-8"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              Guardar Todas las Calificaciones
+            </Button>
+          </div>
+        </div>
       )}
 
       {/* Observations Modal */}
