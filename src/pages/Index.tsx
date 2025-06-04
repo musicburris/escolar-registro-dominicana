@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import LoginForm from '@/components/auth/LoginForm';
@@ -10,6 +9,8 @@ import SectionsManagement from '@/components/sections/SectionsManagement';
 import StudentsManagement from '@/components/students/StudentsManagement';
 import UsersManagement from '@/components/users/UsersManagement';
 import AttendanceManagement from '@/components/attendance/AttendanceManagement';
+import GradesManagement from '@/components/grades/GradesManagement';
+import ReportsManagement from '@/components/reports/ReportsManagement';
 import { Loader2 } from 'lucide-react';
 
 const Index = () => {
@@ -108,27 +109,9 @@ const Index = () => {
       case 'attendance':
         return <AttendanceManagement />;
       case 'grades':
-        return (
-          <div className="text-center py-20">
-            <h2 className="text-2xl font-montserrat text-minerd-blue mb-4">
-              Gestión de Calificaciones
-            </h2>
-            <p className="text-gray-600 font-opensans">
-              Sistema de calificaciones por bloques - Próximamente
-            </p>
-          </div>
-        );
+        return <GradesManagement />;
       case 'reports':
-        return (
-          <div className="text-center py-20">
-            <h2 className="text-2xl font-montserrat text-minerd-blue mb-4">
-              Boletas y Reportes
-            </h2>
-            <p className="text-gray-600 font-opensans">
-              Generación de boletas PDF - Próximamente
-            </p>
-          </div>
-        );
+        return <ReportsManagement />;
       case 'curriculum':
         return (
           <div className="text-center py-20">

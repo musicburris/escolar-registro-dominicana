@@ -1,37 +1,28 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Plus, Edit, Trash2, Search, Users, Eye, EyeOff } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { toast } from '@/hooks/use-toast';
+import { User, UserPlus, Edit2, Trash2, Search, Filter } from 'lucide-react';
+
+interface UserData {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  phone: string;
+  isActive: boolean;
+  createdAt: string;
+  assignedSections: string[];
+  avatar?: string;
+}
 
 const UsersManagement: React.FC = () => {
   const { toast } = useToast();
@@ -169,7 +160,7 @@ const UsersManagement: React.FC = () => {
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={handleCreateUser} className="bg-minerd-green hover:bg-green-700">
-              <Plus className="w-4 h-4 mr-2" />
+              <UserPlus className="w-4 h-4 mr-2" />
               Agregar Usuario
             </Button>
           </DialogTrigger>
@@ -294,7 +285,7 @@ const UsersManagement: React.FC = () => {
                         variant="outline"
                         onClick={() => handleEditUser(user)}
                       >
-                        <Edit className="w-3 h-3" />
+                        <Edit2 className="w-3 h-3" />
                       </Button>
                       <Button
                         size="sm"
