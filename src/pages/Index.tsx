@@ -6,6 +6,10 @@ import Header from '@/components/layout/Header';
 import Sidebar from '@/components/layout/Sidebar';
 import AdminDashboard from '@/components/dashboard/AdminDashboard';
 import TeacherDashboard from '@/components/dashboard/TeacherDashboard';
+import SectionsManagement from '@/components/sections/SectionsManagement';
+import StudentsManagement from '@/components/students/StudentsManagement';
+import UsersManagement from '@/components/users/UsersManagement';
+import AttendanceManagement from '@/components/attendance/AttendanceManagement';
 import { Loader2 } from 'lucide-react';
 
 const Index = () => {
@@ -92,21 +96,95 @@ const Index = () => {
   };
 
   const renderContent = () => {
-    if (activeSection === 'dashboard') {
-      return renderDashboard();
+    switch (activeSection) {
+      case 'dashboard':
+        return renderDashboard();
+      case 'sections':
+        return <SectionsManagement />;
+      case 'students':
+        return <StudentsManagement />;
+      case 'users':
+        return <UsersManagement />;
+      case 'attendance':
+        return <AttendanceManagement />;
+      case 'grades':
+        return (
+          <div className="text-center py-20">
+            <h2 className="text-2xl font-montserrat text-minerd-blue mb-4">
+              Gestión de Calificaciones
+            </h2>
+            <p className="text-gray-600 font-opensans">
+              Sistema de calificaciones por bloques - Próximamente
+            </p>
+          </div>
+        );
+      case 'reports':
+        return (
+          <div className="text-center py-20">
+            <h2 className="text-2xl font-montserrat text-minerd-blue mb-4">
+              Boletas y Reportes
+            </h2>
+            <p className="text-gray-600 font-opensans">
+              Generación de boletas PDF - Próximamente
+            </p>
+          </div>
+        );
+      case 'curriculum':
+        return (
+          <div className="text-center py-20">
+            <h2 className="text-2xl font-montserrat text-minerd-blue mb-4">
+              Configuración Curricular
+            </h2>
+            <p className="text-gray-600 font-opensans">
+              Asignaturas y competencias - Próximamente
+            </p>
+          </div>
+        );
+      case 'observations':
+        return (
+          <div className="text-center py-20">
+            <h2 className="text-2xl font-montserrat text-minerd-blue mb-4">
+              Observaciones
+            </h2>
+            <p className="text-gray-600 font-opensans">
+              Observaciones y recomendaciones - Próximamente
+            </p>
+          </div>
+        );
+      case 'audit':
+        return (
+          <div className="text-center py-20">
+            <h2 className="text-2xl font-montserrat text-minerd-blue mb-4">
+              Histórico y Auditoría
+            </h2>
+            <p className="text-gray-600 font-opensans">
+              Registro de actividades del sistema - Próximamente
+            </p>
+          </div>
+        );
+      case 'settings':
+        return (
+          <div className="text-center py-20">
+            <h2 className="text-2xl font-montserrat text-minerd-blue mb-4">
+              Configuración del Sistema
+            </h2>
+            <p className="text-gray-600 font-opensans">
+              Configuración general del centro - Próximamente
+            </p>
+          </div>
+        );
+      default:
+        return (
+          <div className="text-center py-20">
+            <h2 className="text-2xl font-montserrat text-minerd-blue mb-4">
+              {activeSection.charAt(0).toUpperCase() + activeSection.slice(1)}
+            </h2>
+            <p className="text-gray-600 font-opensans">
+              Esta sección estará disponible próximamente
+            </p>
+          </div>
+        );
     }
-    
-    // Placeholder for other sections
-    return (
-      <div className="text-center py-20">
-        <h2 className="text-2xl font-montserrat text-minerd-blue mb-4">
-          {activeSection.charAt(0).toUpperCase() + activeSection.slice(1)}
-        </h2>
-        <p className="text-gray-600 font-opensans">
-          Esta sección estará disponible próximamente
-        </p>
-      </div>
-    );
   };
 
   return (

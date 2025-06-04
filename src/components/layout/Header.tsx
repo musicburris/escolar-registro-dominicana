@@ -34,15 +34,15 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, isMobileMenuOpen }) => {
     return labels[role as keyof typeof labels] || role;
   };
 
-  const getRoleBadgeVariant = (role: string) => {
-    const variants = {
+  const getRoleBadgeVariant = (role: string): "default" | "destructive" | "outline" | "secondary" => {
+    const variants: Record<string, "default" | "destructive" | "outline" | "secondary"> = {
       admin: 'default',
       teacher: 'secondary',
       auxiliary: 'outline',
       parent: 'destructive',
       student: 'secondary'
     };
-    return variants[role as keyof typeof variants] || 'default';
+    return variants[role] || 'default';
   };
 
   return (
