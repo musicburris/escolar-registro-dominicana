@@ -30,7 +30,15 @@ const UsersManagement: React.FC = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [newUser, setNewUser] = useState<Omit<User, 'id' | 'createdAt' | 'avatar' | 'isActive'> & { isActive: boolean }>;
+  const [newUser, setNewUser] = useState<Omit<User, 'id' | 'createdAt' | 'avatar'>>({
+    email: '',
+    firstName: '',
+    lastName: '',
+    role: 'student',
+    phone: '',
+    isActive: true,
+    assignedSections: [],
+  });
 
   const roles = ['admin', 'teacher', 'auxiliary', 'parent', 'student'];
   const sections = [
@@ -523,7 +531,7 @@ const UsersManagement: React.FC = () => {
               Cancelar
             </Button>
             <Button type="submit" onClick={() => {
-              updateUser(selectedUser.id, selectedUser);
+              updateUser(selectedUser!.id, selectedUser!);
               closeEditModal();
             }}>
               Guardar
