@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import LoginForm from '@/components/auth/LoginForm';
@@ -15,6 +14,7 @@ import ReportsManagement from '@/components/reports/ReportsManagement';
 import CurriculumManagement from '@/components/curriculum/CurriculumManagement';
 import ObservationsManagement from '@/components/observations/ObservationsManagement';
 import AuditManagement from '@/components/audit/AuditManagement';
+import SystemSettings from '@/components/settings/SystemSettings';
 import { Loader2 } from 'lucide-react';
 
 const Index = () => {
@@ -123,16 +123,7 @@ const Index = () => {
       case 'audit':
         return <AuditManagement />;
       case 'settings':
-        return (
-          <div className="text-center py-20">
-            <h2 className="text-2xl font-montserrat text-minerd-blue mb-4">
-              Configuración del Sistema
-            </h2>
-            <p className="text-gray-600 font-opensans">
-              Configuración general del centro - Próximamente
-            </p>
-          </div>
-        );
+        return <SystemSettings />;
       default:
         return (
           <div className="text-center py-20">
