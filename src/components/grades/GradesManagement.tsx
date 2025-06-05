@@ -9,17 +9,18 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
-import { Award, Calculator, MessageSquare, Save, BookOpen, Target } from 'lucide-react';
+import { Award, Calculator, MessageSquare, Save, BookOpen, Target, Settings, Plus, Trash2 } from 'lucide-react';
+import { BloqueCompetencias, Competencia } from '@/types/academic';
 
-interface Competencia {
-  codigo: string;
-  descripcion: string;
-}
-
-interface BloquePuntuaciones {
-  ce1?: number;
-  ce2?: number;
-  ce3?: number;
+interface BloquePeriodos {
+  p1?: number;
+  p2?: number;
+  p3?: number;
+  p4?: number;
+  rp1?: number;
+  rp2?: number;
+  rp3?: number;
+  rp4?: number;
 }
 
 interface StudentGrade {
@@ -28,27 +29,15 @@ interface StudentGrade {
   name: string;
   rne: string;
   avatar?: string;
-  // Puntuaciones por competencia específica en cada bloque
-  pc1: BloquePuntuaciones;
-  pc2: BloquePuntuaciones;
-  pc3: BloquePuntuaciones;
-  pc4: BloquePuntuaciones;
-  // Recuperaciones pedagógicas
-  rp1?: number;
-  rp2?: number;
-  rp3?: number;
-  rp4?: number;
-  // Promedios calculados
-  promedioPc1: number;
-  promedioPc2: number;
-  promedioPc3: number;
-  promedioPc4: number;
-  // Notas definitivas (considerando RP)
-  definitivaP1: number;
-  definitivaP2: number;
-  definitivaP3: number;
-  definitivaP4: number;
-  promedioFinal: number;
+  pc1: BloquePeriodos;
+  pc2: BloquePeriodos;
+  pc3: BloquePeriodos;
+  pc4: BloquePeriodos;
+  promedioPC1: number;
+  promedioPC2: number;
+  promedioPC3: number;
+  promedioPC4: number;
+  calificacionFinal: number;
   observations?: string;
 }
 
@@ -56,6 +45,9 @@ const GradesManagement: React.FC = () => {
   const [selectedSection, setSelectedSection] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('');
   const [grades, setGrades] = useState<StudentGrade[]>([]);
+  const [bloquesCompetencias, setBloquesCompetencias] = useState<BloqueCompetencias[]>([]);
+  const [configModalOpen, setConfigModalOpen] = useState(false);
+  const [editingBloque, setEditingBloque] = useState<BloqueCompetencias | null>(null);
   const [observationModal, setObservationModal] = useState<{
     open: boolean;
     studentId: string;
@@ -83,29 +75,53 @@ const GradesManagement: React.FC = () => {
     'Formación Integral'
   ];
 
-  // Competencias por asignatura (ejemplo para Lengua Española)
-  const competenciasPorBloque = {
-    'PC1': [
-      { codigo: 'CE1', descripcion: 'Analiza textos narrativos' },
-      { codigo: 'CE2', descripcion: 'Identifica ideas principales' },
-      { codigo: 'CE3', descripcion: 'Comprende vocabulario contextual' }
-    ],
-    'PC2': [
-      { codigo: 'CE1', descripcion: 'Redacta ideas con coherencia' },
-      { codigo: 'CE2', descripcion: 'Utiliza conectores apropiados' },
-      { codigo: 'CE3', descripcion: 'Aplica reglas ortográficas' }
-    ],
-    'PC3': [
-      { codigo: 'CE1', descripcion: 'Interpreta textos poéticos' },
-      { codigo: 'CE2', descripcion: 'Reconoce figuras literarias' },
-      { codigo: 'CE3', descripcion: 'Expresa creatividad escrita' }
-    ],
-    'PC4': [
-      { codigo: 'CE1', descripcion: 'Argumenta puntos de vista' },
-      { codigo: 'CE2', descripcion: 'Estructura textos argumentativos' },
-      { codigo: 'CE3', descripcion: 'Defiende posiciones críticas' }
-    ]
-  };
+  // Mock bloques de competencias
+  const mockBloques: BloqueCompetencias[] = [
+    {
+      id: '1',
+      nombre: 'Comprensión Lectora',
+      codigo: 'PC1',
+      subjectId: 'lengua',
+      competencias: [
+        { id: '1', codigo: 'CE1', descripcion: 'Analiza textos narrativos', bloqueId: '1' },
+        { id: '2', codigo: 'CE2', descripcion: 'Identifica ideas principales', bloqueId: '1' },
+        { id: '3', codigo: 'CE3', descripcion: 'Comprende vocabulario contextual', bloqueId: '1' }
+      ]
+    },
+    {
+      id: '2',
+      nombre: 'Producción Escrita',
+      codigo: 'PC2',
+      subjectId: 'lengua',
+      competencias: [
+        { id: '4', codigo: 'CE1', descripcion: 'Redacta ideas con coherencia', bloqueId: '2' },
+        { id: '5', codigo: 'CE2', descripcion: 'Utiliza conectores apropiados', bloqueId: '2' },
+        { id: '6', codigo: 'CE3', descripcion: 'Aplica reglas ortográficas', bloqueId: '2' }
+      ]
+    },
+    {
+      id: '3',
+      nombre: 'Literatura',
+      codigo: 'PC3',
+      subjectId: 'lengua',
+      competencias: [
+        { id: '7', codigo: 'CE1', descripcion: 'Interpreta textos poéticos', bloqueId: '3' },
+        { id: '8', codigo: 'CE2', descripcion: 'Reconoce figuras literarias', bloqueId: '3' },
+        { id: '9', codigo: 'CE3', descripcion: 'Expresa creatividad escrita', bloqueId: '3' }
+      ]
+    },
+    {
+      id: '4',
+      nombre: 'Comunicación Oral',
+      codigo: 'PC4',
+      subjectId: 'lengua',
+      competencias: [
+        { id: '10', codigo: 'CE1', descripcion: 'Argumenta puntos de vista', bloqueId: '4' },
+        { id: '11', codigo: 'CE2', descripcion: 'Estructura textos argumentativos', bloqueId: '4' },
+        { id: '12', codigo: 'CE3', descripcion: 'Defiende posiciones críticas', bloqueId: '4' }
+      ]
+    }
+  ];
 
   const mockStudents: StudentGrade[] = [
     {
@@ -113,23 +129,15 @@ const GradesManagement: React.FC = () => {
       studentId: 'EST001',
       name: 'Ana María González',
       rne: '20240001',
-      pc1: { ce1: 85, ce2: 78, ce3: 92 },
-      pc2: { ce1: 80, ce2: 85, ce3: 88 },
-      pc3: { ce1: 90, ce2: 87, ce3: 85 },
-      pc4: { ce1: 88, ce2: 90, ce3: 92 },
-      rp1: undefined,
-      rp2: undefined,
-      rp3: undefined,
-      rp4: undefined,
-      promedioPc1: 85,
-      promedioPc2: 84.33,
-      promedioPc3: 87.33,
-      promedioPc4: 90,
-      definitivaP1: 85,
-      definitivaP2: 84.33,
-      definitivaP3: 87.33,
-      definitivaP4: 90,
-      promedioFinal: 86.67,
+      pc1: { p1: 85, p2: 78, p3: 92, p4: 88 },
+      pc2: { p1: 80, p2: 85, p3: 88, p4: 90 },
+      pc3: { p1: 90, p2: 87, p3: 85, p4: 92 },
+      pc4: { p1: 88, p2: 90, p3: 92, p4: 85 },
+      promedioPC1: 85.75,
+      promedioPC2: 85.75,
+      promedioPC3: 88.5,
+      promedioPC4: 88.75,
+      calificacionFinal: 87.19,
       observations: 'Excelente participación en clase'
     },
     {
@@ -137,23 +145,15 @@ const GradesManagement: React.FC = () => {
       studentId: 'EST002',
       name: 'Carlos Rodríguez Pérez',
       rne: '20240002',
-      pc1: { ce1: 72, ce2: 68, ce3: 75 },
-      pc2: { ce1: 70, ce2: 75, ce3: 72 },
-      pc3: { ce1: 78, ce2: 70, ce3: 73 },
-      pc4: { ce1: 75, ce2: 77, ce3: 80 },
-      rp1: undefined,
-      rp2: 78,
-      rp3: undefined,
-      rp4: undefined,
-      promedioPc1: 71.67,
-      promedioPc2: 72.33,
-      promedioPc3: 73.67,
-      promedioPc4: 77.33,
-      definitivaP1: 71.67,
-      definitivaP2: 78,
-      definitivaP3: 73.67,
-      definitivaP4: 77.33,
-      promedioFinal: 75.17,
+      pc1: { p1: 72, p2: 68, p3: 75, p4: 70, rp2: 78 },
+      pc2: { p1: 70, p2: 75, p3: 72, p4: 80 },
+      pc3: { p1: 78, p2: 70, p3: 73, p4: 75 },
+      pc4: { p1: 75, p2: 77, p3: 80, p4: 78 },
+      promedioPC1: 71.25,
+      promedioPC2: 74.25,
+      promedioPC3: 74,
+      promedioPC4: 77.5,
+      calificacionFinal: 74.25,
       observations: 'Necesita refuerzo en comprensión lectora'
     }
   ];
@@ -161,6 +161,7 @@ const GradesManagement: React.FC = () => {
   const loadGrades = () => {
     if (selectedSection && selectedSubject) {
       setGrades(mockStudents);
+      setBloquesCompetencias(mockBloques);
       toast({
         title: "Calificaciones cargadas",
         description: `Datos de ${selectedSubject} - ${sections.find(s => s.id === selectedSection)?.name}`,
@@ -168,32 +169,41 @@ const GradesManagement: React.FC = () => {
     }
   };
 
-  const calculatePromedioBloque = (bloque: BloquePuntuaciones): number => {
-    const values = Object.values(bloque).filter(v => v !== undefined && v !== null) as number[];
-    if (values.length === 0) return 0;
-    return Math.round((values.reduce((sum, v) => sum + v, 0) / values.length) * 100) / 100;
-  };
-
-  const calculateNotaDefinitiva = (promedioBloque: number, rp?: number): number => {
-    if (rp !== undefined && rp > promedioBloque) {
-      return rp;
-    }
-    return promedioBloque;
-  };
-
-  const calculatePromedioFinal = (grade: StudentGrade): number => {
-    const definitivas = [
-      grade.definitivaP1,
-      grade.definitivaP2,
-      grade.definitivaP3,
-      grade.definitivaP4
-    ].filter(d => d > 0);
+  const calculatePromedioPeriodos = (bloque: BloquePeriodos): number => {
+    const periodos = ['p1', 'p2', 'p3', 'p4'] as const;
+    const recuperaciones = ['rp1', 'rp2', 'rp3', 'rp4'] as const;
     
-    if (definitivas.length === 0) return 0;
-    return Math.round((definitivas.reduce((sum, d) => sum + d, 0) / definitivas.length) * 100) / 100;
+    let suma = 0;
+    let count = 0;
+    
+    periodos.forEach((periodo, index) => {
+      const valorPeriodo = bloque[periodo];
+      const valorRP = bloque[recuperaciones[index]];
+      
+      if (valorPeriodo !== undefined) {
+        // Si hay RP y es mayor que el período, usar RP, sino usar período
+        const valorFinal = (valorRP !== undefined && valorRP > valorPeriodo) ? valorRP : valorPeriodo;
+        suma += valorFinal;
+        count++;
+      }
+    });
+    
+    return count > 0 ? Math.round((suma / count) * 100) / 100 : 0;
   };
 
-  const updateCompetenciaGrade = (studentId: string, bloque: 'pc1' | 'pc2' | 'pc3' | 'pc4', competencia: 'ce1' | 'ce2' | 'ce3', value: number) => {
+  const calculateCalificacionFinal = (grade: StudentGrade): number => {
+    const promedios = [
+      grade.promedioPC1,
+      grade.promedioPC2,
+      grade.promedioPC3,
+      grade.promedioPC4
+    ].filter(p => p > 0);
+    
+    if (promedios.length === 0) return 0;
+    return Math.round((promedios.reduce((sum, p) => sum + p, 0) / promedios.length) * 100) / 100;
+  };
+
+  const updatePeriodoGrade = (studentId: string, bloque: 'pc1' | 'pc2' | 'pc3' | 'pc4', periodo: string, value: number) => {
     if (value < 0 || value > 100) {
       toast({
         title: "Error",
@@ -206,22 +216,16 @@ const GradesManagement: React.FC = () => {
     setGrades(prev => prev.map(grade => {
       if (grade.id === studentId) {
         const updated = { ...grade };
-        updated[bloque] = { ...updated[bloque], [competencia]: value };
+        updated[bloque] = { ...updated[bloque], [periodo]: value };
         
         // Recalcular promedios
-        updated.promedioPc1 = calculatePromedioBloque(updated.pc1);
-        updated.promedioPc2 = calculatePromedioBloque(updated.pc2);
-        updated.promedioPc3 = calculatePromedioBloque(updated.pc3);
-        updated.promedioPc4 = calculatePromedioBloque(updated.pc4);
+        updated.promedioPC1 = calculatePromedioPeriodos(updated.pc1);
+        updated.promedioPC2 = calculatePromedioPeriodos(updated.pc2);
+        updated.promedioPC3 = calculatePromedioPeriodos(updated.pc3);
+        updated.promedioPC4 = calculatePromedioPeriodos(updated.pc4);
         
-        // Recalcular notas definitivas
-        updated.definitivaP1 = calculateNotaDefinitiva(updated.promedioPc1, updated.rp1);
-        updated.definitivaP2 = calculateNotaDefinitiva(updated.promedioPc2, updated.rp2);
-        updated.definitivaP3 = calculateNotaDefinitiva(updated.promedioPc3, updated.rp3);
-        updated.definitivaP4 = calculateNotaDefinitiva(updated.promedioPc4, updated.rp4);
-        
-        // Recalcular promedio final
-        updated.promedioFinal = calculatePromedioFinal(updated);
+        // Recalcular calificación final
+        updated.calificacionFinal = calculateCalificacionFinal(updated);
         
         return updated;
       }
@@ -229,32 +233,47 @@ const GradesManagement: React.FC = () => {
     }));
   };
 
-  const updateRecuperacion = (studentId: string, bloque: 'rp1' | 'rp2' | 'rp3' | 'rp4', value: number | undefined) => {
-    if (value !== undefined && (value < 0 || value > 100)) {
-      toast({
-        title: "Error",
-        description: "Las calificaciones de recuperación deben estar entre 0 y 100",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setGrades(prev => prev.map(grade => {
-      if (grade.id === studentId) {
-        const updated = { ...grade, [bloque]: value };
-        
-        // Recalcular notas definitivas
-        updated.definitivaP1 = calculateNotaDefinitiva(updated.promedioPc1, updated.rp1);
-        updated.definitivaP2 = calculateNotaDefinitiva(updated.promedioPc2, updated.rp2);
-        updated.definitivaP3 = calculateNotaDefinitiva(updated.promedioPc3, updated.rp3);
-        updated.definitivaP4 = calculateNotaDefinitiva(updated.promedioPc4, updated.rp4);
-        
-        // Recalcular promedio final
-        updated.promedioFinal = calculatePromedioFinal(updated);
-        
-        return updated;
+  const addCompetencia = (bloqueId: string) => {
+    setBloquesCompetencias(prev => prev.map(bloque => {
+      if (bloque.id === bloqueId) {
+        const newCompetencia: Competencia = {
+          id: Date.now().toString(),
+          codigo: `CE${bloque.competencias.length + 1}`,
+          descripcion: 'Nueva competencia',
+          bloqueId
+        };
+        return {
+          ...bloque,
+          competencias: [...bloque.competencias, newCompetencia]
+        };
       }
-      return grade;
+      return bloque;
+    }));
+  };
+
+  const removeCompetencia = (bloqueId: string, competenciaId: string) => {
+    setBloquesCompetencias(prev => prev.map(bloque => {
+      if (bloque.id === bloqueId) {
+        return {
+          ...bloque,
+          competencias: bloque.competencias.filter(c => c.id !== competenciaId)
+        };
+      }
+      return bloque;
+    }));
+  };
+
+  const updateCompetencia = (bloqueId: string, competenciaId: string, descripcion: string) => {
+    setBloquesCompetencias(prev => prev.map(bloque => {
+      if (bloque.id === bloqueId) {
+        return {
+          ...bloque,
+          competencias: bloque.competencias.map(c => 
+            c.id === competenciaId ? { ...c, descripcion } : c
+          )
+        };
+      }
+      return bloque;
     }));
   };
 
@@ -296,12 +315,23 @@ const GradesManagement: React.FC = () => {
             Gestión de Calificaciones por Bloques de Competencias
           </h1>
           <p className="text-body font-opensans text-gray-600">
-            Sistema de calificaciones por competencias específicas
+            Sistema de calificaciones por períodos y recuperaciones pedagógicas
           </p>
         </div>
-        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-          Período Q3 Activo
-        </Badge>
+        <div className="flex gap-2">
+          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+            Período Q3 Activo
+          </Badge>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setConfigModalOpen(true)}
+            className="flex items-center"
+          >
+            <Settings className="w-4 h-4 mr-2" />
+            Configurar Competencias
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -368,17 +398,16 @@ const GradesManagement: React.FC = () => {
           <CardContent className="pt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div>
-                <h4 className="font-semibold text-blue-900 mb-2">Sistema de Bloques de Competencias</h4>
+                <h4 className="font-semibold text-blue-900 mb-2">Sistema de Calificación por Períodos</h4>
                 <p className="text-blue-800">
-                  Cada bloque contiene competencias específicas (CE) que se evalúan individualmente. 
-                  El promedio del bloque se calcula automáticamente.
+                  Cada bloque (PC1-PC4) tiene 4 períodos (P1, P2, P3, P4) con opción de recuperación pedagógica (RP1-RP4). 
+                  El promedio del bloque considera la mejor nota entre período y recuperación.
                 </p>
               </div>
               <div>
-                <h4 className="font-semibold text-blue-900 mb-2">Recuperación Pedagógica (RP)</h4>
+                <h4 className="font-semibold text-blue-900 mb-2">Calificación Final</h4>
                 <p className="text-blue-800">
-                  Si la RP es mayor que el promedio del bloque, se toma la RP como nota definitiva. 
-                  El promedio final es el promedio de las 4 notas definitivas.
+                  La calificación final es el promedio de los 4 bloques de competencias (PC1 + PC2 + PC3 + PC4) ÷ 4.
                 </p>
               </div>
             </div>
@@ -407,86 +436,94 @@ const GradesManagement: React.FC = () => {
                   </div>
                   <div className="text-center">
                     <div className="bg-blue-100 p-3 rounded-lg">
-                      <p className="text-sm text-blue-700 font-medium">Promedio Final</p>
-                      <p className="text-2xl font-bold text-blue-900">{grade.promedioFinal.toFixed(2)}</p>
+                      <p className="text-sm text-blue-700 font-medium">Calificación Final</p>
+                      <p className="text-2xl font-bold text-blue-900">{grade.calificacionFinal.toFixed(2)}</p>
                     </div>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4">
-                  {['PC1', 'PC2', 'PC3', 'PC4'].map((bloqueNombre, bloqueIndex) => {
+                  {bloquesCompetencias.map((bloque, bloqueIndex) => {
                     const bloqueProp = `pc${bloqueIndex + 1}` as 'pc1' | 'pc2' | 'pc3' | 'pc4';
-                    const rpProp = `rp${bloqueIndex + 1}` as 'rp1' | 'rp2' | 'rp3' | 'rp4';
-                    const promedioProp = `promedioPc${bloqueIndex + 1}` as 'promedioPc1' | 'promedioPc2' | 'promedioPc3' | 'promedioPc4';
-                    const definitivaProp = `definitivaP${bloqueIndex + 1}` as 'definitivaP1' | 'definitivaP2' | 'definitivaP3' | 'definitivaP4';
+                    const promedioProp = `promedioPC${bloqueIndex + 1}` as 'promedioPC1' | 'promedioPC2' | 'promedioPC3' | 'promedioPC4';
                     
                     return (
-                      <Card key={bloqueNombre} className="border-l-4 border-l-blue-500">
+                      <Card key={bloque.id} className="border-l-4 border-l-blue-500">
                         <CardHeader className="pb-3">
                           <CardTitle className="text-sm flex items-center">
                             <Target className="w-4 h-4 mr-1" />
-                            {bloqueNombre} - Bloque {bloqueIndex + 1}
+                            {bloque.codigo} - {bloque.nombre}
                           </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3">
                           {/* Competencias */}
                           <div className="space-y-2">
-                            <h5 className="text-xs font-semibold text-gray-600">Competencias Específicas:</h5>
-                            {competenciasPorBloque[bloqueNombre as keyof typeof competenciasPorBloque].map((comp, compIndex) => (
-                              <div key={comp.codigo} className="space-y-1">
-                                <Badge variant="outline" className="text-xs mb-1">
-                                  {comp.codigo}: {comp.descripcion}
-                                </Badge>
-                                <Input
-                                  type="number"
-                                  min="0"
-                                  max="100"
-                                  placeholder="0-100"
-                                  value={grade[bloqueProp][`ce${compIndex + 1}` as 'ce1' | 'ce2' | 'ce3'] || ''}
-                                  onChange={(e) => updateCompetenciaGrade(
-                                    grade.id, 
-                                    bloqueProp, 
-                                    `ce${compIndex + 1}` as 'ce1' | 'ce2' | 'ce3', 
-                                    Number(e.target.value)
-                                  )}
-                                  className="h-8 text-sm"
-                                />
-                              </div>
+                            <h5 className="text-xs font-semibold text-gray-600">Competencias:</h5>
+                            {bloque.competencias.map((comp) => (
+                              <Badge key={comp.id} variant="outline" className="text-xs block mb-1">
+                                {comp.codigo}: {comp.descripcion}
+                              </Badge>
                             ))}
                           </div>
                           
-                          {/* Promedio del Bloque */}
-                          <div className="bg-gray-50 p-2 rounded">
-                            <label className="text-xs font-semibold text-gray-600">Promedio {bloqueNombre}:</label>
-                            <div className="text-lg font-bold text-blue-700">
-                              {grade[promedioProp].toFixed(2)}
+                          {/* Períodos */}
+                          <div className="space-y-2">
+                            <h5 className="text-xs font-semibold text-gray-600">Períodos:</h5>
+                            <div className="grid grid-cols-2 gap-2">
+                              {['p1', 'p2', 'p3', 'p4'].map((periodo) => (
+                                <div key={periodo} className="space-y-1">
+                                  <label className="text-xs font-medium">{periodo.toUpperCase()}:</label>
+                                  <Input
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    placeholder="0-100"
+                                    value={grade[bloqueProp][periodo as keyof BloquePeriodos] || ''}
+                                    onChange={(e) => updatePeriodoGrade(
+                                      grade.id, 
+                                      bloqueProp, 
+                                      periodo, 
+                                      Number(e.target.value)
+                                    )}
+                                    className="h-8 text-sm"
+                                  />
+                                </div>
+                              ))}
                             </div>
                           </div>
                           
-                          {/* Recuperación Pedagógica */}
-                          <div className="space-y-1">
-                            <label className="text-xs font-semibold text-gray-600">RP{bloqueIndex + 1}:</label>
-                            <Input
-                              type="number"
-                              min="0"
-                              max="100"
-                              placeholder="Opcional"
-                              value={grade[rpProp] || ''}
-                              onChange={(e) => updateRecuperacion(
-                                grade.id, 
-                                rpProp, 
-                                e.target.value ? Number(e.target.value) : undefined
-                              )}
-                              className="h-8 text-sm"
-                            />
+                          {/* Recuperaciones */}
+                          <div className="space-y-2">
+                            <h5 className="text-xs font-semibold text-gray-600">Recuperaciones:</h5>
+                            <div className="grid grid-cols-2 gap-2">
+                              {['rp1', 'rp2', 'rp3', 'rp4'].map((rp) => (
+                                <div key={rp} className="space-y-1">
+                                  <label className="text-xs font-medium">{rp.toUpperCase()}:</label>
+                                  <Input
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    placeholder="Opcional"
+                                    value={grade[bloqueProp][rp as keyof BloquePeriodos] || ''}
+                                    onChange={(e) => updatePeriodoGrade(
+                                      grade.id, 
+                                      bloqueProp, 
+                                      rp, 
+                                      e.target.value ? Number(e.target.value) : undefined
+                                    )}
+                                    className="h-8 text-sm"
+                                  />
+                                </div>
+                              ))}
+                            </div>
                           </div>
                           
-                          {/* Nota Definitiva */}
+                          {/* Promedio del Bloque */}
                           <div className="bg-green-50 p-2 rounded border border-green-200">
-                            <label className="text-xs font-semibold text-green-700">Nota Definitiva:</label>
+                            <label className="text-xs font-semibold text-green-700">Promedio {bloque.codigo}:</label>
                             <div className="text-lg font-bold text-green-800">
-                              {grade[definitivaProp].toFixed(2)}
+                              {grade[promedioProp].toFixed(2)}
                             </div>
                           </div>
                         </CardContent>
@@ -523,6 +560,69 @@ const GradesManagement: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Configuration Modal */}
+      <Dialog open={configModalOpen} onOpenChange={setConfigModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Configuración Curricular - Bloques de Competencias</DialogTitle>
+            <DialogDescription>
+              Configura las competencias para cada bloque de la asignatura seleccionada
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6">
+            {bloquesCompetencias.map((bloque) => (
+              <Card key={bloque.id}>
+                <CardHeader>
+                  <CardTitle className="text-lg">{bloque.codigo} - {bloque.nombre}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {bloque.competencias.map((competencia) => (
+                    <div key={competencia.id} className="flex items-center space-x-2">
+                      <Badge variant="outline">{competencia.codigo}</Badge>
+                      <Input
+                        value={competencia.descripcion}
+                        onChange={(e) => updateCompetencia(bloque.id, competencia.id, e.target.value)}
+                        className="flex-1"
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeCompetencia(bloque.id, competencia.id)}
+                        className="flex items-center"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  <Button
+                    variant="outline"
+                    onClick={() => addCompetencia(bloque.id)}
+                    className="flex items-center"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Agregar Competencia
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setConfigModalOpen(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={() => {
+                setConfigModalOpen(false);
+                toast({
+                  title: "Configuración guardada",
+                  description: "Los bloques de competencias han sido actualizados",
+                });
+              }}>
+                Guardar Configuración
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Observations Modal */}
       <Dialog open={observationModal.open} onOpenChange={(open) => 
