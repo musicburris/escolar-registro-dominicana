@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import LoginForm from '@/components/auth/LoginForm';
@@ -11,6 +12,9 @@ import UsersManagement from '@/components/users/UsersManagement';
 import AttendanceManagement from '@/components/attendance/AttendanceManagement';
 import GradesManagement from '@/components/grades/GradesManagement';
 import ReportsManagement from '@/components/reports/ReportsManagement';
+import CurriculumManagement from '@/components/curriculum/CurriculumManagement';
+import ObservationsManagement from '@/components/observations/ObservationsManagement';
+import AuditManagement from '@/components/audit/AuditManagement';
 import { Loader2 } from 'lucide-react';
 
 const Index = () => {
@@ -113,38 +117,11 @@ const Index = () => {
       case 'reports':
         return <ReportsManagement />;
       case 'curriculum':
-        return (
-          <div className="text-center py-20">
-            <h2 className="text-2xl font-montserrat text-minerd-blue mb-4">
-              Configuración Curricular
-            </h2>
-            <p className="text-gray-600 font-opensans">
-              Asignaturas y competencias - Próximamente
-            </p>
-          </div>
-        );
+        return <CurriculumManagement />;
       case 'observations':
-        return (
-          <div className="text-center py-20">
-            <h2 className="text-2xl font-montserrat text-minerd-blue mb-4">
-              Observaciones
-            </h2>
-            <p className="text-gray-600 font-opensans">
-              Observaciones y recomendaciones - Próximamente
-            </p>
-          </div>
-        );
+        return <ObservationsManagement />;
       case 'audit':
-        return (
-          <div className="text-center py-20">
-            <h2 className="text-2xl font-montserrat text-minerd-blue mb-4">
-              Histórico y Auditoría
-            </h2>
-            <p className="text-gray-600 font-opensans">
-              Registro de actividades del sistema - Próximamente
-            </p>
-          </div>
-        );
+        return <AuditManagement />;
       case 'settings':
         return (
           <div className="text-center py-20">
