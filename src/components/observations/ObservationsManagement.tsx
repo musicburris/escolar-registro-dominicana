@@ -172,7 +172,7 @@ const ObservationsManagement: React.FC = () => {
       ...nuevoRegistro,
       id: Date.now().toString(),
       createdAt: new Date(),
-      registradoPor: user?.name || 'Usuario Actual'
+      registradoPor: `${user?.firstName} ${user?.lastName}` || 'Usuario Actual'
     };
     
     setRegistros(prev => [...prev, registro]);
@@ -241,7 +241,7 @@ const ObservationsManagement: React.FC = () => {
                   <SelectValue placeholder="Todas las secciones" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas las secciones</SelectItem>
+                  <SelectItem value="all">Todas las secciones</SelectItem>
                   {sections.map(section => (
                     <SelectItem key={section.id} value={section.id}>
                       {section.name}
@@ -258,7 +258,7 @@ const ObservationsManagement: React.FC = () => {
                   <SelectValue placeholder="Todos los tipos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos los tipos</SelectItem>
+                  <SelectItem value="all">Todos los tipos</SelectItem>
                   <SelectItem value="positiva">Positiva</SelectItem>
                   <SelectItem value="neutral">Neutral</SelectItem>
                   <SelectItem value="negativa">Negativa</SelectItem>
