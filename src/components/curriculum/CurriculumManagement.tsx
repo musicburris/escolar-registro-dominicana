@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -229,7 +228,7 @@ const CurriculumManagement: React.FC = () => {
                   <SelectValue placeholder="Seleccionar grado" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos los grados</SelectItem>
+                  <SelectItem value="all">Todos los grados</SelectItem>
                   {grades.map(grade => (
                     <SelectItem key={grade} value={grade}>
                       {grade}
@@ -245,7 +244,7 @@ const CurriculumManagement: React.FC = () => {
                   <SelectValue placeholder="Seleccionar asignatura" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas las asignaturas</SelectItem>
+                  <SelectItem value="all">Todas las asignaturas</SelectItem>
                   {filteredSubjects.map(subject => (
                     <SelectItem key={subject.id} value={subject.id}>
                       {subject.name}
