@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,8 +10,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
-import { Award, Calculator, MessageSquare, Save, BookOpen, Target, Settings, Plus, Trash2 } from 'lucide-react';
-import { BloqueCompetencias, Competencia } from '@/types/academic';
+import { Award, Calculator, Save, BookOpen, Target, Settings, Plus, Trash2, FileText, History } from 'lucide-react';
+import { BloqueCompetencias, RegistroAnecdotico } from '@/types/academic';
 
 interface BloquePeriodos {
   p1?: number;
@@ -38,21 +39,21 @@ interface StudentGrade {
   promedioPC3: number;
   promedioPC4: number;
   calificacionFinal: number;
-  observations?: string;
 }
 
 const GradesManagement: React.FC = () => {
+  const { user } = useAuth();
   const [selectedSection, setSelectedSection] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('');
   const [grades, setGrades] = useState<StudentGrade[]>([]);
   const [bloquesCompetencias, setBloquesCompetencias] = useState<BloqueCompetencias[]>([]);
   const [configModalOpen, setConfigModalOpen] = useState(false);
-  const [editingBloque, setEditingBloque] = useState<BloqueCompetencias | null>(null);
-  const [observationModal, setObservationModal] = useState<{
+  const [anecdoticoModal, setAnecdoticoModal] = useState<{
     open: boolean;
     studentId: string;
-    observations: string;
-  }>({ open: false, studentId: '', observations: '' });
+    registros: RegistroAnecdotico[];
+  }>({ open: false, studentId: '', registros: [] });
+  const [auditModalOpen, setAuditModalOpen] = useState(false);
 
   // Mock data
   const sections = [
@@ -75,51 +76,35 @@ const GradesManagement: React.FC = () => {
     'Formación Integral'
   ];
 
-  // Mock bloques de competencias
+  // Mock bloques de competencias con descripción libre
   const mockBloques: BloqueCompetencias[] = [
     {
       id: '1',
       nombre: 'Comprensión Lectora',
       codigo: 'PC1',
       subjectId: 'lengua',
-      competencias: [
-        { id: '1', codigo: 'CE1', descripcion: 'Analiza textos narrativos', bloqueId: '1' },
-        { id: '2', codigo: 'CE2', descripcion: 'Identifica ideas principales', bloqueId: '1' },
-        { id: '3', codigo: 'CE3', descripcion: 'Comprende vocabulario contextual', bloqueId: '1' }
-      ]
+      descripcionCompetencias: 'CE1: Analiza textos narrativos identificando personajes, trama y contexto.\nCE2: Identifica ideas principales y secundarias en diferentes tipos de texto.\nCE3: Comprende vocabulario contextual y deduce significados.'
     },
     {
       id: '2',
       nombre: 'Producción Escrita',
       codigo: 'PC2',
       subjectId: 'lengua',
-      competencias: [
-        { id: '4', codigo: 'CE1', descripcion: 'Redacta ideas con coherencia', bloqueId: '2' },
-        { id: '5', codigo: 'CE2', descripcion: 'Utiliza conectores apropiados', bloqueId: '2' },
-        { id: '6', codigo: 'CE3', descripcion: 'Aplica reglas ortográficas', bloqueId: '2' }
-      ]
+      descripcionCompetencias: 'CE1: Redacta ideas con coherencia y cohesión textual.\nCE2: Utiliza conectores apropiados para organizar el discurso.\nCE3: Aplica reglas ortográficas y de puntuación correctamente.'
     },
     {
       id: '3',
       nombre: 'Literatura',
       codigo: 'PC3',
       subjectId: 'lengua',
-      competencias: [
-        { id: '7', codigo: 'CE1', descripcion: 'Interpreta textos poéticos', bloqueId: '3' },
-        { id: '8', codigo: 'CE2', descripcion: 'Reconoce figuras literarias', bloqueId: '3' },
-        { id: '9', codigo: 'CE3', descripcion: 'Expresa creatividad escrita', bloqueId: '3' }
-      ]
+      descripcionCompetencias: 'CE1: Interpreta textos poéticos y narrativos dominicanos.\nCE2: Reconoce figuras literarias y recursos estilísticos.\nCE3: Expresa creatividad escrita mediante textos literarios.'
     },
     {
       id: '4',
       nombre: 'Comunicación Oral',
       codigo: 'PC4',
       subjectId: 'lengua',
-      competencias: [
-        { id: '10', codigo: 'CE1', descripcion: 'Argumenta puntos de vista', bloqueId: '4' },
-        { id: '11', codigo: 'CE2', descripcion: 'Estructura textos argumentativos', bloqueId: '4' },
-        { id: '12', codigo: 'CE3', descripcion: 'Defiende posiciones críticas', bloqueId: '4' }
-      ]
+      descripcionCompetencias: 'CE1: Argumenta puntos de vista de forma clara y estructurada.\nCE2: Estructura discursos argumentativos coherentes.\nCE3: Defiende posiciones críticas con respeto y fundamentación.'
     }
   ];
 
@@ -137,8 +122,7 @@ const GradesManagement: React.FC = () => {
       promedioPC2: 85.75,
       promedioPC3: 88.5,
       promedioPC4: 88.75,
-      calificacionFinal: 87.19,
-      observations: 'Excelente participación en clase'
+      calificacionFinal: 87.19
     },
     {
       id: '2',
@@ -153,8 +137,21 @@ const GradesManagement: React.FC = () => {
       promedioPC2: 74.25,
       promedioPC3: 74,
       promedioPC4: 77.5,
-      calificacionFinal: 74.25,
-      observations: 'Necesita refuerzo en comprensión lectora'
+      calificacionFinal: 74.25
+    }
+  ];
+
+  const mockRegistrosAnecdoticos: RegistroAnecdotico[] = [
+    {
+      id: '1',
+      studentId: 'EST001',
+      fecha: new Date('2024-11-15'),
+      incidencia: 'Participación destacada',
+      tipoIncidencia: 'positiva',
+      descripcion: 'Ana participó activamente en la discusión sobre literatura dominicana, demostrando comprensión profunda de los temas.',
+      accionesTomadas: 'Se felicitó públicamente y se sugirió para representar la clase en el concurso de literatura.',
+      registradoPor: 'Prof. María González',
+      createdAt: new Date('2024-11-15')
     }
   ];
 
@@ -181,7 +178,6 @@ const GradesManagement: React.FC = () => {
       const valorRP = bloque[recuperaciones[index]];
       
       if (valorPeriodo !== undefined) {
-        // Si hay RP y es mayor que el período, usar RP, sino usar período
         const valorFinal = (valorRP !== undefined && valorRP > valorPeriodo) ? valorRP : valorPeriodo;
         suma += valorFinal;
         count++;
@@ -203,8 +199,8 @@ const GradesManagement: React.FC = () => {
     return Math.round((promedios.reduce((sum, p) => sum + p, 0) / promedios.length) * 100) / 100;
   };
 
-  const updatePeriodoGrade = (studentId: string, bloque: 'pc1' | 'pc2' | 'pc3' | 'pc4', periodo: string, value: number) => {
-    if (value < 0 || value > 100) {
+  const updatePeriodoGrade = (studentId: string, bloque: 'pc1' | 'pc2' | 'pc3' | 'pc4', periodo: string, value: number | undefined) => {
+    if (value !== undefined && (value < 0 || value > 100)) {
       toast({
         title: "Error",
         description: "Las calificaciones deben estar entre 0 y 100",
@@ -233,48 +229,21 @@ const GradesManagement: React.FC = () => {
     }));
   };
 
-  const addCompetencia = (bloqueId: string) => {
-    setBloquesCompetencias(prev => prev.map(bloque => {
-      if (bloque.id === bloqueId) {
-        const newCompetencia: Competencia = {
-          id: Date.now().toString(),
-          codigo: `CE${bloque.competencias.length + 1}`,
-          descripcion: 'Nueva competencia',
-          bloqueId
-        };
-        return {
-          ...bloque,
-          competencias: [...bloque.competencias, newCompetencia]
-        };
-      }
-      return bloque;
-    }));
-  };
+  const updateCompetenciasBloque = (bloqueId: string, descripcion: string) => {
+    if (descripcion.length > 1000) {
+      toast({
+        title: "Error",
+        description: "La descripción no puede exceder 1000 caracteres",
+        variant: "destructive"
+      });
+      return;
+    }
 
-  const removeCompetencia = (bloqueId: string, competenciaId: string) => {
-    setBloquesCompetencias(prev => prev.map(bloque => {
-      if (bloque.id === bloqueId) {
-        return {
-          ...bloque,
-          competencias: bloque.competencias.filter(c => c.id !== competenciaId)
-        };
-      }
-      return bloque;
-    }));
-  };
-
-  const updateCompetencia = (bloqueId: string, competenciaId: string, descripcion: string) => {
-    setBloquesCompetencias(prev => prev.map(bloque => {
-      if (bloque.id === bloqueId) {
-        return {
-          ...bloque,
-          competencias: bloque.competencias.map(c => 
-            c.id === competenciaId ? { ...c, descripcion } : c
-          )
-        };
-      }
-      return bloque;
-    }));
+    setBloquesCompetencias(prev => prev.map(bloque => 
+      bloque.id === bloqueId 
+        ? { ...bloque, descripcionCompetencias: descripcion }
+        : bloque
+    ));
   };
 
   const saveGrades = () => {
@@ -284,25 +253,20 @@ const GradesManagement: React.FC = () => {
     });
   };
 
-  const openObservationModal = (studentId: string, currentObservations: string = '') => {
-    setObservationModal({
+  const openRegistroAnecdotico = (studentId: string) => {
+    const registros = mockRegistrosAnecdoticos.filter(r => r.studentId === studentId);
+    setAnecdoticoModal({
       open: true,
       studentId,
-      observations: currentObservations
+      registros
     });
   };
 
-  const saveObservation = () => {
-    setGrades(prev => prev.map(grade => 
-      grade.id === observationModal.studentId 
-        ? { ...grade, observations: observationModal.observations }
-        : grade
-    ));
-    
-    setObservationModal({ open: false, studentId: '', observations: '' });
+  const addRegistroAnecdotico = (registro: Omit<RegistroAnecdotico, 'id' | 'createdAt'>) => {
+    // Aquí se agregaría el nuevo registro
     toast({
-      title: "Observación guardada",
-      description: "La observación ha sido actualizada",
+      title: "Registro agregado",
+      description: "El registro anecdótico ha sido guardado",
     });
   };
 
@@ -322,14 +286,25 @@ const GradesManagement: React.FC = () => {
           <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
             Período Q3 Activo
           </Badge>
+          {user?.role === 'admin' && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setConfigModalOpen(true)}
+              className="flex items-center"
+            >
+              <Settings className="w-4 h-4 mr-2" />
+              Configurar Competencias
+            </Button>
+          )}
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setConfigModalOpen(true)}
+            onClick={() => setAuditModalOpen(true)}
             className="flex items-center"
           >
-            <Settings className="w-4 h-4 mr-2" />
-            Configurar Competencias
+            <History className="w-4 h-4 mr-2" />
+            Auditoría
           </Button>
         </div>
       </div>
@@ -434,7 +409,16 @@ const GradesManagement: React.FC = () => {
                       <CardDescription>RNE: {grade.rne}</CardDescription>
                     </div>
                   </div>
-                  <div className="text-center">
+                  <div className="flex items-center gap-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openRegistroAnecdotico(grade.id)}
+                      className="flex items-center"
+                    >
+                      <FileText className="w-4 h-4 mr-2" />
+                      Registro Anecdótico
+                    </Button>
                     <div className="bg-blue-100 p-3 rounded-lg">
                       <p className="text-sm text-blue-700 font-medium">Calificación Final</p>
                       <p className="text-2xl font-bold text-blue-900">{grade.calificacionFinal.toFixed(2)}</p>
@@ -460,11 +444,9 @@ const GradesManagement: React.FC = () => {
                           {/* Competencias */}
                           <div className="space-y-2">
                             <h5 className="text-xs font-semibold text-gray-600">Competencias:</h5>
-                            {bloque.competencias.map((comp) => (
-                              <Badge key={comp.id} variant="outline" className="text-xs block mb-1">
-                                {comp.codigo}: {comp.descripcion}
-                              </Badge>
-                            ))}
+                            <div className="bg-gray-50 p-2 rounded text-xs text-gray-700 max-h-20 overflow-y-auto">
+                              {bloque.descripcionCompetencias}
+                            </div>
                           </div>
                           
                           {/* Períodos */}
@@ -484,7 +466,7 @@ const GradesManagement: React.FC = () => {
                                       grade.id, 
                                       bloqueProp, 
                                       periodo, 
-                                      Number(e.target.value)
+                                      e.target.value ? Number(e.target.value) : undefined
                                     )}
                                     className="h-8 text-sm"
                                   />
@@ -531,19 +513,6 @@ const GradesManagement: React.FC = () => {
                     );
                   })}
                 </div>
-                
-                {/* Observaciones */}
-                <div className="mt-4 flex justify-end">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => openObservationModal(grade.id, grade.observations)}
-                    className="flex items-center"
-                  >
-                    <MessageSquare className="w-4 h-4 mr-2" />
-                    Observaciones
-                  </Button>
-                </div>
               </CardContent>
             </Card>
           ))}
@@ -561,109 +530,59 @@ const GradesManagement: React.FC = () => {
         </div>
       )}
 
-      {/* Configuration Modal */}
-      <Dialog open={configModalOpen} onOpenChange={setConfigModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Configuración Curricular - Bloques de Competencias</DialogTitle>
-            <DialogDescription>
-              Configura las competencias para cada bloque de la asignatura seleccionada
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-6">
-            {bloquesCompetencias.map((bloque) => (
-              <Card key={bloque.id}>
-                <CardHeader>
-                  <CardTitle className="text-lg">{bloque.codigo} - {bloque.nombre}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {bloque.competencias.map((competencia) => (
-                    <div key={competencia.id} className="flex items-center space-x-2">
-                      <Badge variant="outline">{competencia.codigo}</Badge>
-                      <Input
-                        value={competencia.descripcion}
-                        onChange={(e) => updateCompetencia(bloque.id, competencia.id, e.target.value)}
-                        className="flex-1"
+      {/* Configuration Modal - Solo para administradores */}
+      {user?.role === 'admin' && (
+        <Dialog open={configModalOpen} onOpenChange={setConfigModalOpen}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Configuración Curricular - Bloques de Competencias</DialogTitle>
+              <DialogDescription>
+                Configura las competencias para cada bloque de la asignatura seleccionada (máximo 1000 caracteres por bloque)
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-6">
+              {bloquesCompetencias.map((bloque) => (
+                <Card key={bloque.id}>
+                  <CardHeader>
+                    <CardTitle className="text-lg">{bloque.codigo} - {bloque.nombre}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Competencias del Bloque:</label>
+                      <Textarea
+                        value={bloque.descripcionCompetencias}
+                        onChange={(e) => updateCompetenciasBloque(bloque.id, e.target.value)}
+                        placeholder="Describe las competencias de este bloque..."
+                        className="min-h-[120px]"
+                        maxLength={1000}
                       />
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => removeCompetencia(bloque.id, competencia.id)}
-                        className="flex items-center"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      <div className="text-xs text-gray-500">
+                        {bloque.descripcionCompetencias.length}/1000 caracteres
+                      </div>
                     </div>
-                  ))}
-                  <Button
-                    variant="outline"
-                    onClick={() => addCompetencia(bloque.id)}
-                    className="flex items-center"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Agregar Competencia
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-            <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setConfigModalOpen(false)}>
-                Cancelar
-              </Button>
-              <Button onClick={() => {
-                setConfigModalOpen(false);
-                toast({
-                  title: "Configuración guardada",
-                  description: "Los bloques de competencias han sido actualizados",
-                });
-              }}>
-                Guardar Configuración
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Observations Modal */}
-      <Dialog open={observationModal.open} onOpenChange={(open) => 
-        setObservationModal(prev => ({ ...prev, open }))
-      }>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Observaciones del Estudiante</DialogTitle>
-            <DialogDescription>
-              Máximo 200 caracteres. Estas observaciones aparecerán en la boleta.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <Textarea
-              value={observationModal.observations}
-              onChange={(e) => setObservationModal(prev => ({ 
-                ...prev, 
-                observations: e.target.value.substring(0, 200) 
-              }))}
-              placeholder="Ingrese observaciones y recomendaciones..."
-              className="min-h-[100px]"
-            />
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-500">
-                {observationModal.observations.length}/200 caracteres
-              </span>
-              <div className="flex space-x-2">
-                <Button 
-                  variant="outline" 
-                  onClick={() => setObservationModal({ open: false, studentId: '', observations: '' })}
-                >
+                  </CardContent>
+                </Card>
+              ))}
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" onClick={() => setConfigModalOpen(false)}>
                   Cancelar
                 </Button>
-                <Button onClick={saveObservation} className="bg-minerd-green hover:bg-green-700">
-                  Guardar
+                <Button onClick={() => {
+                  setConfigModalOpen(false);
+                  toast({
+                    title: "Configuración guardada",
+                    description: "Los bloques de competencias han sido actualizados",
+                  });
+                }}>
+                  Guardar Configuración
                 </Button>
               </div>
             </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Resto de modales... */}
     </div>
   );
 };

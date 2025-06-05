@@ -21,7 +21,7 @@ export interface BloqueCompetencias {
   id: string;
   nombre: string;
   codigo: string; // PC1, PC2, PC3, PC4
-  competencias: Competencia[];
+  descripcionCompetencias: string; // Campo de texto libre para competencias (máximo 1000 caracteres)
   subjectId: string;
 }
 
@@ -78,9 +78,33 @@ export interface Grade {
   promedioPC4: number;
   // Calificación final
   calificacionFinal: number;
-  observations?: string;
   recordedBy: string;
   updatedAt: Date;
+}
+
+export interface RegistroAnecdotico {
+  id: string;
+  studentId: string;
+  fecha: Date;
+  incidencia: string;
+  tipoIncidencia: 'positiva' | 'negativa' | 'neutral';
+  descripcion: string;
+  accionesTomadas?: string;
+  registradoPor: string;
+  createdAt: Date;
+}
+
+export interface AuditLog {
+  id: string;
+  userId: string;
+  userRole: string;
+  accion: string;
+  modulo: 'calificaciones' | 'asistencia' | 'estudiantes' | 'usuarios' | 'secciones' | 'reportes';
+  detalles: string;
+  entidadAfectada?: string;
+  entidadId?: string;
+  timestamp: Date;
+  ipAddress?: string;
 }
 
 export interface ReportCard {
@@ -93,7 +117,7 @@ export interface ReportCard {
     totalAbsences: number;
     totalLateArrivals: number;
   };
-  generalObservations: string;
+  registroAnecdotico: RegistroAnecdotico[];
   generatedAt: Date;
   generatedBy: string;
 }
