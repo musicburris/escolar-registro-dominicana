@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import LoginForm from '@/components/auth/LoginForm';
@@ -15,6 +16,7 @@ import CurriculumManagement from '@/components/curriculum/CurriculumManagement';
 import ObservationsManagement from '@/components/observations/ObservationsManagement';
 import AuditManagement from '@/components/audit/AuditManagement';
 import SystemSettings from '@/components/settings/SystemSettings';
+import RealTimeClock from '@/components/common/RealTimeClock';
 import { Loader2 } from 'lucide-react';
 
 const Index = () => {
@@ -160,6 +162,9 @@ const Index = () => {
           </div>
         </main>
       </div>
+
+      {/* Real Time Clock */}
+      <RealTimeClock />
     </div>
   );
 };

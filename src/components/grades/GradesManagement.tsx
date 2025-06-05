@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,8 +9,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
-import { Award, Calculator, Save, BookOpen, Target, Settings, Plus, Trash2, FileText, History } from 'lucide-react';
+import { Award, Calculator, Save, BookOpen, Target, Settings, Plus, Trash2, FileText, History, Clock, Lock } from 'lucide-react';
 import { BloqueCompetencias, RegistroAnecdotico } from '@/types/academic';
+import AuditoriaModal from '@/components/grades/AuditoriaModal';
 
 interface BloquePeriodos {
   p1?: number;
@@ -54,6 +54,9 @@ const GradesManagement: React.FC = () => {
     registros: RegistroAnecdotico[];
   }>({ open: false, studentId: '', registros: [] });
   const [auditModalOpen, setAuditModalOpen] = useState(false);
+  const [isPublished, setIsPublished] = useState(false);
+  const [publishDate, setPublishDate] = useState<Date | null>(null);
+  const [editTimeLimit] = useState(24); // horas configurables por admin
 
   // Mock data
   const sections = [
@@ -270,6 +273,39 @@ const GradesManagement: React.FC = () => {
     });
   };
 
+  const canEditGrades = () => {
+    if (user?.role === 'admin') return true;
+    if (!isPublished || !publishDate) return true;
+    
+    const now = new Date();
+    const timeDiff = now.getTime() - publishDate.getTime();
+    const hoursDiff = timeDiff / (1000 * 60 * 60);
+    
+    return hoursDiff <= editTimeLimit;
+  };
+
+  const getTimeRemaining = () => {
+    if (!publishDate || user?.role === 'admin') return null;
+    
+    const now = new Date();
+    const timeDiff = now.getTime() - publishDate.getTime();
+    const hoursDiff = timeDiff / (1000 * 60 * 60);
+    const remaining = editTimeLimit - hoursDiff;
+    
+    if (remaining <= 0) return null;
+    
+    return `${Math.floor(remaining)}h ${Math.floor((remaining % 1) * 60)}m`;
+  };
+
+  const publishGrades = () => {
+    setIsPublished(true);
+    setPublishDate(new Date());
+    toast({
+      title: "Calificaciones publicadas",
+      description: `Las calificaciones han sido publicadas. Los docentes tienen ${editTimeLimit} horas para hacer ediciones.`,
+    });
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
@@ -308,6 +344,79 @@ const GradesManagement: React.FC = () => {
           </Button>
         </div>
       </div>
+
+      {/* Publication Status and Time Control */}
+      {grades.length > 0 && (
+        <Card className={isPublished ? "bg-green-50 border-green-200" : "bg-yellow-50 border-yellow-200"}>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  {isPublished ? (
+                    <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
+                      Publicado
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300">
+                      Borrador
+                    </Badge>
+                  )}
+                  {isPublished && publishDate && (
+                    <span className="text-sm text-gray-600">
+                      Publicado el {publishDate.toLocaleDateString()} a las {publishDate.toLocaleTimeString()}
+                    </span>
+                  )}
+                </div>
+                
+                {isPublished && user?.role !== 'admin' && (
+                  <div className="flex items-center space-x-2">
+                    <Clock className="w-4 h-4 text-blue-600" />
+                    {canEditGrades() ? (
+                      <span className="text-sm text-blue-600 font-medium">
+                        Tiempo restante para editar: {getTimeRemaining()}
+                      </span>
+                    ) : (
+                      <div className="flex items-center space-x-1">
+                        <Lock className="w-4 h-4 text-red-600" />
+                        <span className="text-sm text-red-600 font-medium">
+                          Tiempo de edición agotado
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex space-x-2">
+                {!isPublished && (
+                  <Button 
+                    onClick={publishGrades}
+                    className="bg-green-600 hover:bg-green-700 flex items-center"
+                  >
+                    <BookOpen className="w-4 h-4 mr-2" />
+                    Publicar Calificaciones
+                  </Button>
+                )}
+                {user?.role === 'admin' && isPublished && (
+                  <Button 
+                    variant="outline"
+                    onClick={() => {
+                      setIsPublished(false);
+                      setPublishDate(null);
+                      toast({
+                        title: "Calificaciones despublicadas",
+                        description: "Las calificaciones han vuelto al estado de borrador",
+                      });
+                    }}
+                  >
+                    Despublicar
+                  </Button>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Filters */}
       <Card>
@@ -431,6 +540,7 @@ const GradesManagement: React.FC = () => {
                   {bloquesCompetencias.map((bloque, bloqueIndex) => {
                     const bloqueProp = `pc${bloqueIndex + 1}` as 'pc1' | 'pc2' | 'pc3' | 'pc4';
                     const promedioProp = `promedioPC${bloqueIndex + 1}` as 'promedioPC1' | 'promedioPC2' | 'promedioPC3' | 'promedioPC4';
+                    const canEdit = canEditGrades();
                     
                     return (
                       <Card key={bloque.id} className="border-l-4 border-l-blue-500">
@@ -439,6 +549,12 @@ const GradesManagement: React.FC = () => {
                             <Target className="w-4 h-4 mr-1" />
                             {bloque.codigo} - {bloque.nombre}
                           </CardTitle>
+                          {!canEdit && user?.role !== 'admin' && (
+                            <Badge variant="outline" className="text-xs bg-red-50 text-red-700 border-red-200">
+                              <Lock className="w-3 h-3 mr-1" />
+                              Bloqueado
+                            </Badge>
+                          )}
                         </CardHeader>
                         <CardContent className="space-y-3">
                           {/* Competencias */}
@@ -469,6 +585,7 @@ const GradesManagement: React.FC = () => {
                                       e.target.value ? Number(e.target.value) : undefined
                                     )}
                                     className="h-8 text-sm"
+                                    disabled={!canEdit}
                                   />
                                 </div>
                               ))}
@@ -495,6 +612,7 @@ const GradesManagement: React.FC = () => {
                                       e.target.value ? Number(e.target.value) : undefined
                                     )}
                                     className="h-8 text-sm"
+                                    disabled={!canEdit}
                                   />
                                 </div>
                               ))}
@@ -521,10 +639,11 @@ const GradesManagement: React.FC = () => {
           <div className="flex justify-center">
             <Button 
               onClick={saveGrades}
-              className="bg-minerd-green hover:bg-green-700 flex items-center px-8"
+              disabled={!canEditGrades()}
+              className="bg-minerd-green hover:bg-green-700 flex items-center px-8 disabled:opacity-50"
             >
               <Save className="w-4 h-4 mr-2" />
-              Guardar Todas las Calificaciones
+              {canEditGrades() ? 'Guardar Todas las Calificaciones' : 'Calificaciones Bloqueadas'}
             </Button>
           </div>
         </div>
@@ -582,7 +701,11 @@ const GradesManagement: React.FC = () => {
         </Dialog>
       )}
 
-      {/* Resto de modales... */}
+      {/* Audit Modal */}
+      <AuditoriaModal
+        open={auditModalOpen}
+        onOpenChange={setAuditModalOpen}
+      />
     </div>
   );
 };
