@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -52,11 +53,17 @@ interface User {
 }
 
 const UsersManagement: React.FC = () => {
-  const { user } = useAuth();
+  const { user, getAllUsers } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState('all');
   const [historyModalOpen, setHistoryModalOpen] = useState(false);
+
+  useEffect(() => {
+    // Load users from AuthContext
+    const allUsers = getAllUsers();
+    setUsers(allUsers);
+  }, [getAllUsers]);
 
   const filteredUsers = users.filter(u => {
     const matchesSearch = u.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -89,6 +96,15 @@ const UsersManagement: React.FC = () => {
   };
 
   const toggleUserStatus = (userId: string) => {
+    if (user?.role !== 'admin') {
+      toast({
+        title: "Sin permisos",
+        description: "Solo los administradores pueden cambiar el estado de usuarios",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setUsers(prev => prev.map(u => 
       u.id === userId ? { ...u, isActive: !u.isActive } : u
     ));
@@ -99,6 +115,15 @@ const UsersManagement: React.FC = () => {
   };
 
   const deleteUser = (userId: string) => {
+    if (user?.role !== 'admin') {
+      toast({
+        title: "Sin permisos",
+        description: "Solo los administradores pueden eliminar usuarios",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (userId === user?.id) {
       toast({
         title: "Error",
@@ -130,6 +155,28 @@ const UsersManagement: React.FC = () => {
     }
   };
 
+  const clearFilters = () => {
+    setSearchTerm('');
+    setSelectedRole('all');
+  };
+
+  const handleCreateUser = () => {
+    if (user?.role !== 'admin') {
+      toast({
+        title: "Sin permisos",
+        description: "Solo los administradores pueden crear usuarios",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // TODO: Implement create user modal
+    toast({
+      title: "Funcionalidad en desarrollo",
+      description: "El modal de creación de usuarios estará disponible próximamente",
+    });
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
@@ -151,10 +198,15 @@ const UsersManagement: React.FC = () => {
             <History className="w-4 h-4 mr-2" />
             Ver Histórico
           </Button>
-          <Button className="bg-minerd-green hover:bg-green-700 flex items-center">
-            <UserPlus className="w-4 h-4 mr-2" />
-            Nuevo Usuario
-          </Button>
+          {user?.role === 'admin' && (
+            <Button 
+              onClick={handleCreateUser}
+              className="bg-minerd-green hover:bg-green-700 flex items-center"
+            >
+              <UserPlus className="w-4 h-4 mr-2" />
+              Nuevo Usuario
+            </Button>
+          )}
         </div>
       </div>
 
@@ -250,7 +302,7 @@ const UsersManagement: React.FC = () => {
             </div>
 
             <div className="flex items-end">
-              <Button variant="outline" className="w-full">
+              <Button variant="outline" className="w-full" onClick={clearFilters}>
                 <Filter className="w-4 h-4 mr-2" />
                 Limpiar Filtros
               </Button>
@@ -322,7 +374,7 @@ const UsersManagement: React.FC = () => {
                         <Switch
                           checked={userItem.isActive}
                           onCheckedChange={() => toggleUserStatus(userItem.id)}
-                          disabled={userItem.id === user?.id}
+                          disabled={userItem.id === user?.id || user?.role !== 'admin'}
                         />
                         <span className="text-sm">
                           {userItem.isActive ? 'Activo' : 'Inactivo'}
@@ -343,15 +395,17 @@ const UsersManagement: React.FC = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Editar
-                          </DropdownMenuItem>
+                          {user?.role === 'admin' && (
+                            <DropdownMenuItem>
+                              <Edit className="mr-2 h-4 w-4" />
+                              Editar
+                            </DropdownMenuItem>
+                          )}
                           <DropdownMenuItem>
                             <History className="mr-2 h-4 w-4" />
                             Ver Actividad
                           </DropdownMenuItem>
-                          {userItem.id !== user?.id && (
+                          {userItem.id !== user?.id && user?.role === 'admin' && (
                             <DropdownMenuItem 
                               className="text-red-600"
                               onClick={() => deleteUser(userItem.id)}

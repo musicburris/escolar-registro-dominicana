@@ -1,5 +1,6 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   Dialog,
   DialogContent,
@@ -50,71 +51,32 @@ interface HistoryEntry {
   ipAddress: string;
 }
 
-const mockHistory: HistoryEntry[] = [
-  {
-    id: '1',
-    userId: '1',
-    userName: 'María González',
-    action: 'Inicio de sesión',
-    module: 'Autenticación',
-    details: 'Acceso exitoso al sistema',
-    timestamp: new Date('2024-12-05T08:30:00'),
-    status: 'success',
-    ipAddress: '192.168.1.100'
-  },
-  {
-    id: '2',
-    userId: '2',
-    userName: 'Carlos Martínez',
-    action: 'Actualizar calificación',
-    module: 'Calificaciones',
-    details: 'Calificación actualizada para estudiante Ana López - Matemáticas',
-    timestamp: new Date('2024-12-05T09:15:00'),
-    status: 'success',
-    ipAddress: '192.168.1.101'
-  },
-  {
-    id: '3',
-    userId: '3',
-    userName: 'Ana Rodríguez',
-    action: 'Registrar estudiante',
-    module: 'Estudiantes',
-    details: 'Nuevo estudiante registrado: Pedro Jiménez',
-    timestamp: new Date('2024-12-05T10:00:00'),
-    status: 'success',
-    ipAddress: '192.168.1.102'
-  },
-  {
-    id: '4',
-    userId: '1',
-    userName: 'María González',
-    action: 'Intento de acceso fallido',
-    module: 'Autenticación',
-    details: 'Contraseña incorrecta',
-    timestamp: new Date('2024-12-05T11:30:00'),
-    status: 'warning',
-    ipAddress: '192.168.1.100'
-  },
-  {
-    id: '5',
-    userId: '2',
-    userName: 'Carlos Martínez',
-    action: 'Error al subir archivo',
-    module: 'Calificaciones',
-    details: 'Error al procesar archivo de calificaciones: formato incorrecto',
-    timestamp: new Date('2024-12-05T12:00:00'),
-    status: 'error',
-    ipAddress: '192.168.1.101'
-  }
-];
-
 const UserHistoryModal: React.FC<UserHistoryModalProps> = ({ open, onOpenChange }) => {
+  const { getUserHistory, getAllUsers } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedModule, setSelectedModule] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedUser, setSelectedUser] = useState('all');
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
 
-  const filteredHistory = mockHistory.filter(entry => {
+  useEffect(() => {
+    if (open) {
+      const historyData = getUserHistory();
+      const usersData = getAllUsers();
+      
+      // Convert timestamp strings to Date objects if needed
+      const processedHistory = historyData.map((entry: any) => ({
+        ...entry,
+        timestamp: typeof entry.timestamp === 'string' ? new Date(entry.timestamp) : entry.timestamp
+      }));
+      
+      setHistory(processedHistory);
+      setUsers(usersData);
+    }
+  }, [open, getUserHistory, getAllUsers]);
+
+  const filteredHistory = history.filter(entry => {
     const matchesSearch = entry.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          entry.details.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          entry.userName.toLowerCase().includes(searchTerm.toLowerCase());
@@ -156,6 +118,13 @@ const UserHistoryModal: React.FC<UserHistoryModalProps> = ({ open, onOpenChange 
     );
   };
 
+  const clearFilters = () => {
+    setSearchTerm('');
+    setSelectedModule('all');
+    setSelectedStatus('all');
+    setSelectedUser('all');
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
@@ -173,7 +142,7 @@ const UserHistoryModal: React.FC<UserHistoryModalProps> = ({ open, onOpenChange 
           {/* Filters */}
           <Card>
             <CardContent className="pt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Buscar</label>
                   <div className="relative">
@@ -195,9 +164,11 @@ const UserHistoryModal: React.FC<UserHistoryModalProps> = ({ open, onOpenChange 
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos los usuarios</SelectItem>
-                      <SelectItem value="1">María González</SelectItem>
-                      <SelectItem value="2">Carlos Martínez</SelectItem>
-                      <SelectItem value="3">Ana Rodríguez</SelectItem>
+                      {users.map((user) => (
+                        <SelectItem key={user.id} value={user.id}>
+                          {user.firstName} {user.lastName}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -211,6 +182,9 @@ const UserHistoryModal: React.FC<UserHistoryModalProps> = ({ open, onOpenChange 
                     <SelectContent>
                       <SelectItem value="all">Todos los módulos</SelectItem>
                       <SelectItem value="Autenticación">Autenticación</SelectItem>
+                      <SelectItem value="Perfil">Perfil</SelectItem>
+                      <SelectItem value="Usuarios">Usuarios</SelectItem>
+                      <SelectItem value="Seguridad">Seguridad</SelectItem>
                       <SelectItem value="Calificaciones">Calificaciones</SelectItem>
                       <SelectItem value="Estudiantes">Estudiantes</SelectItem>
                       <SelectItem value="Configuración">Configuración</SelectItem>
@@ -231,6 +205,13 @@ const UserHistoryModal: React.FC<UserHistoryModalProps> = ({ open, onOpenChange 
                       <SelectItem value="error">Error</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div className="flex items-end">
+                  <Button variant="outline" className="w-full" onClick={clearFilters}>
+                    <Filter className="w-4 h-4 mr-2" />
+                    Limpiar Filtros
+                  </Button>
                 </div>
               </div>
             </CardContent>
@@ -264,9 +245,9 @@ const UserHistoryModal: React.FC<UserHistoryModalProps> = ({ open, onOpenChange 
                         <div className="flex items-center space-x-2">
                           <Calendar className="h-4 w-4 text-gray-500" />
                           <div>
-                            <div>{entry.timestamp.toLocaleDateString()}</div>
+                            <div>{entry.timestamp.toLocaleDateString('es-DO')}</div>
                             <div className="text-xs text-gray-500">
-                              {entry.timestamp.toLocaleTimeString()}
+                              {entry.timestamp.toLocaleTimeString('es-DO')}
                             </div>
                           </div>
                         </div>
@@ -309,7 +290,7 @@ const UserHistoryModal: React.FC<UserHistoryModalProps> = ({ open, onOpenChange 
 
           {/* Summary */}
           <div className="text-sm text-gray-600 text-center">
-            Mostrando {filteredHistory.length} de {mockHistory.length} actividades
+            Mostrando {filteredHistory.length} de {history.length} actividades
           </div>
         </div>
 
