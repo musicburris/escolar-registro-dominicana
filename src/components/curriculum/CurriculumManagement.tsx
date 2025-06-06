@@ -22,8 +22,8 @@ interface Subject {
 
 const CurriculumManagement: React.FC = () => {
   const { user } = useAuth();
-  const [selectedGrade, setSelectedGrade] = useState('');
-  const [selectedSubject, setSelectedSubject] = useState('');
+  const [selectedGrade, setSelectedGrade] = useState('all');
+  const [selectedSubject, setSelectedSubject] = useState('all');
   const [subjectModalOpen, setSubjectModalOpen] = useState(false);
   const [competenciaModalOpen, setCompetenciaModalOpen] = useState(false);
   const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
@@ -114,13 +114,13 @@ const CurriculumManagement: React.FC = () => {
   const [subjects, setSubjects] = useState<Subject[]>(mockSubjects);
   const [competencias, setCompetencias] = useState<BloqueCompetencias[]>(mockCompetencias);
 
-  const filteredSubjects = selectedGrade 
-    ? subjects.filter(s => s.grade === selectedGrade)
-    : subjects;
+  const filteredSubjects = selectedGrade === 'all' 
+    ? subjects 
+    : subjects.filter(s => s.grade === selectedGrade);
 
-  const filteredCompetencias = selectedSubject
-    ? competencias.filter(c => c.subjectId === selectedSubject)
-    : [];
+  const filteredCompetencias = selectedSubject === 'all'
+    ? []
+    : competencias.filter(c => c.subjectId === selectedSubject);
 
   const handleSaveSubject = (subject: Omit<Subject, 'id'>) => {
     if (editingSubject) {
@@ -327,7 +327,7 @@ const CurriculumManagement: React.FC = () => {
       </Card>
 
       {/* Competencias Management */}
-      {selectedSubject && (
+      {selectedSubject && selectedSubject !== 'all' && (
         <Card>
           <CardHeader>
             <div className="flex justify-between items-center">
