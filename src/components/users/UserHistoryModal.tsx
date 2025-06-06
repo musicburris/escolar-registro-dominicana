@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -134,8 +135,11 @@ const UserHistoryModal: React.FC<UserHistoryModalProps> = ({ open, onOpenChange 
   const validUsers = users.filter(user => {
     const hasValidId = user?.id && typeof user.id === 'string' && user.id.trim() !== '';
     const hasName = user?.firstName || user?.lastName;
+    console.log(`Filtering user: ${user?.firstName} ${user?.lastName}, ID: "${user?.id}", Valid: ${hasValidId && hasName}`);
     return hasValidId && hasName;
   });
+
+  console.log('Valid users for select:', validUsers);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -176,11 +180,14 @@ const UserHistoryModal: React.FC<UserHistoryModalProps> = ({ open, onOpenChange 
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos los usuarios</SelectItem>
-                      {validUsers.map((user) => (
-                        <SelectItem key={user.id} value={user.id}>
-                          {user.firstName} {user.lastName}
-                        </SelectItem>
-                      ))}
+                      {validUsers.map((user) => {
+                        console.log(`Rendering SelectItem for user: "${user.id}"`);
+                        return (
+                          <SelectItem key={user.id} value={user.id}>
+                            {user.firstName} {user.lastName}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                 </div>
@@ -193,13 +200,13 @@ const UserHistoryModal: React.FC<UserHistoryModalProps> = ({ open, onOpenChange 
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos los módulos</SelectItem>
-                      <SelectItem value="Autenticación">Autenticación</SelectItem>
-                      <SelectItem value="Perfil">Perfil</SelectItem>
-                      <SelectItem value="Usuarios">Usuarios</SelectItem>
-                      <SelectItem value="Seguridad">Seguridad</SelectItem>
-                      <SelectItem value="Calificaciones">Calificaciones</SelectItem>
-                      <SelectItem value="Estudiantes">Estudiantes</SelectItem>
-                      <SelectItem value="Configuración">Configuración</SelectItem>
+                      <SelectItem value="autenticacion">Autenticación</SelectItem>
+                      <SelectItem value="perfil">Perfil</SelectItem>
+                      <SelectItem value="usuarios">Usuarios</SelectItem>
+                      <SelectItem value="seguridad">Seguridad</SelectItem>
+                      <SelectItem value="calificaciones">Calificaciones</SelectItem>
+                      <SelectItem value="estudiantes">Estudiantes</SelectItem>
+                      <SelectItem value="configuracion">Configuración</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
