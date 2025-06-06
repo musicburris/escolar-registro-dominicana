@@ -9,9 +9,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
-import { Award, Calculator, Save, BookOpen, Target, Settings, Plus, Trash2, FileText, History, Clock, Lock } from 'lucide-react';
+import { Award, Calculator, Save, BookOpen, Target, Settings, Plus, Trash2, FileText, History, Clock, Lock, Upload } from 'lucide-react';
 import { BloqueCompetencias, RegistroAnecdotico } from '@/types/academic';
 import AuditoriaModal from '@/components/grades/AuditoriaModal';
+import GradesUpload from '@/components/grades/GradesUpload';
 
 interface BloquePeriodos {
   p1?: number;
@@ -48,6 +49,7 @@ const GradesManagement: React.FC = () => {
   const [grades, setGrades] = useState<StudentGrade[]>([]);
   const [bloquesCompetencias, setBloquesCompetencias] = useState<BloqueCompetencias[]>([]);
   const [configModalOpen, setConfigModalOpen] = useState(false);
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [anecdoticoModal, setAnecdoticoModal] = useState<{
     open: boolean;
     studentId: string;
@@ -306,6 +308,14 @@ const GradesManagement: React.FC = () => {
     });
   };
 
+  const handleGradesUploaded = (uploadedGrades: any[]) => {
+    setGrades(uploadedGrades);
+    toast({
+      title: "Calificaciones cargadas",
+      description: `Se han cargado ${uploadedGrades.length} estudiantes desde el archivo`,
+    });
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
@@ -430,7 +440,7 @@ const GradesManagement: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Sección</label>
               <Select value={selectedSection} onValueChange={setSelectedSection}>
@@ -470,6 +480,18 @@ const GradesManagement: React.FC = () => {
                 className="w-full bg-minerd-blue hover:bg-blue-700"
               >
                 Cargar Calificaciones
+              </Button>
+            </div>
+
+            <div className="flex items-end">
+              <Button 
+                variant="outline"
+                onClick={() => setUploadModalOpen(true)}
+                disabled={!selectedSection || !selectedSubject}
+                className="w-full flex items-center"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                Subir Archivo
               </Button>
             </div>
           </div>
@@ -705,6 +727,13 @@ const GradesManagement: React.FC = () => {
       <AuditoriaModal
         open={auditModalOpen}
         onOpenChange={setAuditModalOpen}
+      />
+
+      {/* Upload Modal */}
+      <GradesUpload
+        open={uploadModalOpen}
+        onOpenChange={setUploadModalOpen}
+        onGradesUploaded={handleGradesUploaded}
       />
     </div>
   );
