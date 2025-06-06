@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -14,6 +13,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Menu, User, Settings, Bell } from 'lucide-react';
 import NotificationsModal from '@/components/notifications/NotificationsModal';
+import ProfileModal from '@/components/profile/ProfileModal';
+import UserSettingsModal from '@/components/settings/UserSettingsModal';
 
 interface HeaderProps {
   onMenuToggle: () => void;
@@ -24,6 +25,8 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, isMobileMenuOpen }) => {
   const { user, logout } = useAuth();
   const [notifications] = useState(3); // Mock notifications
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [userSettingsOpen, setUserSettingsOpen] = useState(false);
 
   const getRoleLabel = (role: string) => {
     const labels = {
@@ -137,11 +140,17 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, isMobileMenuOpen }) => {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="cursor-pointer">
+                  <DropdownMenuItem 
+                    className="cursor-pointer"
+                    onClick={() => setProfileOpen(true)}
+                  >
                     <User className="mr-2 h-4 w-4" />
                     <span>Perfil</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="cursor-pointer">
+                  <DropdownMenuItem 
+                    className="cursor-pointer"
+                    onClick={() => setUserSettingsOpen(true)}
+                  >
                     <Settings className="mr-2 h-4 w-4" />
                     <span>Configuración</span>
                   </DropdownMenuItem>
@@ -159,10 +168,20 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, isMobileMenuOpen }) => {
         </div>
       </header>
 
-      {/* Notifications Modal */}
+      {/* Modals */}
       <NotificationsModal
         open={notificationsOpen}
         onOpenChange={setNotificationsOpen}
+      />
+      
+      <ProfileModal
+        open={profileOpen}
+        onOpenChange={setProfileOpen}
+      />
+
+      <UserSettingsModal
+        open={userSettingsOpen}
+        onOpenChange={setUserSettingsOpen}
       />
     </>
   );
