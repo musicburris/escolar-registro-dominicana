@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -73,6 +72,12 @@ const UserHistoryModal: React.FC<UserHistoryModalProps> = ({ open, onOpenChange 
       
       setHistory(processedHistory);
       setUsers(usersData);
+      
+      // Debug logging
+      console.log('Users data in UserHistoryModal:', usersData);
+      usersData.forEach((user: any, index: number) => {
+        console.log(`User ${index}:`, user, `ID: "${user?.id}", Type: ${typeof user?.id}`);
+      });
     }
   }, [open, getUserHistory, getAllUsers]);
 
@@ -125,6 +130,13 @@ const UserHistoryModal: React.FC<UserHistoryModalProps> = ({ open, onOpenChange 
     setSelectedUser('all');
   };
 
+  // Filter and validate users for the select dropdown
+  const validUsers = users.filter(user => {
+    const hasValidId = user?.id && typeof user.id === 'string' && user.id.trim() !== '';
+    const hasName = user?.firstName || user?.lastName;
+    return hasValidId && hasName;
+  });
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
@@ -164,13 +176,11 @@ const UserHistoryModal: React.FC<UserHistoryModalProps> = ({ open, onOpenChange 
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos los usuarios</SelectItem>
-                      {users
-                        .filter(user => user?.id && user.id.trim() !== '') // Filter out users with empty or undefined ids
-                        .map((user) => (
-                          <SelectItem key={user.id} value={user.id}>
-                            {user.firstName} {user.lastName}
-                          </SelectItem>
-                        ))}
+                      {validUsers.map((user) => (
+                        <SelectItem key={user.id} value={user.id}>
+                          {user.firstName} {user.lastName}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
