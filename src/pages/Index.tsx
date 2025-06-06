@@ -52,7 +52,7 @@ const Index = () => {
   const renderDashboard = () => {
     switch (user?.role) {
       case 'admin':
-        return <AdminDashboard />;
+        return <AdminDashboard onSectionChange={setActiveSection} />;
       case 'teacher':
         return <TeacherDashboard />;
       case 'auxiliary':

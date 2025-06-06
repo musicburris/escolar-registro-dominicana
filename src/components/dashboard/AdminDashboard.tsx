@@ -14,7 +14,11 @@ import {
   Calendar
 } from 'lucide-react';
 
-const AdminDashboard: React.FC = () => {
+interface AdminDashboardProps {
+  onSectionChange?: (section: string) => void;
+}
+
+const AdminDashboard: React.FC<AdminDashboardProps> = ({ onSectionChange }) => {
   // Mock data for demonstration
   const stats = {
     totalStudents: 245,
@@ -86,6 +90,12 @@ const AdminDashboard: React.FC = () => {
       action: 'reports'
     }
   ];
+
+  const handleQuickAction = (action: string) => {
+    if (onSectionChange) {
+      onSectionChange(action);
+    }
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -183,7 +193,11 @@ const AdminDashboard: React.FC = () => {
         {quickActions.map((action, index) => {
           const Icon = action.icon;
           return (
-            <Card key={index} className="hover:shadow-lg transition-shadow cursor-pointer group">
+            <Card 
+              key={index} 
+              className="hover:shadow-lg transition-shadow cursor-pointer group"
+              onClick={() => handleQuickAction(action.action)}
+            >
               <CardHeader>
                 <div className="flex items-center space-x-2">
                   <div className="p-2 bg-minerd-blue/10 rounded-lg group-hover:bg-minerd-blue/20 transition-colors">

@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -73,12 +74,6 @@ const UserHistoryModal: React.FC<UserHistoryModalProps> = ({ open, onOpenChange 
       
       setHistory(processedHistory);
       setUsers(usersData);
-      
-      // Debug logging
-      console.log('Users data in UserHistoryModal:', usersData);
-      usersData.forEach((user: any, index: number) => {
-        console.log(`User ${index}:`, user, `ID: "${user?.id}", Type: ${typeof user?.id}`);
-      });
     }
   }, [open, getUserHistory, getAllUsers]);
 
@@ -131,15 +126,24 @@ const UserHistoryModal: React.FC<UserHistoryModalProps> = ({ open, onOpenChange 
     setSelectedUser('all');
   };
 
-  // Filter and validate users for the select dropdown
+  // Filter and validate users for the select dropdown with more robust validation
   const validUsers = users.filter(user => {
-    const hasValidId = user?.id && typeof user.id === 'string' && user.id.trim() !== '';
-    const hasName = user?.firstName || user?.lastName;
-    console.log(`Filtering user: ${user?.firstName} ${user?.lastName}, ID: "${user?.id}", Valid: ${hasValidId && hasName}`);
+    // Check if user exists and has required properties
+    if (!user) return false;
+    
+    // Check if ID is valid (not null, undefined, empty string, or just whitespace)
+    const hasValidId = user.id && 
+                      typeof user.id === 'string' && 
+                      user.id.trim() !== '' && 
+                      user.id !== 'undefined' && 
+                      user.id !== 'null';
+    
+    // Check if user has a name
+    const hasName = (user.firstName && user.firstName.trim() !== '') || 
+                   (user.lastName && user.lastName.trim() !== '');
+    
     return hasValidId && hasName;
   });
-
-  console.log('Valid users for select:', validUsers);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -180,14 +184,11 @@ const UserHistoryModal: React.FC<UserHistoryModalProps> = ({ open, onOpenChange 
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos los usuarios</SelectItem>
-                      {validUsers.map((user) => {
-                        console.log(`Rendering SelectItem for user: "${user.id}"`);
-                        return (
-                          <SelectItem key={user.id} value={user.id}>
-                            {user.firstName} {user.lastName}
-                          </SelectItem>
-                        );
-                      })}
+                      {validUsers.map((user) => (
+                        <SelectItem key={user.id} value={user.id}>
+                          {user.firstName} {user.lastName}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
