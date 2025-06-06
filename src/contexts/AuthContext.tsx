@@ -69,6 +69,23 @@ const mockUsers: User[] = [
   },
 ];
 
+const parseStoredUser = (storedUser: string): User | null => {
+  try {
+    const parsed = JSON.parse(storedUser);
+    // Convert date strings back to Date objects
+    if (parsed.createdAt) {
+      parsed.createdAt = new Date(parsed.createdAt);
+    }
+    if (parsed.updatedAt) {
+      parsed.updatedAt = new Date(parsed.updatedAt);
+    }
+    return parsed;
+  } catch (error) {
+    console.error('Error parsing stored user data:', error);
+    return null;
+  }
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
@@ -80,15 +97,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Check for stored auth data
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
-      try {
-        const user = JSON.parse(storedUser);
+      const user = parseStoredUser(storedUser);
+      if (user) {
         setAuthState({
           user,
           isAuthenticated: true,
           isLoading: false,
         });
-      } catch (error) {
-        console.error('Error parsing stored user data:', error);
+      } else {
         localStorage.removeItem('user');
         setAuthState(prev => ({ ...prev, isLoading: false }));
       }
@@ -136,7 +152,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateUser = (userData: Partial<User>) => {
     if (authState.user) {
-      const updatedUser = { ...authState.user, ...userData };
+      const updatedUser = { 
+        ...authState.user, 
+        ...userData,
+        updatedAt: new Date()
+      };
       localStorage.setItem('user', JSON.stringify(updatedUser));
       setAuthState(prev => ({
         ...prev,

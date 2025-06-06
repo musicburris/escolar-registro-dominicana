@@ -46,7 +46,7 @@ interface User {
   role: string;
   phone: string;
   isActive: boolean;
-  createdAt: string;
+  createdAt: Date | string;
   assignedSections: string[];
   avatar?: string;
 }
@@ -113,6 +113,21 @@ const UsersManagement: React.FC = () => {
       title: "Usuario eliminado",
       description: "El usuario ha sido eliminado del sistema",
     });
+  };
+
+  const formatDate = (date: Date | string | undefined) => {
+    if (!date) return 'No disponible';
+    
+    try {
+      const dateObj = typeof date === 'string' ? new Date(date) : date;
+      return dateObj.toLocaleDateString('es-DO', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      });
+    } catch (error) {
+      return 'Fecha inválida';
+    }
   };
 
   return (
@@ -317,7 +332,7 @@ const UsersManagement: React.FC = () => {
                     <TableCell>
                       <div className="flex items-center text-sm">
                         <Calendar className="w-3 h-3 mr-1 text-gray-500" />
-                        {userItem.createdAt.toLocaleDateString()}
+                        {formatDate(userItem.createdAt)}
                       </div>
                     </TableCell>
                     <TableCell>

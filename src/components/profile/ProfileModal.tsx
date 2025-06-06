@@ -11,7 +11,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
@@ -40,6 +39,21 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ open, onOpenChange }) => {
       student: 'Estudiante'
     };
     return labels[role as keyof typeof labels] || role;
+  };
+
+  const formatDate = (date: Date | string | undefined) => {
+    if (!date) return 'No disponible';
+    
+    try {
+      const dateObj = typeof date === 'string' ? new Date(date) : date;
+      return dateObj.toLocaleDateString('es-DO', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch (error) {
+      return 'Fecha inválida';
+    }
   };
 
   const handleSave = () => {
@@ -140,7 +154,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ open, onOpenChange }) => {
               <div className="flex items-center text-sm">
                 <Calendar className="mr-2 h-4 w-4 text-gray-500" />
                 <span className="text-gray-600">Miembro desde: </span>
-                <span className="font-medium">{user?.createdAt?.toLocaleDateString()}</span>
+                <span className="font-medium">{formatDate(user?.createdAt)}</span>
               </div>
               <div className="flex items-center text-sm">
                 <User className="mr-2 h-4 w-4 text-gray-500" />
