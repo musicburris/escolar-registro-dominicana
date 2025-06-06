@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,13 +12,45 @@ import { History, User, Calendar, Filter } from 'lucide-react';
 interface AuditoriaModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  initialFilters?: {
+    module?: string;
+    userId?: string;
+    filterType?: 'all' | 'user' | 'module';
+  };
 }
 
-const AuditoriaModal: React.FC<AuditoriaModalProps> = ({ open, onOpenChange }) => {
+const AuditoriaModal: React.FC<AuditoriaModalProps> = ({ 
+  open, 
+  onOpenChange, 
+  initialFilters = {} 
+}) => {
   const [filtroModulo, setFiltroModulo] = useState<string>('');
   const [filtroAccion, setFiltroAccion] = useState<string>('');
+  const [filtroUsuario, setFiltroUsuario] = useState<string>('');
 
-  // Mock data de auditoría
+  // Apply initial filters when modal opens
+  useEffect(() => {
+    if (open && initialFilters.filterType) {
+      switch (initialFilters.filterType) {
+        case 'module':
+          setFiltroModulo(initialFilters.module || '');
+          setFiltroUsuario('');
+          break;
+        case 'user':
+          setFiltroUsuario(initialFilters.userId || '');
+          setFiltroModulo('');
+          break;
+        case 'all':
+        default:
+          setFiltroModulo('');
+          setFiltroUsuario('');
+          break;
+      }
+      setFiltroAccion('');
+    }
+  }, [open, initialFilters]);
+
+  // Mock data de auditoría - expanded with more users
   const auditLogs: AuditLog[] = [
     {
       id: '1',
@@ -79,7 +111,27 @@ const AuditoriaModal: React.FC<AuditoriaModalProps> = ({ open, onOpenChange }) =
       entidadId: 'USER004',
       timestamp: new Date('2024-12-04T14:10:00'),
       ipAddress: '192.168.1.101'
+    },
+    {
+      id: '6',
+      userId: 'USER004',
+      userRole: 'teacher',
+      accion: 'Registrar asistencia',
+      modulo: 'asistencia',
+      detalles: 'Marcó asistencia para sección 1° A - 15 presentes, 2 ausentes',
+      entidadAfectada: 'Attendance',
+      entidadId: 'ATT001',
+      timestamp: new Date('2024-12-04T08:30:00'),
+      ipAddress: '192.168.1.103'
     }
+  ];
+
+  // Mock users data
+  const users = [
+    { id: 'USER001', name: 'Prof. María González' },
+    { id: 'USER002', name: 'Admin Juan Pérez' },
+    { id: 'USER003', name: 'Aux. Carmen López' },
+    { id: 'USER004', name: 'Prof. Luis Méndez' }
   ];
 
   const getModuloColor = (modulo: string) => {
@@ -105,8 +157,15 @@ const AuditoriaModal: React.FC<AuditoriaModalProps> = ({ open, onOpenChange }) =
   const logsFilteredData = auditLogs.filter(log => {
     const moduloMatch = !filtroModulo || log.modulo === filtroModulo;
     const accionMatch = !filtroAccion || log.accion.toLowerCase().includes(filtroAccion.toLowerCase());
-    return moduloMatch && accionMatch;
+    const usuarioMatch = !filtroUsuario || log.userId === filtroUsuario;
+    return moduloMatch && accionMatch && usuarioMatch;
   });
+
+  const clearFilters = () => {
+    setFiltroModulo('');
+    setFiltroAccion('');
+    setFiltroUsuario('');
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -131,7 +190,24 @@ const AuditoriaModal: React.FC<AuditoriaModalProps> = ({ open, onOpenChange }) =
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Usuario</label>
+                  <Select value={filtroUsuario} onValueChange={setFiltroUsuario}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todos los usuarios" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Todos los usuarios</SelectItem>
+                      {users.map(user => (
+                        <SelectItem key={user.id} value={user.id}>
+                          {user.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Módulo</label>
                   <Select value={filtroModulo} onValueChange={setFiltroModulo}>
@@ -149,6 +225,7 @@ const AuditoriaModal: React.FC<AuditoriaModalProps> = ({ open, onOpenChange }) =
                     </SelectContent>
                   </Select>
                 </div>
+                
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Buscar Acción</label>
                   <input
@@ -158,6 +235,12 @@ const AuditoriaModal: React.FC<AuditoriaModalProps> = ({ open, onOpenChange }) =
                     placeholder="Buscar por acción..."
                     className="w-full px-3 py-2 border border-gray-300 rounded-md"
                   />
+                </div>
+
+                <div className="flex items-end">
+                  <Button variant="outline" onClick={clearFilters} className="w-full">
+                    Limpiar Filtros
+                  </Button>
                 </div>
               </div>
             </CardContent>
@@ -227,35 +310,38 @@ const AuditoriaModal: React.FC<AuditoriaModalProps> = ({ open, onOpenChange }) =
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {logsFilteredData.map((log) => (
-                    <TableRow key={log.id}>
-                      <TableCell className="font-mono text-sm">
-                        {log.timestamp.toLocaleDateString()} <br />
-                        {log.timestamp.toLocaleTimeString()}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center">
-                          <User className="w-4 h-4 mr-2" />
-                          {log.userId}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={getRoleColor(log.userRole)}>
-                          {log.userRole}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={getModuloColor(log.modulo)}>
-                          {log.modulo}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="font-medium">{log.accion}</TableCell>
-                      <TableCell className="max-w-xs truncate" title={log.detalles}>
-                        {log.detalles}
-                      </TableCell>
-                      <TableCell className="font-mono text-sm">{log.ipAddress}</TableCell>
-                    </TableRow>
-                  ))}
+                  {logsFilteredData.map((log) => {
+                    const user = users.find(u => u.id === log.userId);
+                    return (
+                      <TableRow key={log.id}>
+                        <TableCell className="font-mono text-sm">
+                          {log.timestamp.toLocaleDateString()} <br />
+                          {log.timestamp.toLocaleTimeString()}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            <User className="w-4 h-4 mr-2" />
+                            {user?.name || log.userId}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={getRoleColor(log.userRole)}>
+                            {log.userRole}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={getModuloColor(log.modulo)}>
+                            {log.modulo}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="font-medium">{log.accion}</TableCell>
+                        <TableCell className="max-w-xs truncate" title={log.detalles}>
+                          {log.detalles}
+                        </TableCell>
+                        <TableCell className="font-mono text-sm">{log.ipAddress}</TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </CardContent>

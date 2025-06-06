@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -35,6 +34,12 @@ interface StudentReport {
   observations: string;
 }
 
+interface SectionInfo {
+  id: string;
+  name: string;
+  coordinatorName: string;
+}
+
 const ReportsManagement: React.FC = () => {
   const [selectedSection, setSelectedSection] = useState('');
   const [selectedPeriod, setSelectedPeriod] = useState('');
@@ -43,14 +48,14 @@ const ReportsManagement: React.FC = () => {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Mock data
-  const sections = [
-    { id: '1A', name: '1° A' },
-    { id: '1B', name: '1° B' },
-    { id: '2A', name: '2° A' },
-    { id: '2B', name: '2° B' },
-    { id: '3A', name: '3° A' },
-    { id: '3B', name: '3° B' }
+  // Mock data with coordinator teachers
+  const sections: SectionInfo[] = [
+    { id: '1A', name: '1° A', coordinatorName: 'Prof. María González' },
+    { id: '1B', name: '1° B', coordinatorName: 'Prof. Carmen López' },
+    { id: '2A', name: '2° A', coordinatorName: 'Prof. Luis Méndez' },
+    { id: '2B', name: '2° B', coordinatorName: 'Prof. Ana Martínez' },
+    { id: '3A', name: '3° A', coordinatorName: 'Prof. Juan Pérez' },
+    { id: '3B', name: '3° B', coordinatorName: 'Prof. Rosa Fernández' }
   ];
 
   const periods = [
@@ -150,6 +155,7 @@ const ReportsManagement: React.FC = () => {
   );
 
   const selectedStudentData = students.find(s => s.id === selectedStudent);
+  const selectedSectionInfo = sections.find(s => s.id === selectedSection);
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -357,7 +363,7 @@ const ReportsManagement: React.FC = () => {
             </DialogDescription>
           </DialogHeader>
           
-          {selectedStudentData && (
+          {selectedStudentData && selectedSectionInfo && (
             <div className="bg-white p-6 border rounded-lg">
               {/* Header */}
               <div className="text-center mb-6 border-b pb-4">
@@ -381,6 +387,7 @@ const ReportsManagement: React.FC = () => {
                 <div>
                   <p><strong>Nombre:</strong> {selectedStudentData.name}</p>
                   <p><strong>RNE:</strong> {selectedStudentData.rne}</p>
+                  <p><strong>Docente Coordinador:</strong> {selectedSectionInfo.coordinatorName}</p>
                 </div>
                 <div>
                   <p><strong>Sección:</strong> {selectedStudentData.section}</p>
@@ -437,6 +444,11 @@ const ReportsManagement: React.FC = () => {
                 <div className="text-center">
                   <div className="w-32 h-16 border-b border-gray-400 mb-2"></div>
                   <p className="text-sm">Firma del Director(a)</p>
+                </div>
+                <div className="text-center">
+                  <div className="w-32 h-16 border border-gray-400 mb-2"></div>
+                  <p className="text-sm">{selectedSectionInfo.coordinatorName}</p>
+                  <p className="text-xs text-gray-600">Docente Coordinador</p>
                 </div>
                 <div className="text-center">
                   <div className="w-32 h-16 border border-gray-400 mb-2"></div>

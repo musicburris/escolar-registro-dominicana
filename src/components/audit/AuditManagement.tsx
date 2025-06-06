@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import AuditoriaModal from '@/components/grades/AuditoriaModal';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,6 +7,11 @@ import { History, Activity, Users, Database, FileText, Settings } from 'lucide-r
 
 const AuditManagement: React.FC = () => {
   const [auditModalOpen, setAuditModalOpen] = useState(false);
+  const [modalFilters, setModalFilters] = useState<{
+    module?: string;
+    userId?: string;
+    filterType?: 'all' | 'user' | 'module';
+  }>({});
 
   // Estadísticas mock
   const stats = {
@@ -15,6 +19,11 @@ const AuditManagement: React.FC = () => {
     todayActivities: 23,
     activeUsers: 18,
     lastBackup: new Date('2024-12-05T02:00:00')
+  };
+
+  const openModalWithFilters = (filterType: 'all' | 'user' | 'module', filters: any = {}) => {
+    setModalFilters({ ...filters, filterType });
+    setAuditModalOpen(true);
   };
 
   return (
@@ -100,7 +109,7 @@ const AuditManagement: React.FC = () => {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <Button
-              onClick={() => setAuditModalOpen(true)}
+              onClick={() => openModalWithFilters('all')}
               className="bg-minerd-blue hover:bg-blue-700 h-auto py-4 flex flex-col items-center space-y-2"
             >
               <History className="w-6 h-6" />
@@ -111,10 +120,7 @@ const AuditManagement: React.FC = () => {
             <Button
               variant="outline"
               className="h-auto py-4 flex flex-col items-center space-y-2"
-              onClick={() => {
-                // Implementar filtro por usuario
-                setAuditModalOpen(true);
-              }}
+              onClick={() => openModalWithFilters('user')}
             >
               <Users className="w-6 h-6" />
               <span>Actividades por Usuario</span>
@@ -124,10 +130,7 @@ const AuditManagement: React.FC = () => {
             <Button
               variant="outline"
               className="h-auto py-4 flex flex-col items-center space-y-2"
-              onClick={() => {
-                // Implementar filtro por módulo
-                setAuditModalOpen(true);
-              }}
+              onClick={() => openModalWithFilters('module')}
             >
               <Settings className="w-6 h-6" />
               <span>Actividades por Módulo</span>
@@ -185,7 +188,7 @@ const AuditManagement: React.FC = () => {
             <div className="text-center pt-4">
               <Button
                 variant="outline"
-                onClick={() => setAuditModalOpen(true)}
+                onClick={() => openModalWithFilters('all')}
                 className="flex items-center"
               >
                 <History className="w-4 h-4 mr-2" />
@@ -240,6 +243,7 @@ const AuditManagement: React.FC = () => {
       <AuditoriaModal
         open={auditModalOpen}
         onOpenChange={setAuditModalOpen}
+        initialFilters={modalFilters}
       />
     </div>
   );
