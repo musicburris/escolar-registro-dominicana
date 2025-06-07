@@ -4,6 +4,7 @@ import { NotificationProvider } from '@/contexts/NotificationContext';
 import LoginForm from '@/components/auth/LoginForm';
 import Header from '@/components/layout/Header';
 import Sidebar from '@/components/layout/Sidebar';
+import Footer from '@/components/layout/Footer';
 import AdminDashboard from '@/components/dashboard/AdminDashboard';
 import TeacherDashboard from '@/components/dashboard/TeacherDashboard';
 import SectionsManagement from '@/components/sections/SectionsManagement';
@@ -142,13 +143,13 @@ const Index = () => {
 
   return (
     <NotificationProvider>
-      <div className="min-h-screen bg-minerd-light">
+      <div className="min-h-screen bg-minerd-light flex flex-col">
         <Header 
           onMenuToggle={toggleSidebar}
           isMobileMenuOpen={isSidebarOpen}
         />
         
-        <div className="flex">
+        <div className="flex flex-1">
           <Sidebar
             isOpen={isSidebarOpen}
             onClose={closeSidebar}
@@ -157,10 +158,11 @@ const Index = () => {
           />
           
           {/* Main Content */}
-          <main className="flex-1 lg:ml-64">
-            <div className="p-6">
+          <main className="flex-1 lg:ml-64 flex flex-col">
+            <div className="p-6 flex-1">
               {renderContent()}
             </div>
+            <Footer />
           </main>
         </div>
 

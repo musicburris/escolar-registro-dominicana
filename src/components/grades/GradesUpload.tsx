@@ -20,7 +20,6 @@ const GradesUpload: React.FC<GradesUploadProps> = ({ open, onOpenChange, onGrade
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // Validar tipo de archivo
       const allowedTypes = [
         'application/vnd.ms-excel',
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -41,11 +40,35 @@ const GradesUpload: React.FC<GradesUploadProps> = ({ open, onOpenChange, onGrade
   };
 
   const downloadTemplate = () => {
-    // Simular descarga de plantilla
-    toast({
-      title: "Plantilla descargada",
-      description: "La plantilla de calificaciones ha sido descargada",
-    });
+    // Crear datos de ejemplo para la plantilla
+    const templateData = [
+      ['RNE', 'Nombre Completo', 'PC1-P1', 'PC1-P2', 'PC1-P3', 'PC1-P4', 'PC2-P1', 'PC2-P2', 'PC2-P3', 'PC2-P4', 'PC3-P1', 'PC3-P2', 'PC3-P3', 'PC3-P4', 'PC4-P1', 'PC4-P2', 'PC4-P3', 'PC4-P4', 'RP1', 'RP2', 'RP3', 'RP4'],
+      ['20240001', 'Ana María González', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+      ['20240002', 'Carlos José Martínez', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+      ['20240003', 'María Elena Rodríguez', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']
+    ];
+
+    // Convertir a CSV
+    const csvContent = templateData.map(row => row.join(',')).join('\n');
+    
+    // Crear blob y descargar
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', 'plantilla_calificaciones.csv');
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast({
+        title: "Plantilla descargada",
+        description: "La plantilla de calificaciones ha sido descargada exitosamente",
+      });
+    }
   };
 
   const uploadFile = async () => {
@@ -54,10 +77,8 @@ const GradesUpload: React.FC<GradesUploadProps> = ({ open, onOpenChange, onGrade
     setIsUploading(true);
 
     try {
-      // Simular procesamiento del archivo
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // Mock de datos procesados
       const mockProcessedGrades = [
         {
           id: '1',
@@ -111,7 +132,6 @@ const GradesUpload: React.FC<GradesUploadProps> = ({ open, onOpenChange, onGrade
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Información importante */}
           <Card className="bg-blue-50 border-blue-200">
             <CardContent className="pt-6">
               <div className="flex items-start space-x-3">
@@ -129,7 +149,6 @@ const GradesUpload: React.FC<GradesUploadProps> = ({ open, onOpenChange, onGrade
             </CardContent>
           </Card>
 
-          {/* Descargar plantilla */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Plantilla de Calificaciones</CardTitle>
@@ -149,7 +168,6 @@ const GradesUpload: React.FC<GradesUploadProps> = ({ open, onOpenChange, onGrade
             </CardContent>
           </Card>
 
-          {/* Subir archivo */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Seleccionar Archivo</CardTitle>
@@ -181,7 +199,6 @@ const GradesUpload: React.FC<GradesUploadProps> = ({ open, onOpenChange, onGrade
             </CardContent>
           </Card>
 
-          {/* Botones de acción */}
           <div className="flex justify-end space-x-2">
             <Button 
               variant="outline" 

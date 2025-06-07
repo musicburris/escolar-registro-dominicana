@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,7 +18,10 @@ import {
   Bell, 
   Shield,
   Save,
-  Clock
+  Clock,
+  Plus,
+  Trash2,
+  User
 } from 'lucide-react';
 
 const SystemSettings: React.FC = () => {
@@ -38,6 +40,44 @@ const SystemSettings: React.FC = () => {
   const [autoBackup, setAutoBackup] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [systemNotifications, setSystemNotifications] = useState(true);
+  
+  // Nuevos estados
+  const [schoolYears, setSchoolYears] = useState([
+    '2022-2023',
+    '2023-2024', 
+    '2024-2025',
+    '2025-2026'
+  ]);
+  const [newYear, setNewYear] = useState('');
+  const [developerName, setDeveloperName] = useState('Tu Nombre Aquí');
+  const [developerContact, setDeveloperContact] = useState('contacto@ejemplo.com');
+
+  const addSchoolYear = () => {
+    if (newYear && !schoolYears.includes(newYear)) {
+      setSchoolYears([...schoolYears, newYear]);
+      setNewYear('');
+      toast({
+        title: "Año escolar agregado",
+        description: `El año ${newYear} ha sido agregado exitosamente`,
+      });
+    }
+  };
+
+  const removeSchoolYear = (year: string) => {
+    if (year === currentYear) {
+      toast({
+        title: "Error",
+        description: "No puedes eliminar el año académico actual",
+        variant: "destructive"
+      });
+      return;
+    }
+    setSchoolYears(schoolYears.filter(y => y !== year));
+    toast({
+      title: "Año escolar eliminado",
+      description: `El año ${year} ha sido eliminado`,
+    });
+  };
 
   const saveSettings = () => {
     // Aquí se guardarían las configuraciones
@@ -121,7 +161,7 @@ const SystemSettings: React.FC = () => {
             Configuración Académica
           </CardTitle>
           <CardDescription className="font-opensans">
-            Establece los parámetros del año académico actual
+            Establece los parámetros del año académico actual y gestiona años escolares
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -133,9 +173,9 @@ const SystemSettings: React.FC = () => {
                   <SelectValue placeholder="Seleccionar año" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="2024-2025">2024-2025</SelectItem>
-                  <SelectItem value="2025-2026">2025-2026</SelectItem>
-                  <SelectItem value="2026-2027">2026-2027</SelectItem>
+                  {schoolYears.map(year => (
+                    <SelectItem key={year} value={year}>{year}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -152,6 +192,49 @@ const SystemSettings: React.FC = () => {
                   <SelectItem value="Q4">Cuarto Trimestre (Q4)</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+          </div>
+          
+          {/* Gestión de Años Escolares */}
+          <div className="space-y-4 border-t pt-4">
+            <Label className="text-lg font-semibold">Gestión de Años Escolares</Label>
+            
+            <div className="flex gap-2">
+              <Input
+                placeholder="Ej: 2026-2027"
+                value={newYear}
+                onChange={(e) => setNewYear(e.target.value)}
+                disabled={!isAdmin}
+              />
+              <Button 
+                onClick={addSchoolYear}
+                disabled={!isAdmin || !newYear}
+                variant="outline"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Agregar Año
+              </Button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+              {schoolYears.map(year => (
+                <div key={year} className="flex items-center justify-between bg-gray-50 p-2 rounded">
+                  <span className="text-sm">{year}</span>
+                  {year !== currentYear && isAdmin && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeSchoolYear(year)}
+                      className="h-6 w-6 p-0 text-red-600 hover:text-red-800"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  )}
+                  {year === currentYear && (
+                    <Badge variant="outline" className="text-xs">Actual</Badge>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         </CardContent>
@@ -313,6 +396,48 @@ const SystemSettings: React.FC = () => {
                 <span className="font-medium">Usuarios activos:</span> 18
               </div>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Información del Desarrollador */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-montserrat flex items-center">
+            <User className="mr-2 h-5 w-5" />
+            Información del Desarrollador
+          </CardTitle>
+          <CardDescription className="font-opensans">
+            Configura la información del desarrollador que aparece en el sistema
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="developerName">Nombre del Desarrollador</Label>
+              <Input
+                id="developerName"
+                value={developerName}
+                onChange={(e) => setDeveloperName(e.target.value)}
+                placeholder="Tu Nombre Aquí"
+                disabled={!isAdmin}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="developerContact">Contacto del Desarrollador</Label>
+              <Input
+                id="developerContact"
+                value={developerContact}
+                onChange={(e) => setDeveloperContact(e.target.value)}
+                placeholder="contacto@ejemplo.com"
+                disabled={!isAdmin}
+              />
+            </div>
+          </div>
+          <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+            <p className="text-sm text-blue-800">
+              Esta información aparecerá en el pie de página del sistema.
+            </p>
           </div>
         </CardContent>
       </Card>
