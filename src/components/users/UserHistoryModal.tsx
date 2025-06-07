@@ -219,21 +219,17 @@ const UserHistoryModal: React.FC<UserHistoryModalProps> = ({ open, onOpenChange 
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos los usuarios</SelectItem>
-                      {validUsers.map((user) => {
-                        // Additional validation just before rendering
-                        if (!user?.id || user.id.trim() === '') {
-                          console.error('Attempting to render SelectItem with invalid user:', user);
-                          return null;
-                        }
-                        
-                        const displayName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Usuario sin nombre';
-                        
-                        return (
-                          <SelectItem key={user.id} value={user.id}>
-                            {displayName}
-                          </SelectItem>
-                        );
-                      })}
+                      {validUsers
+                        .filter(user => user?.id && typeof user.id === 'string' && user.id.trim() !== '')
+                        .map((user) => {
+                          const displayName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Usuario sin nombre';
+                          
+                          return (
+                            <SelectItem key={user.id} value={user.id}>
+                              {displayName}
+                            </SelectItem>
+                          );
+                        })}
                     </SelectContent>
                   </Select>
                 </div>
@@ -246,11 +242,13 @@ const UserHistoryModal: React.FC<UserHistoryModalProps> = ({ open, onOpenChange 
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos los módulos</SelectItem>
-                      {moduleOptions.map((module) => (
-                        <SelectItem key={module.value} value={module.value}>
-                          {module.label}
-                        </SelectItem>
-                      ))}
+                      {moduleOptions
+                        .filter(module => module.value && module.value.trim() !== '')
+                        .map((module) => (
+                          <SelectItem key={module.value} value={module.value}>
+                            {module.label}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -263,11 +261,13 @@ const UserHistoryModal: React.FC<UserHistoryModalProps> = ({ open, onOpenChange 
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos los estados</SelectItem>
-                      {statusOptions.map((status) => (
-                        <SelectItem key={status.value} value={status.value}>
-                          {status.label}
-                        </SelectItem>
-                      ))}
+                      {statusOptions
+                        .filter(status => status.value && status.value.trim() !== '')
+                        .map((status) => (
+                          <SelectItem key={status.value} value={status.value}>
+                            {status.label}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
