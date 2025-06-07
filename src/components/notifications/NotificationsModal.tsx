@@ -1,5 +1,6 @@
 
-import React, { useState } from 'react';
+import React from 'react';
+import { useNotifications } from '@/contexts/NotificationContext';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,48 +8,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
 import { Bell, CheckCircle, AlertCircle, Info, X } from 'lucide-react';
 
-interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  type: 'info' | 'warning' | 'success' | 'error';
-  timestamp: Date;
-  read: boolean;
-}
-
 interface NotificationsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
 const NotificationsModal: React.FC<NotificationsModalProps> = ({ open, onOpenChange }) => {
-  // Mock notifications data with state
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: '1',
-      title: 'Calificaciones Pendientes',
-      message: 'Tienes 5 estudiantes sin calificar en Matemática - 2° A',
-      type: 'warning',
-      timestamp: new Date(Date.now() - 30 * 60 * 1000), // 30 min ago
-      read: false
-    },
-    {
-      id: '2',
-      title: 'Respaldo Completado',
-      message: 'El respaldo automático del sistema se completó exitosamente',
-      type: 'success',
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-      read: false
-    },
-    {
-      id: '3',
-      title: 'Nuevo Estudiante Registrado',
-      message: 'María José Fernández ha sido registrada en 1° B',
-      type: 'info',
-      timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
-      read: true
-    }
-  ]);
+  const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -77,36 +43,21 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({ open, onOpenCha
     return `Hace ${Math.floor(diffInMinutes / 1440)} día(s)`;
   };
 
-  const markAllAsRead = () => {
-    setNotifications(prev => prev.map(notification => ({
-      ...notification,
-      read: true
-    })));
-    
+  const handleMarkAllAsRead = () => {
+    markAllAsRead();
     toast({
       title: "Notificaciones marcadas",
       description: "Todas las notificaciones han sido marcadas como leídas",
     });
   };
 
-  const markAsRead = (notificationId: string) => {
-    setNotifications(prev => prev.map(notification => 
-      notification.id === notificationId 
-        ? { ...notification, read: true }
-        : notification
-    ));
-  };
-
-  const deleteNotification = (notificationId: string) => {
-    setNotifications(prev => prev.filter(notification => notification.id !== notificationId));
-    
+  const handleDeleteNotification = (notificationId: string) => {
+    deleteNotification(notificationId);
     toast({
       title: "Notificación eliminada",
       description: "La notificación ha sido eliminada",
     });
   };
-
-  const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -151,7 +102,7 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({ open, onOpenCha
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => deleteNotification(notification.id)}
+                              onClick={() => handleDeleteNotification(notification.id)}
                               className="text-red-500 hover:text-red-700 h-6 w-6 p-0"
                             >
                               <X className="w-3 h-3" />
@@ -190,7 +141,7 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({ open, onOpenCha
           </Button>
           {unreadCount > 0 && (
             <Button 
-              onClick={markAllAsRead}
+              onClick={handleMarkAllAsRead}
               className="bg-minerd-blue hover:bg-blue-700"
             >
               Marcar Todas como Leídas ({unreadCount})

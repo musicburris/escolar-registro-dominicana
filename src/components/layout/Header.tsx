@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNotifications } from '@/contexts/NotificationContext';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -23,7 +24,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ onMenuToggle, isMobileMenuOpen }) => {
   const { user, logout } = useAuth();
-  const [notifications] = useState(3); // Mock notifications
+  const { unreadCount } = useNotifications();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [userSettingsOpen, setUserSettingsOpen] = useState(false);
@@ -93,12 +94,12 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, isMobileMenuOpen }) => {
                 onClick={() => setNotificationsOpen(true)}
               >
                 <Bell className="h-5 w-5" />
-                {notifications > 0 && (
+                {unreadCount > 0 && (
                   <Badge 
                     variant="destructive" 
                     className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
                   >
-                    {notifications}
+                    {unreadCount}
                   </Badge>
                 )}
               </Button>

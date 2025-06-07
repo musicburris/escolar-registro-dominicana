@@ -1,18 +1,10 @@
-import React, { useState } from 'react';
-import AuditoriaModal from '@/components/grades/AuditoriaModal';
+
+import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { History, Activity, Users, Database, FileText, Settings } from 'lucide-react';
 
 const AuditManagement: React.FC = () => {
-  const [auditModalOpen, setAuditModalOpen] = useState(false);
-  const [modalFilters, setModalFilters] = useState<{
-    module?: string;
-    userId?: string;
-    filterType?: 'all' | 'user' | 'module';
-  }>({});
-
   // Estadísticas mock
   const stats = {
     totalActivities: 1247,
@@ -21,9 +13,58 @@ const AuditManagement: React.FC = () => {
     lastBackup: new Date('2024-12-05T02:00:00')
   };
 
-  const openModalWithFilters = (filterType: 'all' | 'user' | 'module', filters: any = {}) => {
-    setModalFilters({ ...filters, filterType });
-    setAuditModalOpen(true);
+  // Actividades recientes mock
+  const recentActivities = [
+    {
+      id: 1,
+      user: 'Prof. María González',
+      action: 'Calificación actualizada',
+      module: 'Calificaciones',
+      timestamp: new Date(Date.now() - 5 * 60 * 1000),
+      status: 'success'
+    },
+    {
+      id: 2,
+      user: 'Aux. Carmen López',
+      action: 'Estudiante registrado',
+      module: 'Estudiantes',
+      timestamp: new Date(Date.now() - 12 * 60 * 1000),
+      status: 'success'
+    },
+    {
+      id: 3,
+      user: 'Admin',
+      action: 'Configuración actualizada',
+      module: 'Sistema',
+      timestamp: new Date(Date.now() - 25 * 60 * 1000),
+      status: 'warning'
+    },
+    {
+      id: 4,
+      user: 'Prof. Juan Pérez',
+      action: 'Reporte generado',
+      module: 'Reportes',
+      timestamp: new Date(Date.now() - 60 * 60 * 1000),
+      status: 'success'
+    }
+  ];
+
+  const formatTimeAgo = (date: Date) => {
+    const now = new Date();
+    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+    
+    if (diffInMinutes < 60) return `Hace ${diffInMinutes} min`;
+    if (diffInMinutes < 1440) return `Hace ${Math.floor(diffInMinutes / 60)} h`;
+    return `Hace ${Math.floor(diffInMinutes / 1440)} día(s)`;
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'success': return 'text-green-600 bg-green-50';
+      case 'warning': return 'text-yellow-600 bg-yellow-50';
+      case 'error': return 'text-red-600 bg-red-50';
+      default: return 'text-blue-600 bg-blue-50';
+    }
   };
 
   return (
@@ -32,10 +73,10 @@ const AuditManagement: React.FC = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-title font-montserrat text-minerd-blue">
-            Histórico y Auditoría del Sistema
+            Histórico del Sistema
           </h1>
           <p className="text-body font-opensans text-gray-600">
-            Registro completo de actividades y monitoreo del sistema
+            Registro de actividades y estado del sistema
           </p>
         </div>
         <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
@@ -95,57 +136,12 @@ const AuditManagement: React.FC = () => {
         </Card>
       </div>
 
-      {/* Quick Actions */}
+      {/* Recent Activity */}
       <Card>
         <CardHeader>
           <CardTitle className="font-montserrat flex items-center">
             <History className="mr-2 h-5 w-5" />
-            Acciones Rápidas de Auditoría
-          </CardTitle>
-          <CardDescription className="font-opensans">
-            Accede a diferentes vistas y reportes del sistema
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <Button
-              onClick={() => openModalWithFilters('all')}
-              className="bg-minerd-blue hover:bg-blue-700 h-auto py-4 flex flex-col items-center space-y-2"
-            >
-              <History className="w-6 h-6" />
-              <span>Ver Histórico Completo</span>
-              <span className="text-xs opacity-80">Registro detallado de actividades</span>
-            </Button>
-
-            <Button
-              variant="outline"
-              className="h-auto py-4 flex flex-col items-center space-y-2"
-              onClick={() => openModalWithFilters('user')}
-            >
-              <Users className="w-6 h-6" />
-              <span>Actividades por Usuario</span>
-              <span className="text-xs opacity-60">Filtrar por usuario específico</span>
-            </Button>
-
-            <Button
-              variant="outline"
-              className="h-auto py-4 flex flex-col items-center space-y-2"
-              onClick={() => openModalWithFilters('module')}
-            >
-              <Settings className="w-6 h-6" />
-              <span>Actividades por Módulo</span>
-              <span className="text-xs opacity-60">Filtrar por área del sistema</span>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Recent Activity Summary */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="font-montserrat flex items-center">
-            <Activity className="mr-2 h-5 w-5" />
-            Resumen de Actividad Reciente
+            Actividad Reciente
           </CardTitle>
           <CardDescription className="font-opensans">
             Últimas actividades registradas en el sistema
@@ -153,48 +149,22 @@ const AuditManagement: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <span className="text-sm">Calificación actualizada por Prof. María González</span>
+            {recentActivities.map((activity) => (
+              <div key={activity.id} className={`flex items-center justify-between p-4 rounded-lg ${getStatusColor(activity.status)}`}>
+                <div className="flex items-center space-x-4">
+                  <div className="flex-shrink-0">
+                    <Activity className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="font-medium">{activity.action}</p>
+                    <p className="text-sm opacity-80">por {activity.user} • {activity.module}</p>
+                  </div>
+                </div>
+                <div className="text-sm opacity-80">
+                  {formatTimeAgo(activity.timestamp)}
+                </div>
               </div>
-              <span className="text-xs text-gray-500">Hace 5 min</span>
-            </div>
-
-            <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm">Nuevo estudiante registrado por Aux. Carmen López</span>
-              </div>
-              <span className="text-xs text-gray-500">Hace 12 min</span>
-            </div>
-
-            <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                <span className="text-sm">Configuración de competencias por Admin</span>
-              </div>
-              <span className="text-xs text-gray-500">Hace 25 min</span>
-            </div>
-
-            <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                <span className="text-sm">Reporte generado por Prof. Juan Pérez</span>
-              </div>
-              <span className="text-xs text-gray-500">Hace 1 hora</span>
-            </div>
-
-            <div className="text-center pt-4">
-              <Button
-                variant="outline"
-                onClick={() => openModalWithFilters('all')}
-                className="flex items-center"
-              >
-                <History className="w-4 h-4 mr-2" />
-                Ver Histórico Completo
-              </Button>
-            </div>
+            ))}
           </div>
         </CardContent>
       </Card>
@@ -238,13 +208,6 @@ const AuditManagement: React.FC = () => {
           </div>
         </CardContent>
       </Card>
-
-      {/* Audit Modal */}
-      <AuditoriaModal
-        open={auditModalOpen}
-        onOpenChange={setAuditModalOpen}
-        initialFilters={modalFilters}
-      />
     </div>
   );
 };

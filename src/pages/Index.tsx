@@ -1,6 +1,6 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { NotificationProvider } from '@/contexts/NotificationContext';
 import LoginForm from '@/components/auth/LoginForm';
 import Header from '@/components/layout/Header';
 import Sidebar from '@/components/layout/Sidebar';
@@ -141,31 +141,33 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-minerd-light">
-      <Header 
-        onMenuToggle={toggleSidebar}
-        isMobileMenuOpen={isSidebarOpen}
-      />
-      
-      <div className="flex">
-        <Sidebar
-          isOpen={isSidebarOpen}
-          onClose={closeSidebar}
-          activeSection={activeSection}
-          onSectionChange={setActiveSection}
+    <NotificationProvider>
+      <div className="min-h-screen bg-minerd-light">
+        <Header 
+          onMenuToggle={toggleSidebar}
+          isMobileMenuOpen={isSidebarOpen}
         />
         
-        {/* Main Content */}
-        <main className="flex-1 lg:ml-64">
-          <div className="p-6">
-            {renderContent()}
-          </div>
-        </main>
-      </div>
+        <div className="flex">
+          <Sidebar
+            isOpen={isSidebarOpen}
+            onClose={closeSidebar}
+            activeSection={activeSection}
+            onSectionChange={setActiveSection}
+          />
+          
+          {/* Main Content */}
+          <main className="flex-1 lg:ml-64">
+            <div className="p-6">
+              {renderContent()}
+            </div>
+          </main>
+        </div>
 
-      {/* Real Time Clock */}
-      <RealTimeClock />
-    </div>
+        {/* Real Time Clock */}
+        <RealTimeClock />
+      </div>
+    </NotificationProvider>
   );
 };
 
