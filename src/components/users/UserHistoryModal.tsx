@@ -61,6 +61,24 @@ const UserHistoryModal: React.FC<UserHistoryModalProps> = ({ open, onOpenChange 
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [users, setUsers] = useState<any[]>([]);
 
+  // Definir módulos válidos con valores seguros
+  const moduleOptions = [
+    { value: 'autenticacion', label: 'Autenticación' },
+    { value: 'perfil', label: 'Perfil' },
+    { value: 'usuarios', label: 'Usuarios' },
+    { value: 'seguridad', label: 'Seguridad' },
+    { value: 'calificaciones', label: 'Calificaciones' },
+    { value: 'estudiantes', label: 'Estudiantes' },
+    { value: 'configuracion', label: 'Configuración' }
+  ];
+
+  // Definir estados válidos con valores seguros
+  const statusOptions = [
+    { value: 'success', label: 'Exitoso' },
+    { value: 'warning', label: 'Advertencia' },
+    { value: 'error', label: 'Error' }
+  ];
+
   useEffect(() => {
     if (open) {
       const historyData = getUserHistory();
@@ -126,19 +144,16 @@ const UserHistoryModal: React.FC<UserHistoryModalProps> = ({ open, onOpenChange 
     setSelectedUser('all');
   };
 
-  // Filter and validate users for the select dropdown with more robust validation
+  // Filter and validate users with strict validation
   const validUsers = users.filter(user => {
-    // Check if user exists and has required properties
     if (!user) return false;
     
-    // Check if ID is valid (not null, undefined, empty string, or just whitespace)
     const hasValidId = user.id && 
                       typeof user.id === 'string' && 
                       user.id.trim() !== '' && 
                       user.id !== 'undefined' && 
                       user.id !== 'null';
     
-    // Check if user has a name
     const hasName = (user.firstName && user.firstName.trim() !== '') || 
                    (user.lastName && user.lastName.trim() !== '');
     
@@ -201,13 +216,11 @@ const UserHistoryModal: React.FC<UserHistoryModalProps> = ({ open, onOpenChange 
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos los módulos</SelectItem>
-                      <SelectItem value="autenticacion">Autenticación</SelectItem>
-                      <SelectItem value="perfil">Perfil</SelectItem>
-                      <SelectItem value="usuarios">Usuarios</SelectItem>
-                      <SelectItem value="seguridad">Seguridad</SelectItem>
-                      <SelectItem value="calificaciones">Calificaciones</SelectItem>
-                      <SelectItem value="estudiantes">Estudiantes</SelectItem>
-                      <SelectItem value="configuracion">Configuración</SelectItem>
+                      {moduleOptions.map((module) => (
+                        <SelectItem key={module.value} value={module.value}>
+                          {module.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -220,9 +233,11 @@ const UserHistoryModal: React.FC<UserHistoryModalProps> = ({ open, onOpenChange 
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos los estados</SelectItem>
-                      <SelectItem value="success">Exitoso</SelectItem>
-                      <SelectItem value="warning">Advertencia</SelectItem>
-                      <SelectItem value="error">Error</SelectItem>
+                      {statusOptions.map((status) => (
+                        <SelectItem key={status.value} value={status.value}>
+                          {status.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
