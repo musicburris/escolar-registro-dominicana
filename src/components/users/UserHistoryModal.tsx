@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -84,6 +83,8 @@ const UserHistoryModal: React.FC<UserHistoryModalProps> = ({ open, onOpenChange 
       const historyData = getUserHistory();
       const usersData = getAllUsers();
       
+      console.log('Raw users data:', usersData);
+      
       // Convert timestamp strings to Date objects if needed
       const processedHistory = historyData.map((entry: any) => ({
         ...entry,
@@ -144,21 +145,40 @@ const UserHistoryModal: React.FC<UserHistoryModalProps> = ({ open, onOpenChange 
     setSelectedUser('all');
   };
 
-  // Filter and validate users with strict validation
+  // Filter and validate users with the most strict validation possible
   const validUsers = users.filter(user => {
-    if (!user) return false;
+    console.log('Checking user:', user);
     
-    const hasValidId = user.id && 
-                      typeof user.id === 'string' && 
-                      user.id.trim() !== '' && 
-                      user.id !== 'undefined' && 
-                      user.id !== 'null';
+    // Check if user exists
+    if (!user) {
+      console.log('User is null/undefined');
+      return false;
+    }
     
-    const hasName = (user.firstName && user.firstName.trim() !== '') || 
-                   (user.lastName && user.lastName.trim() !== '');
+    // Check if ID is valid and not empty
+    if (!user.id || 
+        typeof user.id !== 'string' || 
+        user.id.trim() === '' || 
+        user.id === 'undefined' || 
+        user.id === 'null') {
+      console.log('User has invalid ID:', user.id);
+      return false;
+    }
     
-    return hasValidId && hasName;
+    // Check if user has a name
+    const hasValidName = (user.firstName && typeof user.firstName === 'string' && user.firstName.trim() !== '') || 
+                        (user.lastName && typeof user.lastName === 'string' && user.lastName.trim() !== '');
+    
+    if (!hasValidName) {
+      console.log('User has no valid name:', user);
+      return false;
+    }
+    
+    console.log('User is valid:', user.id, user.firstName, user.lastName);
+    return true;
   });
+
+  console.log('Valid users for select:', validUsers);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -199,11 +219,21 @@ const UserHistoryModal: React.FC<UserHistoryModalProps> = ({ open, onOpenChange 
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos los usuarios</SelectItem>
-                      {validUsers.map((user) => (
-                        <SelectItem key={user.id} value={user.id}>
-                          {user.firstName} {user.lastName}
-                        </SelectItem>
-                      ))}
+                      {validUsers.map((user) => {
+                        // Additional validation just before rendering
+                        if (!user?.id || user.id.trim() === '') {
+                          console.error('Attempting to render SelectItem with invalid user:', user);
+                          return null;
+                        }
+                        
+                        const displayName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Usuario sin nombre';
+                        
+                        return (
+                          <SelectItem key={user.id} value={user.id}>
+                            {displayName}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                 </div>
