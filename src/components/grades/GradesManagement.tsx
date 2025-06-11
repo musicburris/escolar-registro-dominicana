@@ -796,5 +796,3 @@ const GradesManagement: React.FC = () => {
 };
 
 export default GradesManagement;
-
-</edits_to_apply>
