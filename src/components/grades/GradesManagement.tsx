@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -82,7 +81,7 @@ const GradesManagement: React.FC = () => {
     'Formación Integral'
   ];
 
-  // Mock bloques de competencias con descripción libre
+  // Mock bloques de competencias con descripción libre - EDITABLE POR ADMIN
   const mockBloques: BloqueCompetencias[] = [
     {
       id: '1',
@@ -235,8 +234,8 @@ const GradesManagement: React.FC = () => {
     }));
   };
 
-  const updateCompetenciasBloque = (bloqueId: string, descripcion: string) => {
-    if (descripcion.length > 1000) {
+  const updateCompetenciasBloque = (bloqueId: string, updates: Partial<BloqueCompetencias>) => {
+    if (updates.descripcionCompetencias && updates.descripcionCompetencias.length > 1000) {
       toast({
         title: "Error",
         description: "La descripción no puede exceder 1000 caracteres",
@@ -247,7 +246,7 @@ const GradesManagement: React.FC = () => {
 
     setBloquesCompetencias(prev => prev.map(bloque => 
       bloque.id === bloqueId 
-        ? { ...bloque, descripcionCompetencias: descripcion }
+        ? { ...bloque, ...updates }
         : bloque
     ));
   };
@@ -556,25 +555,33 @@ const GradesManagement: React.FC = () => {
                     <div className="flex items-center gap-3">
                       {/* PC1 */}
                       <div className="bg-purple-100 p-2 rounded-lg text-center">
-                        <p className="text-xs text-purple-700 font-medium">PC1</p>
+                        <p className="text-xs text-purple-700 font-medium">
+                          {bloquesCompetencias[0]?.codigo || 'PC1'}
+                        </p>
                         <p className="text-lg font-bold text-purple-900">{grade.promedioPC1.toFixed(2)}</p>
                       </div>
                       
                       {/* PC2 */}
                       <div className="bg-indigo-100 p-2 rounded-lg text-center">
-                        <p className="text-xs text-indigo-700 font-medium">PC2</p>
+                        <p className="text-xs text-indigo-700 font-medium">
+                          {bloquesCompetencias[1]?.codigo || 'PC2'}
+                        </p>
                         <p className="text-lg font-bold text-indigo-900">{grade.promedioPC2.toFixed(2)}</p>
                       </div>
                       
                       {/* PC3 */}
                       <div className="bg-cyan-100 p-2 rounded-lg text-center">
-                        <p className="text-xs text-cyan-700 font-medium">PC3</p>
+                        <p className="text-xs text-cyan-700 font-medium">
+                          {bloquesCompetencias[2]?.codigo || 'PC3'}
+                        </p>
                         <p className="text-lg font-bold text-cyan-900">{grade.promedioPC3.toFixed(2)}</p>
                       </div>
                       
                       {/* PC4 */}
                       <div className="bg-teal-100 p-2 rounded-lg text-center">
-                        <p className="text-xs text-teal-700 font-medium">PC4</p>
+                        <p className="text-xs text-teal-700 font-medium">
+                          {bloquesCompetencias[3]?.codigo || 'PC4'}
+                        </p>
                         <p className="text-lg font-bold text-teal-900">{grade.promedioPC4.toFixed(2)}</p>
                       </div>
                       
@@ -708,7 +715,7 @@ const GradesManagement: React.FC = () => {
             <DialogHeader>
               <DialogTitle>Configuración Curricular - Bloques de Competencias</DialogTitle>
               <DialogDescription>
-                Configura las competencias para cada bloque de la asignatura seleccionada (máximo 1000 caracteres por bloque)
+                Configura el código, nombre y competencias para cada bloque de la asignatura seleccionada
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-6">
@@ -718,11 +725,30 @@ const GradesManagement: React.FC = () => {
                     <CardTitle className="text-lg">{bloque.codigo} - {bloque.nombre}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Código del Bloque:</label>
+                        <Input
+                          value={bloque.codigo}
+                          onChange={(e) => updateCompetenciasBloque(bloque.id, { codigo: e.target.value })}
+                          placeholder="Ej: PC1"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Nombre del Bloque:</label>
+                        <Input
+                          value={bloque.nombre}
+                          onChange={(e) => updateCompetenciasBloque(bloque.id, { nombre: e.target.value })}
+                          placeholder="Ej: Comprensión Lectora"
+                        />
+                      </div>
+                    </div>
+                    
                     <div className="space-y-2">
                       <label className="text-sm font-medium">Competencias del Bloque:</label>
                       <Textarea
                         value={bloque.descripcionCompetencias}
-                        onChange={(e) => updateCompetenciasBloque(bloque.id, e.target.value)}
+                        onChange={(e) => updateCompetenciasBloque(bloque.id, { descripcionCompetencias: e.target.value })}
                         placeholder="Describe las competencias de este bloque..."
                         className="min-h-[120px]"
                         maxLength={1000}
@@ -770,3 +796,5 @@ const GradesManagement: React.FC = () => {
 };
 
 export default GradesManagement;
+
+</edits_to_apply>

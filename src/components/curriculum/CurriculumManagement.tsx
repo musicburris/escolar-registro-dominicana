@@ -361,7 +361,7 @@ const CurriculumManagement: React.FC = () => {
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <h3 className="font-semibold text-lg">{competencia.nombre}</h3>
+                          <h3 className="font-semibold text-lg">{competencia.codigo} - {competencia.nombre}</h3>
                           <Badge variant="outline">{competencia.codigo}</Badge>
                         </div>
                         <p className="text-gray-600 text-sm">{competencia.descripcionCompetencias}</p>
@@ -603,29 +603,29 @@ const CompetenciaModal: React.FC<CompetenciaModalProps> = ({
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>
-            {editingCompetencia ? 'Editar Competencia' : 'Nueva Competencia'}
+            {editingCompetencia ? 'Editar Bloque de Competencias' : 'Nuevo Bloque de Competencias'}
           </DialogTitle>
           <DialogDescription>
-            Configura el bloque de competencias
+            Configura el bloque de competencias con código, nombre y descripción
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Código del Bloque</label>
+              <Input
+                value={formData.codigo}
+                onChange={(e) => setFormData(prev => ({ ...prev, codigo: e.target.value }))}
+                placeholder="Ej: PC1"
+                required
+              />
+            </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Nombre del Bloque</label>
               <Input
                 value={formData.nombre}
                 onChange={(e) => setFormData(prev => ({ ...prev, nombre: e.target.value }))}
                 placeholder="Ej: Comprensión Lectora"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Código</label>
-              <Input
-                value={formData.codigo}
-                onChange={(e) => setFormData(prev => ({ ...prev, codigo: e.target.value }))}
-                placeholder="Ej: PC1"
                 required
               />
             </div>
@@ -652,7 +652,7 @@ const CompetenciaModal: React.FC<CompetenciaModalProps> = ({
             </Button>
             <Button type="submit" className="bg-minerd-green hover:bg-green-700">
               <Save className="w-4 h-4 mr-2" />
-              {editingCompetencia ? 'Actualizar' : 'Crear'} Competencia
+              {editingCompetencia ? 'Actualizar' : 'Crear'} Bloque
             </Button>
           </div>
         </form>
