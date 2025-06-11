@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -550,9 +551,38 @@ const GradesManagement: React.FC = () => {
                       <FileText className="w-4 h-4 mr-2" />
                       Registro Anecdótico
                     </Button>
-                    <div className="bg-blue-100 p-3 rounded-lg">
-                      <p className="text-sm text-blue-700 font-medium">Calificación Final</p>
-                      <p className="text-2xl font-bold text-blue-900">{grade.calificacionFinal.toFixed(2)}</p>
+                    
+                    {/* Individual PC Grades and Final Grade */}
+                    <div className="flex items-center gap-3">
+                      {/* PC1 */}
+                      <div className="bg-purple-100 p-2 rounded-lg text-center">
+                        <p className="text-xs text-purple-700 font-medium">PC1</p>
+                        <p className="text-lg font-bold text-purple-900">{grade.promedioPC1.toFixed(2)}</p>
+                      </div>
+                      
+                      {/* PC2 */}
+                      <div className="bg-indigo-100 p-2 rounded-lg text-center">
+                        <p className="text-xs text-indigo-700 font-medium">PC2</p>
+                        <p className="text-lg font-bold text-indigo-900">{grade.promedioPC2.toFixed(2)}</p>
+                      </div>
+                      
+                      {/* PC3 */}
+                      <div className="bg-cyan-100 p-2 rounded-lg text-center">
+                        <p className="text-xs text-cyan-700 font-medium">PC3</p>
+                        <p className="text-lg font-bold text-cyan-900">{grade.promedioPC3.toFixed(2)}</p>
+                      </div>
+                      
+                      {/* PC4 */}
+                      <div className="bg-teal-100 p-2 rounded-lg text-center">
+                        <p className="text-xs text-teal-700 font-medium">PC4</p>
+                        <p className="text-lg font-bold text-teal-900">{grade.promedioPC4.toFixed(2)}</p>
+                      </div>
+                      
+                      {/* Final Grade */}
+                      <div className="bg-blue-100 p-3 rounded-lg border-2 border-blue-300">
+                        <p className="text-sm text-blue-700 font-medium">Calificación Final</p>
+                        <p className="text-2xl font-bold text-blue-900">{grade.calificacionFinal.toFixed(2)}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
