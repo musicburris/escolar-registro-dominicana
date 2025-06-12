@@ -1,13 +1,15 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
 import { FileText, Download, Mail, Eye, Archive, Filter, Search } from 'lucide-react';
+import ReportConfigModal from './ReportConfigModal';
 
 interface StudentReport {
   id: string;
@@ -40,6 +42,17 @@ interface SectionInfo {
   coordinatorName: string;
 }
 
+interface ReportConfig {
+  institutionName: string;
+  institutionSubtitle: string;
+  academicYear: string;
+  centerName: string;
+  logoUrl?: string;
+  footerText: string;
+  directorName: string;
+  directorTitle: string;
+}
+
 const ReportsManagement: React.FC = () => {
   const [selectedSection, setSelectedSection] = useState('');
   const [selectedPeriod, setSelectedPeriod] = useState('');
@@ -47,6 +60,17 @@ const ReportsManagement: React.FC = () => {
   const [students, setStudents] = useState<StudentReport[]>([]);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Configuración de boletas
+  const [reportConfig, setReportConfig] = useState<ReportConfig>({
+    institutionName: 'MINISTERIO DE EDUCACIÓN',
+    institutionSubtitle: 'REGISTRO ESCOLAR 1ER CICLO SECUNDARIA',
+    academicYear: '2024-2025',
+    centerName: 'Centro Educativo Demo',
+    footerText: 'Generado automáticamente por Registro Escolar 1er Ciclo Secundaria – RD',
+    directorName: 'Director(a)',
+    directorTitle: 'Director(a) del Centro'
+  });
 
   // Mock data with coordinator teachers
   const sections: SectionInfo[] = [
@@ -120,7 +144,7 @@ const ReportsManagement: React.FC = () => {
         title: "Boleta generada",
         description: `Boleta PDF generada para ${student.name}`,
       });
-      // Aquí iría la lógica para generar el PDF
+      // Aquí iría la lógica para generar el PDF con la configuración personalizada
     }
   };
 
@@ -169,6 +193,10 @@ const ReportsManagement: React.FC = () => {
             Generación de boletas trimestrales y reportes académicos
           </p>
         </div>
+        <ReportConfigModal 
+          config={reportConfig}
+          onConfigChange={setReportConfig}
+        />
       </div>
 
       {/* Filters */}
@@ -365,19 +393,23 @@ const ReportsManagement: React.FC = () => {
           
           {selectedStudentData && selectedSectionInfo && (
             <div className="bg-white p-6 border rounded-lg">
-              {/* Header */}
+              {/* Header with custom configuration */}
               <div className="text-center mb-6 border-b pb-4">
                 <div className="flex justify-between items-center mb-4">
                   <div className="w-16 h-16 bg-minerd-blue rounded-full flex items-center justify-center">
                     <span className="text-white font-bold">RD</span>
                   </div>
                   <div className="text-center flex-1">
-                    <h2 className="text-xl font-bold text-minerd-blue">MINISTERIO DE EDUCACIÓN</h2>
-                    <h3 className="text-lg font-semibold">REGISTRO ESCOLAR 1ER CICLO SECUNDARIA</h3>
-                    <p className="text-sm">Centro Educativo Demo • Año Escolar 2024-2025</p>
+                    <h2 className="text-xl font-bold text-minerd-blue">{reportConfig.institutionName}</h2>
+                    <h3 className="text-lg font-semibold">{reportConfig.institutionSubtitle}</h3>
+                    <p className="text-sm">{reportConfig.centerName} • Año Escolar {reportConfig.academicYear}</p>
                   </div>
                   <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
-                    <span className="text-xs text-gray-500">Logo Centro</span>
+                    {reportConfig.logoUrl ? (
+                      <img src={reportConfig.logoUrl} alt="Logo" className="w-full h-full rounded-full object-cover" />
+                    ) : (
+                      <span className="text-xs text-gray-500">Logo Centro</span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -439,11 +471,12 @@ const ReportsManagement: React.FC = () => {
                 <p className="text-sm">{selectedStudentData.observations}</p>
               </div>
 
-              {/* Signatures */}
+              {/* Signatures with custom director name */}
               <div className="flex justify-between mt-8 pt-4 border-t">
                 <div className="text-center">
                   <div className="w-32 h-16 border-b border-gray-400 mb-2"></div>
-                  <p className="text-sm">Firma del Director(a)</p>
+                  <p className="text-sm">{reportConfig.directorName}</p>
+                  <p className="text-xs text-gray-600">{reportConfig.directorTitle}</p>
                 </div>
                 <div className="text-center">
                   <div className="w-32 h-16 border border-gray-400 mb-2"></div>
@@ -456,9 +489,9 @@ const ReportsManagement: React.FC = () => {
                 </div>
               </div>
 
-              {/* Footer */}
+              {/* Footer with custom text */}
               <div className="text-center mt-6 text-xs text-gray-500">
-                Generado automáticamente por Registro Escolar 1er Ciclo Secundaria – RD
+                {reportConfig.footerText}
               </div>
             </div>
           )}

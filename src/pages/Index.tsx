@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { NotificationProvider } from '@/contexts/NotificationContext';
@@ -55,7 +56,7 @@ const Index = () => {
       case 'admin':
         return <AdminDashboard onSectionChange={setActiveSection} />;
       case 'teacher':
-        return <TeacherDashboard />;
+        return <TeacherDashboard onSectionChange={setActiveSection} />;
       case 'auxiliary':
         return (
           <div className="text-center py-20">

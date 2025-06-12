@@ -13,8 +13,16 @@ import {
   BookOpen,
   AlertCircle
 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from '@/hooks/use-toast';
 
-const TeacherDashboard: React.FC = () => {
+interface TeacherDashboardProps {
+  onSectionChange?: (section: string) => void;
+}
+
+const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ onSectionChange }) => {
+  const { user } = useAuth();
+
   // Mock data for demonstration
   const assignedSections = [
     {
@@ -101,6 +109,41 @@ const TeacherDashboard: React.FC = () => {
     }
   ];
 
+  const handleQuickAction = (action: string) => {
+    if (onSectionChange) {
+      onSectionChange(action);
+      toast({
+        title: "Navegando",
+        description: `Accediendo a ${action === 'attendance' ? 'Asistencia' : action === 'grades' ? 'Calificaciones' : action === 'reports' ? 'Boletas y Reportes' : 'Observaciones'}`,
+      });
+    } else {
+      toast({
+        title: "Función disponible",
+        description: `Redirigiendo a ${action === 'attendance' ? 'Asistencia' : action === 'grades' ? 'Calificaciones' : action === 'reports' ? 'Boletas y Reportes' : 'Observaciones'}`,
+      });
+    }
+  };
+
+  const handleViewStudentList = (sectionId: string) => {
+    toast({
+      title: "Lista de estudiantes",
+      description: `Mostrando estudiantes de la sección ${sectionId}`,
+    });
+    if (onSectionChange) {
+      onSectionChange('students');
+    }
+  };
+
+  const handleTakeAttendance = (sectionId: string) => {
+    toast({
+      title: "Registro de asistencia",
+      description: `Iniciando registro para la sección ${sectionId}`,
+    });
+    if (onSectionChange) {
+      onSectionChange('attendance');
+    }
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
@@ -110,7 +153,7 @@ const TeacherDashboard: React.FC = () => {
             Panel Docente
           </h1>
           <p className="text-body font-opensans text-gray-600">
-            Gestión de secciones asignadas
+            Bienvenido/a {user?.firstName} - Gestión de secciones asignadas
           </p>
         </div>
         <div className="flex items-center space-x-2">
@@ -126,7 +169,11 @@ const TeacherDashboard: React.FC = () => {
         {quickActions.map((action, index) => {
           const Icon = action.icon;
           return (
-            <Card key={index} className="hover:shadow-lg transition-all cursor-pointer group hover:scale-105">
+            <Card 
+              key={index} 
+              className="hover:shadow-lg transition-all cursor-pointer group hover:scale-105"
+              onClick={() => handleQuickAction(action.action)}
+            >
               <CardContent className="p-4">
                 <div className="flex flex-col items-center text-center space-y-3">
                   <div className={`p-3 rounded-full ${action.color} group-hover:scale-110 transition-transform`}>
@@ -191,11 +238,20 @@ const TeacherDashboard: React.FC = () => {
                     </span>
                   </div>
                   <div className="flex space-x-2 pt-2">
-                    <Button size="sm" variant="outline" className="flex-1 text-xs">
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="flex-1 text-xs"
+                      onClick={() => handleViewStudentList(section.id)}
+                    >
                       <Users className="w-3 h-3 mr-1" />
                       Ver Lista
                     </Button>
-                    <Button size="sm" className="flex-1 text-xs bg-minerd-green hover:bg-green-700">
+                    <Button 
+                      size="sm" 
+                      className="flex-1 text-xs bg-minerd-green hover:bg-green-700"
+                      onClick={() => handleTakeAttendance(section.id)}
+                    >
                       <Calendar className="w-3 h-3 mr-1" />
                       Asistencia
                     </Button>
@@ -223,7 +279,7 @@ const TeacherDashboard: React.FC = () => {
           <CardContent>
             <div className="space-y-4">
               {pendingTasks.map((task) => (
-                <div key={task.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div key={task.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
                   <div className="flex-1">
                     <p className="text-sm font-medium text-gray-900">
                       {task.task}
