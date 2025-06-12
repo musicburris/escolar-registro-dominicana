@@ -183,8 +183,8 @@ const GradesManagement: React.FC = () => {
       const valorRP = bloque[recuperaciones[index]];
       
       if (valorPeriodo !== undefined) {
-        // La calificación final es la suma del período y la recuperación (si existe)
-        const valorFinal = valorPeriodo + (valorRP || 0);
+        // Si existe recuperación, esta sustituye completamente al período
+        const valorFinal = valorRP !== undefined ? valorRP : valorPeriodo;
         suma += valorFinal;
         count++;
       }
@@ -508,7 +508,7 @@ const GradesManagement: React.FC = () => {
                 <h4 className="font-semibold text-blue-900 mb-2">Sistema de Calificación por Períodos</h4>
                 <p className="text-blue-800">
                   Cada bloque (PC1-PC4) tiene 4 períodos (P1, P2, P3, P4) con opción de recuperación pedagógica (RP1-RP4). 
-                  El promedio del bloque considera la suma de la nota del período y la recuperación.
+                  Cuando se registra una recuperación, esta sustituye completamente la calificación del período correspondiente.
                 </p>
               </div>
               <div>
