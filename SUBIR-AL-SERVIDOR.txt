@@ -1,0 +1,30 @@
+
+PASOS PARA SUBIR AL SERVIDOR (VERSIÓN ULTRA SIMPLE)
+
+1. En tu computadora:
+   - Abre la terminal/consola
+   - Escribe: npm install
+   - Escribe: npm run build
+   - Se creará una carpeta llamada "dist"
+
+2. En tu servidor (cPanel/DirectAdmin):
+   - Ve a "Administrador de archivos"
+   - Entra a "public_html"
+   - BORRA todo lo que esté ahí
+   - Sube TODO lo que está dentro de la carpeta "dist"
+
+3. Crear archivo .htaccess:
+   - En el administrador de archivos, crea un archivo nuevo
+   - Nómbralo exactamente: .htaccess
+   - Copia y pega esto adentro:
+
+RewriteEngine On
+RewriteBase /
+RewriteRule ^index\.html$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.html [L]
+
+4. ¡Visita tu sitio web!
+
+IMPORTANTE: Si algo no funciona, llama a tu proveedor de hosting y diles que necesitas configurar tu servidor para "React SPA" o "Single Page Application".
