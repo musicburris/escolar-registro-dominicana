@@ -1,0 +1,25 @@
+
+# Archivo .htaccess para servidor Apache
+# Copia este contenido a un archivo llamado .htaccess en la raíz de tu servidor
+
+RewriteEngine On
+RewriteBase /
+
+# Manejar el archivo index.html directamente
+RewriteRule ^index\.html$ - [L]
+
+# Para todas las demás rutas que no sean archivos o directorios existentes,
+# redirigir a index.html (necesario para SPA)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.html [L]
+
+# Opcional: Configurar cache para archivos estáticos
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css "access plus 1 year"
+    ExpiresByType application/javascript "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/jpg "access plus 1 year"
+    ExpiresByType image/jpeg "access plus 1 year"
+</IfModule>
