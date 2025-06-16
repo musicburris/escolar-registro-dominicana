@@ -1,4 +1,3 @@
-
 export interface Attendance {
   id: string;
   studentId: string;
@@ -120,4 +119,41 @@ export interface ReportCard {
   registroAnecdotico: RegistroAnecdotico[];
   generatedAt: Date;
   generatedBy: string;
+}
+
+export interface IndicadorLogro {
+  id: string;
+  codigo: string;
+  descripcion: string;
+  bloqueCompetenciaId: string;
+  subjectId: string;
+  grado: string;
+  createdBy: string;
+  createdAt: Date;
+}
+
+export interface IndicadorLogroPeriodo {
+  id: string;
+  indicadorLogroId: string;
+  periodo: 'p1' | 'p2' | 'p3' | 'p4';
+  sectionId: string;
+  subjectId: string;
+  trabajado: boolean;
+  registradoPor: string;
+  fecha: Date;
+}
+
+export interface ListaCotejo {
+  id: string;
+  studentId: string;
+  sectionId: string;
+  subjectId: string;
+  periodo: 'p1' | 'p2' | 'p3' | 'p4';
+  indicadoresLogro: {
+    indicadorId: string;
+    logrado: boolean;
+    observaciones?: string;
+  }[];
+  registradoPor: string;
+  updatedAt: Date;
 }

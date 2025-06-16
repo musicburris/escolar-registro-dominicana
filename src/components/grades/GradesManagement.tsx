@@ -9,10 +9,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
-import { Award, Calculator, Save, BookOpen, Target, Settings, Plus, Trash2, FileText, History, Clock, Lock, Upload } from 'lucide-react';
+import { Award, Calculator, Save, BookOpen, Target, Settings, Plus, Trash2, FileText, History, Clock, Lock, Upload, CheckSquare } from 'lucide-react';
 import { BloqueCompetencias, RegistroAnecdotico } from '@/types/academic';
 import AuditoriaModal from '@/components/grades/AuditoriaModal';
 import GradesUpload from '@/components/grades/GradesUpload';
+import IndicadoresLogroManager from '@/components/grades/IndicadoresLogroManager';
+import ListaCotejoManager from '@/components/grades/ListaCotejoManager';
 
 interface BloquePeriodos {
   p1?: number;
@@ -59,6 +61,8 @@ const GradesManagement: React.FC = () => {
   const [isPublished, setIsPublished] = useState(false);
   const [publishDate, setPublishDate] = useState<Date | null>(null);
   const [editTimeLimit] = useState(24); // horas configurables por admin
+  const [indicadoresModalOpen, setIndicadoresModalOpen] = useState(false);
+  const [listaCotejoModalOpen, setListaCotejoModalOpen] = useState(false);
 
   // Mock data
   const sections = [
@@ -334,14 +338,38 @@ const GradesManagement: React.FC = () => {
             Período Q3 Activo
           </Badge>
           {user?.role === 'admin' && (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setConfigModalOpen(true)}
+                className="flex items-center"
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Configurar Competencias
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIndicadoresModalOpen(true)}
+                disabled={!selectedSection || !selectedSubject}
+                className="flex items-center"
+              >
+                <Target className="w-4 h-4 mr-2" />
+                Gestionar Indicadores
+              </Button>
+            </>
+          )}
+          {(user?.role === 'teacher' || user?.role === 'admin') && (
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setConfigModalOpen(true)}
+              onClick={() => setListaCotejoModalOpen(true)}
+              disabled={!selectedSection || !selectedSubject || grades.length === 0}
               className="flex items-center"
             >
-              <Settings className="w-4 h-4 mr-2" />
-              Configurar Competencias
+              <CheckSquare className="w-4 h-4 mr-2" />
+              Lista de Cotejo
             </Button>
           )}
           <Button
@@ -778,6 +806,29 @@ const GradesManagement: React.FC = () => {
             </div>
           </DialogContent>
         </Dialog>
+      )}
+
+      {/* Indicadores de Logro Manager - Solo para administradores */}
+      {user?.role === 'admin' && (
+        <IndicadoresLogroManager
+          open={indicadoresModalOpen}
+          onOpenChange={setIndicadoresModalOpen}
+          selectedSubject={selectedSubject}
+          selectedGrade={sections.find(s => s.id === selectedSection)?.name?.charAt(0) || '1'}
+          bloquesCompetencias={bloquesCompetencias}
+        />
+      )}
+
+      {/* Lista de Cotejo Manager - Para docentes y administradores */}
+      {(user?.role === 'teacher' || user?.role === 'admin') && (
+        <ListaCotejoManager
+          open={listaCotejoModalOpen}
+          onOpenChange={setListaCotejoModalOpen}
+          selectedSection={selectedSection}
+          selectedSubject={selectedSubject}
+          selectedGrade={sections.find(s => s.id === selectedSection)?.name?.charAt(0) || '1'}
+          students={grades.map(g => ({ id: g.id, name: g.name, rne: g.rne }))}
+        />
       )}
 
       {/* Audit Modal */}
