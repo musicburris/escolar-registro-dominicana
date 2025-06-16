@@ -43,7 +43,7 @@ const ListaCotejoManager: React.FC<ListaCotejoManagerProps> = ({
     if (selectedSubject && selectedGrade) {
       const mockIndicadores: IndicadorLogro[] = [
         {
-          id: '1',
+          id: 'ind-1',
           codigo: 'IL-PC1-001',
           descripcion: 'Identifica personajes principales y secundarios en textos narrativos',
           bloqueCompetenciaId: '1',
@@ -53,7 +53,7 @@ const ListaCotejoManager: React.FC<ListaCotejoManagerProps> = ({
           createdAt: new Date()
         },
         {
-          id: '2',
+          id: 'ind-2',
           codigo: 'IL-PC1-002',
           descripcion: 'Comprende la secuencia cronológica de eventos en la narración',
           bloqueCompetenciaId: '1',
@@ -63,7 +63,7 @@ const ListaCotejoManager: React.FC<ListaCotejoManagerProps> = ({
           createdAt: new Date()
         },
         {
-          id: '3',
+          id: 'ind-3',
           codigo: 'IL-PC2-001',
           descripcion: 'Redacta párrafos con coherencia y cohesión textual',
           bloqueCompetenciaId: '2',
@@ -73,7 +73,7 @@ const ListaCotejoManager: React.FC<ListaCotejoManagerProps> = ({
           createdAt: new Date()
         },
         {
-          id: '4',
+          id: 'ind-4',
           codigo: 'IL-PC2-002',
           descripcion: 'Utiliza conectores lógicos para enlazar ideas',
           bloqueCompetenciaId: '2',
@@ -88,8 +88,8 @@ const ListaCotejoManager: React.FC<ListaCotejoManagerProps> = ({
       // Mock indicadores trabajados
       const mockTrabajados: IndicadorLogroPeriodo[] = [
         {
-          id: '1',
-          indicadorLogroId: '1',
+          id: 'trab-1',
+          indicadorLogroId: 'ind-1',
           periodo: 'p1',
           sectionId: selectedSection,
           subjectId: selectedSubject,
@@ -98,8 +98,8 @@ const ListaCotejoManager: React.FC<ListaCotejoManagerProps> = ({
           fecha: new Date()
         },
         {
-          id: '2',
-          indicadorLogroId: '2',
+          id: 'trab-2',
+          indicadorLogroId: 'ind-2',
           periodo: 'p1',
           sectionId: selectedSection,
           subjectId: selectedSubject,
@@ -129,7 +129,7 @@ const ListaCotejoManager: React.FC<ListaCotejoManagerProps> = ({
         );
       } else {
         const newIndicadorTrabajado: IndicadorLogroPeriodo = {
-          id: Date.now().toString(),
+          id: `trab-${Date.now()}`,
           indicadorLogroId: indicadorId,
           periodo: selectedPeriodo,
           sectionId: selectedSection,
@@ -201,7 +201,7 @@ const ListaCotejoManager: React.FC<ListaCotejoManagerProps> = ({
 
   const saveCotejo = () => {
     const cotejoData: ListaCotejo[] = listaCotejo.map(item => ({
-      id: Date.now().toString() + item.studentId,
+      id: `cotejo-${Date.now()}-${item.studentId}`,
       studentId: item.studentId,
       sectionId: selectedSection,
       subjectId: selectedSubject,
@@ -336,13 +336,20 @@ const ListaCotejoManager: React.FC<ListaCotejoManagerProps> = ({
                           <div className="space-y-2">
                             <label className="text-sm font-medium">Indicador de Logro:</label>
                             <Select 
-                              value={selectedItem?.indicadorId || ""} 
-                              onValueChange={(value) => handleSelectIndicadorForStudent(student.id, value)}
+                              value={selectedItem?.indicadorId || "placeholder"} 
+                              onValueChange={(value) => {
+                                if (value !== "placeholder") {
+                                  handleSelectIndicadorForStudent(student.id, value);
+                                }
+                              }}
                             >
                               <SelectTrigger className="w-full bg-white">
                                 <SelectValue placeholder="Seleccionar indicador trabajado..." />
                               </SelectTrigger>
                               <SelectContent className="bg-white border shadow-lg z-50">
+                                <SelectItem value="placeholder" disabled>
+                                  Seleccionar indicador trabajado...
+                                </SelectItem>
                                 {indicadoresParaCotejo.map(indicador => (
                                   <SelectItem key={indicador.id} value={indicador.id}>
                                     <div className="flex flex-col">
