@@ -169,9 +169,9 @@ const AuditoriaModal: React.FC<AuditoriaModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center">
+      <DialogContent className="max-w-7xl max-h-[95vh] overflow-y-auto">
+        <DialogHeader className="pb-4">
+          <DialogTitle className="flex items-center text-xl">
             <History className="w-5 h-5 mr-2" />
             Histórico y Auditoría del Sistema
           </DialogTitle>
@@ -180,21 +180,21 @@ const AuditoriaModal: React.FC<AuditoriaModalProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Filtros */}
+        <div className="space-y-4">
+          {/* Filtros - Más compacto */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center">
-                <Filter className="w-5 h-5 mr-2" />
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center">
+                <Filter className="w-4 h-4 mr-2" />
                 Filtros de Búsqueda
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Usuario</label>
+            <CardContent className="pt-0">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-gray-700">Usuario</label>
                   <Select value={filtroUsuario} onValueChange={setFiltroUsuario}>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-9">
                       <SelectValue placeholder="Todos los usuarios" />
                     </SelectTrigger>
                     <SelectContent>
@@ -208,10 +208,10 @@ const AuditoriaModal: React.FC<AuditoriaModalProps> = ({
                   </Select>
                 </div>
                 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Módulo</label>
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-gray-700">Módulo</label>
                   <Select value={filtroModulo} onValueChange={setFiltroModulo}>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-9">
                       <SelectValue placeholder="Todos los módulos" />
                     </SelectTrigger>
                     <SelectContent>
@@ -226,19 +226,19 @@ const AuditoriaModal: React.FC<AuditoriaModalProps> = ({
                   </Select>
                 </div>
                 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Buscar Acción</label>
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-gray-700">Buscar Acción</label>
                   <input
                     type="text"
                     value={filtroAccion}
                     onChange={(e) => setFiltroAccion(e.target.value)}
                     placeholder="Buscar por acción..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    className="w-full h-9 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
                 <div className="flex items-end">
-                  <Button variant="outline" onClick={clearFilters} className="w-full">
+                  <Button variant="outline" onClick={clearFilters} className="w-full h-9 text-sm">
                     Limpiar Filtros
                   </Button>
                 </div>
@@ -246,109 +246,107 @@ const AuditoriaModal: React.FC<AuditoriaModalProps> = ({
             </CardContent>
           </Card>
 
-          {/* Estadísticas Rápidas */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">{auditLogs.length}</div>
-                  <div className="text-sm text-gray-600">Total Actividades</div>
-                </div>
+          {/* Estadísticas Rápidas - Más compactas */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <Card className="text-center">
+              <CardContent className="py-4">
+                <div className="text-xl font-bold text-blue-600">{auditLogs.length}</div>
+                <div className="text-xs text-gray-600">Total Actividades</div>
               </CardContent>
             </Card>
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">
-                    {auditLogs.filter(log => log.modulo === 'calificaciones').length}
-                  </div>
-                  <div className="text-sm text-gray-600">Calificaciones</div>
+            <Card className="text-center">
+              <CardContent className="py-4">
+                <div className="text-xl font-bold text-green-600">
+                  {auditLogs.filter(log => log.modulo === 'calificaciones').length}
                 </div>
+                <div className="text-xs text-gray-600">Calificaciones</div>
               </CardContent>
             </Card>
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-purple-600">
-                    {auditLogs.filter(log => log.userRole === 'admin').length}
-                  </div>
-                  <div className="text-sm text-gray-600">Admin</div>
+            <Card className="text-center">
+              <CardContent className="py-4">
+                <div className="text-xl font-bold text-purple-600">
+                  {auditLogs.filter(log => log.userRole === 'admin').length}
                 </div>
+                <div className="text-xs text-gray-600">Admin</div>
               </CardContent>
             </Card>
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-orange-600">
-                    {auditLogs.filter(log => log.userRole === 'teacher').length}
-                  </div>
-                  <div className="text-sm text-gray-600">Profesores</div>
+            <Card className="text-center">
+              <CardContent className="py-4">
+                <div className="text-xl font-bold text-orange-600">
+                  {auditLogs.filter(log => log.userRole === 'teacher').length}
                 </div>
+                <div className="text-xs text-gray-600">Profesores</div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Tabla de Auditoría */}
+          {/* Tabla de Auditoría - Layout optimizado */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center">
-                <Calendar className="w-5 h-5 mr-2" />
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center">
+                <Calendar className="w-4 h-4 mr-2" />
                 Registro de Actividades ({logsFilteredData.length})
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Fecha/Hora</TableHead>
-                    <TableHead>Usuario</TableHead>
-                    <TableHead>Rol</TableHead>
-                    <TableHead>Módulo</TableHead>
-                    <TableHead>Acción</TableHead>
-                    <TableHead>Detalles</TableHead>
-                    <TableHead>IP</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {logsFilteredData.map((log) => {
-                    const user = users.find(u => u.id === log.userId);
-                    return (
-                      <TableRow key={log.id}>
-                        <TableCell className="font-mono text-sm">
-                          {log.timestamp.toLocaleDateString()} <br />
-                          {log.timestamp.toLocaleTimeString()}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center">
-                            <User className="w-4 h-4 mr-2" />
-                            {user?.name || log.userId}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={getRoleColor(log.userRole)}>
-                            {log.userRole}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={getModuloColor(log.modulo)}>
-                            {log.modulo}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="font-medium">{log.accion}</TableCell>
-                        <TableCell className="max-w-xs truncate" title={log.detalles}>
-                          {log.detalles}
-                        </TableCell>
-                        <TableCell className="font-mono text-sm">{log.ipAddress}</TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+            <CardContent className="pt-0">
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gray-50">
+                      <TableHead className="w-[120px] text-xs">Fecha/Hora</TableHead>
+                      <TableHead className="w-[140px] text-xs">Usuario</TableHead>
+                      <TableHead className="w-[80px] text-xs">Rol</TableHead>
+                      <TableHead className="w-[100px] text-xs">Módulo</TableHead>
+                      <TableHead className="w-[140px] text-xs">Acción</TableHead>
+                      <TableHead className="text-xs">Detalles</TableHead>
+                      <TableHead className="w-[100px] text-xs">IP</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {logsFilteredData.map((log) => {
+                      const user = users.find(u => u.id === log.userId);
+                      return (
+                        <TableRow key={log.id} className="hover:bg-gray-50">
+                          <TableCell className="font-mono text-xs py-2">
+                            <div>
+                              <div>{log.timestamp.toLocaleDateString()}</div>
+                              <div className="text-gray-500">{log.timestamp.toLocaleTimeString()}</div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="py-2">
+                            <div className="flex items-center text-xs">
+                              <User className="w-3 h-3 mr-1 text-gray-400" />
+                              <span className="truncate">{user?.name || log.userId}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="py-2">
+                            <Badge className={`text-xs px-2 py-1 ${getRoleColor(log.userRole)}`}>
+                              {log.userRole}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="py-2">
+                            <Badge className={`text-xs px-2 py-1 ${getModuloColor(log.modulo)}`}>
+                              {log.modulo}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="font-medium text-xs py-2">{log.accion}</TableCell>
+                          <TableCell className="text-xs py-2">
+                            <div className="max-w-xs truncate" title={log.detalles}>
+                              {log.detalles}
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-mono text-xs py-2">{log.ipAddress}</TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         </div>
 
-        <div className="flex justify-end space-x-2">
+        <div className="flex justify-end pt-4">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cerrar
           </Button>
