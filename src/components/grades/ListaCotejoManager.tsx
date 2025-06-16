@@ -314,18 +314,18 @@ const CotejoStudentModal: React.FC<CotejoStudentModalProps> = ({
   }, [open, indicadores]);
 
   const handleToggleLogrado = (indicadorId: string, logrado: boolean) => {
-    setEvaluacion(prev => prev.map(ev => 
-      ev.indicadorId === indicadorId 
-        ? { ...ev, logrado }
-        : ev
+    setEvaluacion(prev => prev.map(evaluacionItem => 
+      evaluacionItem.indicadorId === indicadorId 
+        ? { ...evaluacionItem, logrado }
+        : evaluacionItem
     ));
   };
 
   const handleObservacionChange = (indicadorId: string, observaciones: string) => {
-    setEvaluacion(prev => prev.map(ev => 
-      ev.indicadorId === indicadorId 
-        ? { ...ev, observaciones }
-        : ev
+    setEvaluacion(prev => prev.map(evaluacionItem => 
+      evaluacionItem.indicadorId === indicadorId 
+        ? { ...evaluacionItem, observaciones }
+        : evaluacionItem
     ));
   };
 
@@ -362,7 +362,7 @@ const CotejoStudentModal: React.FC<CotejoStudentModalProps> = ({
         
         <div className="space-y-4">
           {indicadores.map(indicador => {
-            const eval = evaluacion.find(ev => ev.indicadorId === indicador.id);
+            const evaluacionItem = evaluacion.find(ev => ev.indicadorId === indicador.id);
             return (
               <Card key={indicador.id} className="border-l-4 border-l-blue-500">
                 <CardContent className="pt-4">
@@ -376,11 +376,11 @@ const CotejoStudentModal: React.FC<CotejoStudentModalProps> = ({
                       </div>
                       <div className="flex items-center space-x-2">
                         <Checkbox
-                          checked={eval?.logrado || false}
+                          checked={evaluacionItem?.logrado || false}
                           onCheckedChange={(checked) => handleToggleLogrado(indicador.id, checked as boolean)}
                         />
                         <span className="text-sm font-medium">
-                          {eval?.logrado ? 'Logrado' : 'No logrado'}
+                          {evaluacionItem?.logrado ? 'Logrado' : 'No logrado'}
                         </span>
                       </div>
                     </div>
@@ -388,7 +388,7 @@ const CotejoStudentModal: React.FC<CotejoStudentModalProps> = ({
                     <div className="space-y-2">
                       <label className="text-xs font-medium text-gray-600">Observaciones:</label>
                       <Textarea
-                        value={eval?.observaciones || ''}
+                        value={evaluacionItem?.observaciones || ''}
                         onChange={(e) => handleObservacionChange(indicador.id, e.target.value)}
                         placeholder="Observaciones opcionales..."
                         className="text-sm"
