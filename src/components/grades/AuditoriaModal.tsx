@@ -24,26 +24,26 @@ const AuditoriaModal: React.FC<AuditoriaModalProps> = ({
   onOpenChange, 
   initialFilters = {} 
 }) => {
-  const [filtroModulo, setFiltroModulo] = useState<string>('');
+  const [filtroModulo, setFiltroModulo] = useState<string>('all');
   const [filtroAccion, setFiltroAccion] = useState<string>('');
-  const [filtroUsuario, setFiltroUsuario] = useState<string>('');
+  const [filtroUsuario, setFiltroUsuario] = useState<string>('all');
 
   // Apply initial filters when modal opens
   useEffect(() => {
     if (open && initialFilters.filterType) {
       switch (initialFilters.filterType) {
         case 'module':
-          setFiltroModulo(initialFilters.module || '');
-          setFiltroUsuario('');
+          setFiltroModulo(initialFilters.module || 'all');
+          setFiltroUsuario('all');
           break;
         case 'user':
-          setFiltroUsuario(initialFilters.userId || '');
-          setFiltroModulo('');
+          setFiltroUsuario(initialFilters.userId || 'all');
+          setFiltroModulo('all');
           break;
         case 'all':
         default:
-          setFiltroModulo('');
-          setFiltroUsuario('');
+          setFiltroModulo('all');
+          setFiltroUsuario('all');
           break;
       }
       setFiltroAccion('');
@@ -155,16 +155,16 @@ const AuditoriaModal: React.FC<AuditoriaModalProps> = ({
   };
 
   const logsFilteredData = auditLogs.filter(log => {
-    const moduloMatch = !filtroModulo || log.modulo === filtroModulo;
+    const moduloMatch = filtroModulo === 'all' || log.modulo === filtroModulo;
     const accionMatch = !filtroAccion || log.accion.toLowerCase().includes(filtroAccion.toLowerCase());
-    const usuarioMatch = !filtroUsuario || log.userId === filtroUsuario;
+    const usuarioMatch = filtroUsuario === 'all' || log.userId === filtroUsuario;
     return moduloMatch && accionMatch && usuarioMatch;
   });
 
   const clearFilters = () => {
-    setFiltroModulo('');
+    setFiltroModulo('all');
     setFiltroAccion('');
-    setFiltroUsuario('');
+    setFiltroUsuario('all');
   };
 
   return (
@@ -198,7 +198,7 @@ const AuditoriaModal: React.FC<AuditoriaModalProps> = ({
                       <SelectValue placeholder="Todos los usuarios" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Todos los usuarios</SelectItem>
+                      <SelectItem value="all">Todos los usuarios</SelectItem>
                       {users.map(user => (
                         <SelectItem key={user.id} value={user.id}>
                           {user.name}
@@ -215,7 +215,7 @@ const AuditoriaModal: React.FC<AuditoriaModalProps> = ({
                       <SelectValue placeholder="Todos los módulos" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Todos los módulos</SelectItem>
+                      <SelectItem value="all">Todos los módulos</SelectItem>
                       <SelectItem value="calificaciones">Calificaciones</SelectItem>
                       <SelectItem value="estudiantes">Estudiantes</SelectItem>
                       <SelectItem value="usuarios">Usuarios</SelectItem>
