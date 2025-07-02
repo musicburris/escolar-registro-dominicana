@@ -166,9 +166,9 @@ const UsersManagement: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-4 animate-fade-in">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
         <div>
           <h1 className="text-title font-montserrat text-minerd-blue">
             Gestión de Usuarios
@@ -199,9 +199,9 @@ const UsersManagement: React.FC = () => {
       </div>
 
       {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="pt-4">
             <div className="flex items-center">
               <Users className="h-8 w-8 text-blue-600" />
               <div className="ml-4">
@@ -213,7 +213,7 @@ const UsersManagement: React.FC = () => {
         </Card>
 
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="pt-4">
             <div className="flex items-center">
               <Shield className="h-8 w-8 text-green-600" />
               <div className="ml-4">
@@ -227,7 +227,7 @@ const UsersManagement: React.FC = () => {
         </Card>
 
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="pt-4">
             <div className="flex items-center">
               <Users className="h-8 w-8 text-purple-600" />
               <div className="ml-4">
@@ -241,7 +241,7 @@ const UsersManagement: React.FC = () => {
         </Card>
 
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="pt-4">
             <div className="flex items-center">
               <Shield className="h-8 w-8 text-orange-600" />
               <div className="ml-4">
@@ -257,8 +257,8 @@ const UsersManagement: React.FC = () => {
 
       {/* Filters */}
       <Card>
-        <CardContent className="pt-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <CardContent className="pt-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div className="space-y-2">
               <Label>Buscar usuario</Label>
               <div className="relative">
@@ -324,9 +324,9 @@ const UsersManagement: React.FC = () => {
                 {filteredUsers.map((userItem) => (
                   <TableRow key={userItem.id}>
                     <TableCell>
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-minerd-blue rounded-full flex items-center justify-center">
-                          <span className="text-white font-bold text-sm">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-8 h-8 bg-minerd-blue rounded-full flex items-center justify-center">
+                          <span className="text-white font-bold text-xs">
                             {userItem.firstName?.charAt(0)}{userItem.lastName?.charAt(0)}
                           </span>
                         </div>
