@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import { useTheme } from '@/contexts/ThemeContext';
 import { 
   Palette, 
   Type, 
@@ -20,18 +21,7 @@ import {
 import { toast } from '@/hooks/use-toast';
 
 const VisualCustomization: React.FC = () => {
-  const [settings, setSettings] = useState({
-    primaryColor: '#1e40af',
-    secondaryColor: '#059669',
-    accentColor: '#dc2626',
-    fontFamily: 'Inter',
-    fontSize: '16',
-    logoUrl: '',
-    siteName: 'Sistema Educativo MINERD',
-    subtitle: 'Gestión Escolar Integral',
-    theme: 'light'
-  });
-
+  const { settings, updateSettings } = useTheme();
   const [previewMode, setPreviewMode] = useState(false);
 
   const colorPresets = [
@@ -54,8 +44,7 @@ const VisualCustomization: React.FC = () => {
   ];
 
   const handleColorPreset = (preset: typeof colorPresets[0]) => {
-    setSettings({
-      ...settings,
+    updateSettings({
       primaryColor: preset.primary,
       secondaryColor: preset.secondary,
       accentColor: preset.accent
@@ -63,8 +52,7 @@ const VisualCustomization: React.FC = () => {
   };
 
   const handleSave = () => {
-    // Aquí se guardarían las configuraciones en localStorage o base de datos
-    localStorage.setItem('adminVisualSettings', JSON.stringify(settings));
+    // Los cambios ya se aplican automáticamente a través del contexto
     toast({
       title: "Configuración guardada",
       description: "Los cambios visuales han sido aplicados al sistema.",
@@ -72,10 +60,10 @@ const VisualCustomization: React.FC = () => {
   };
 
   const handleReset = () => {
-    setSettings({
-      primaryColor: '#1e40af',
-      secondaryColor: '#059669',
-      accentColor: '#dc2626',
+    updateSettings({
+      primaryColor: '#0D3B66',
+      secondaryColor: '#137547',
+      accentColor: '#DC2626',
       fontFamily: 'Inter',
       fontSize: '16',
       logoUrl: '',
@@ -106,7 +94,7 @@ const VisualCustomization: React.FC = () => {
           <div className="grid grid-cols-3 gap-4">
             <Button
               variant={settings.theme === 'light' ? 'default' : 'outline'}
-              onClick={() => setSettings({...settings, theme: 'light'})}
+              onClick={() => updateSettings({theme: 'light'})}
               className="flex items-center gap-2"
             >
               <Sun className="h-4 w-4" />
@@ -114,7 +102,7 @@ const VisualCustomization: React.FC = () => {
             </Button>
             <Button
               variant={settings.theme === 'dark' ? 'default' : 'outline'}
-              onClick={() => setSettings({...settings, theme: 'dark'})}
+              onClick={() => updateSettings({theme: 'dark'})}
               className="flex items-center gap-2"
             >
               <Moon className="h-4 w-4" />
@@ -122,7 +110,7 @@ const VisualCustomization: React.FC = () => {
             </Button>
             <Button
               variant={settings.theme === 'auto' ? 'default' : 'outline'}
-              onClick={() => setSettings({...settings, theme: 'auto'})}
+              onClick={() => updateSettings({theme: 'auto'})}
               className="flex items-center gap-2"
             >
               <Monitor className="h-4 w-4" />
@@ -186,12 +174,12 @@ const VisualCustomization: React.FC = () => {
                   id="primaryColor"
                   type="color"
                   value={settings.primaryColor}
-                  onChange={(e) => setSettings({...settings, primaryColor: e.target.value})}
+                  onChange={(e) => updateSettings({primaryColor: e.target.value})}
                   className="w-12 h-10 p-1 cursor-pointer"
                 />
                 <Input
                   value={settings.primaryColor}
-                  onChange={(e) => setSettings({...settings, primaryColor: e.target.value})}
+                  onChange={(e) => updateSettings({primaryColor: e.target.value})}
                   placeholder="#1e40af"
                   className="flex-1"
                 />
@@ -204,12 +192,12 @@ const VisualCustomization: React.FC = () => {
                   id="secondaryColor"
                   type="color"
                   value={settings.secondaryColor}
-                  onChange={(e) => setSettings({...settings, secondaryColor: e.target.value})}
+                  onChange={(e) => updateSettings({secondaryColor: e.target.value})}
                   className="w-12 h-10 p-1 cursor-pointer"
                 />
                 <Input
                   value={settings.secondaryColor}
-                  onChange={(e) => setSettings({...settings, secondaryColor: e.target.value})}
+                  onChange={(e) => updateSettings({secondaryColor: e.target.value})}
                   placeholder="#059669"
                   className="flex-1"
                 />
@@ -222,12 +210,12 @@ const VisualCustomization: React.FC = () => {
                   id="accentColor"
                   type="color"
                   value={settings.accentColor}
-                  onChange={(e) => setSettings({...settings, accentColor: e.target.value})}
+                  onChange={(e) => updateSettings({accentColor: e.target.value})}
                   className="w-12 h-10 p-1 cursor-pointer"
                 />
                 <Input
                   value={settings.accentColor}
-                  onChange={(e) => setSettings({...settings, accentColor: e.target.value})}
+                  onChange={(e) => updateSettings({accentColor: e.target.value})}
                   placeholder="#dc2626"
                   className="flex-1"
                 />
@@ -252,7 +240,7 @@ const VisualCustomization: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="fontFamily">Fuente Principal</Label>
-              <Select value={settings.fontFamily} onValueChange={(value) => setSettings({...settings, fontFamily: value})}>
+              <Select value={settings.fontFamily} onValueChange={(value) => updateSettings({fontFamily: value})}>
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccionar fuente" />
                 </SelectTrigger>
@@ -267,7 +255,7 @@ const VisualCustomization: React.FC = () => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="fontSize">Tamaño Base (px)</Label>
-              <Select value={settings.fontSize} onValueChange={(value) => setSettings({...settings, fontSize: value})}>
+              <Select value={settings.fontSize} onValueChange={(value) => updateSettings({fontSize: value})}>
                 <SelectTrigger>
                   <SelectValue placeholder="Tamaño" />
                 </SelectTrigger>
@@ -308,7 +296,7 @@ const VisualCustomization: React.FC = () => {
               <Input
                 id="siteName"
                 value={settings.siteName}
-                onChange={(e) => setSettings({...settings, siteName: e.target.value})}
+                onChange={(e) => updateSettings({siteName: e.target.value})}
                 placeholder="Sistema Educativo MINERD"
               />
             </div>
@@ -317,7 +305,7 @@ const VisualCustomization: React.FC = () => {
               <Input
                 id="subtitle"
                 value={settings.subtitle}
-                onChange={(e) => setSettings({...settings, subtitle: e.target.value})}
+                onChange={(e) => updateSettings({subtitle: e.target.value})}
                 placeholder="Gestión Escolar Integral"
               />
             </div>
@@ -328,7 +316,7 @@ const VisualCustomization: React.FC = () => {
               <Input
                 id="logoUrl"
                 value={settings.logoUrl}
-                onChange={(e) => setSettings({...settings, logoUrl: e.target.value})}
+                onChange={(e) => updateSettings({logoUrl: e.target.value})}
                 placeholder="https://ejemplo.com/logo.png"
                 className="flex-1"
               />
