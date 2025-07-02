@@ -93,8 +93,8 @@ const menuItems: MenuItem[] = [
     roles: ['admin'],
   },
   {
-    id: 'settings',
-    title: 'Configuración',
+    id: 'admin-panel',
+    title: 'Panel de Administración',
     icon: Settings,
     roles: ['admin'],
   },

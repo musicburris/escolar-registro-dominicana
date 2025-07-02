@@ -18,6 +18,7 @@ import CurriculumManagement from '@/components/curriculum/CurriculumManagement';
 import ObservationsManagement from '@/components/observations/ObservationsManagement';
 import AuditManagement from '@/components/audit/AuditManagement';
 import SystemSettings from '@/components/settings/SystemSettings';
+import AdminPanel from '@/components/admin/AdminPanel';
 import RealTimeClock from '@/components/common/RealTimeClock';
 import { Loader2 } from 'lucide-react';
 
@@ -128,6 +129,8 @@ const Index = () => {
         return <AuditManagement />;
       case 'settings':
         return <SystemSettings />;
+      case 'admin-panel':
+        return <AdminPanel />;
       default:
         return (
           <div className="text-center py-20">
