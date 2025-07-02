@@ -308,22 +308,22 @@ const UsersManagement: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="border rounded-lg">
+          <div className="border rounded-lg overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Usuario</TableHead>
-                  <TableHead>Rol</TableHead>
-                  <TableHead>Contacto</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead>Fecha de Registro</TableHead>
-                  <TableHead>Acciones</TableHead>
+                <TableRow className="bg-gray-50">
+                  <TableHead className="w-[250px] px-3 py-2">Usuario</TableHead>
+                  <TableHead className="w-[120px] px-3 py-2">Rol</TableHead>
+                  <TableHead className="w-[200px] px-3 py-2">Contacto</TableHead>
+                  <TableHead className="w-[120px] px-3 py-2">Estado</TableHead>
+                  <TableHead className="w-[140px] px-3 py-2">Fecha de Registro</TableHead>
+                  <TableHead className="w-[100px] px-3 py-2 text-center">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredUsers.map((userItem) => (
-                  <TableRow key={userItem.id}>
-                    <TableCell>
+                 {filteredUsers.map((userItem) => (
+                  <TableRow key={userItem.id} className="hover:bg-gray-50">
+                    <TableCell className="px-3 py-2">
                       <div className="flex items-center space-x-2">
                         <div className="w-8 h-8 bg-minerd-blue rounded-full flex items-center justify-center">
                           <span className="text-white font-bold text-xs">
@@ -338,12 +338,12 @@ const UsersManagement: React.FC = () => {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="px-3 py-2">
                       <Badge variant={getRoleBadgeVariant(userItem.role)}>
                         {getRoleLabel(userItem.role)}
                       </Badge>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="px-3 py-2">
                       <div className="space-y-1">
                         <div className="flex items-center text-sm">
                           <Mail className="w-3 h-3 mr-1 text-gray-500" />
@@ -357,7 +357,7 @@ const UsersManagement: React.FC = () => {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="px-3 py-2">
                       <div className="flex items-center space-x-2">
                         <Switch
                           checked={userItem.isActive}
@@ -369,13 +369,13 @@ const UsersManagement: React.FC = () => {
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="px-3 py-2">
                       <div className="flex items-center text-sm">
                         <Calendar className="w-3 h-3 mr-1 text-gray-500" />
                         {formatDate(userItem.createdAt)}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="px-3 py-2 text-center">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" className="h-8 w-8 p-0">
