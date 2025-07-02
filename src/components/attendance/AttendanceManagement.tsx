@@ -151,10 +151,46 @@ const AttendanceManagement: React.FC = () => {
             Control diario de asistencia por sección
           </p>
         </div>
-        <Button onClick={handleSaveAttendance} className="bg-minerd-green hover:bg-green-700">
-          <Save className="w-4 h-4 mr-2" />
-          Guardar Asistencia
-        </Button>
+        <div className="flex space-x-2">
+          <Button 
+            onClick={() => {
+              setStudents(students.map(student => ({
+                ...student,
+                attendance: { ...student.attendance, isPresent: true, isLate: false }
+              })));
+              toast({
+                title: "Todos marcados como presentes",
+                description: "Se ha marcado a todos los estudiantes como presentes.",
+              });
+            }}
+            variant="outline"
+            className="bg-green-50 hover:bg-green-100 text-green-700"
+          >
+            <CheckCircle className="w-4 h-4 mr-2" />
+            Marcar Todos Presentes
+          </Button>
+          <Button 
+            onClick={() => {
+              setStudents(students.map(student => ({
+                ...student,
+                attendance: { ...student.attendance, isPresent: false, isLate: false }
+              })));
+              toast({
+                title: "Todos marcados como ausentes",
+                description: "Se ha marcado a todos los estudiantes como ausentes.",
+              });
+            }}
+            variant="outline"
+            className="bg-red-50 hover:bg-red-100 text-red-700"
+          >
+            <XCircle className="w-4 h-4 mr-2" />
+            Marcar Todos Ausentes
+          </Button>
+          <Button onClick={handleSaveAttendance} className="bg-minerd-green hover:bg-green-700">
+            <Save className="w-4 h-4 mr-2" />
+            Guardar Asistencia
+          </Button>
+        </div>
       </div>
 
       {/* Controls */}

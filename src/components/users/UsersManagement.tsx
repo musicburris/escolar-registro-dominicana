@@ -46,6 +46,15 @@ const UsersManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState('all');
   const [historyModalOpen, setHistoryModalOpen] = useState(false);
+  const [columnEditMode, setColumnEditMode] = useState(false);
+  const [columnWidths, setColumnWidths] = useState({
+    user: '250px',
+    role: '120px',
+    contact: '200px',
+    status: '120px',
+    date: '140px',
+    actions: '100px'
+  });
 
   useEffect(() => {
     // Load users from AuthContext
@@ -187,13 +196,23 @@ const UsersManagement: React.FC = () => {
             Ver Histórico
           </Button>
           {user?.role === 'admin' && (
-            <Button 
-              onClick={handleCreateUser}
-              className="bg-minerd-green hover:bg-green-700 flex items-center"
-            >
-              <UserPlus className="w-4 h-4 mr-2" />
-              Nuevo Usuario
-            </Button>
+            <>
+              <Button 
+                onClick={() => setColumnEditMode(!columnEditMode)}
+                variant="outline"
+                className="flex items-center"
+              >
+                <Edit className="w-4 h-4 mr-2" />
+                {columnEditMode ? 'Finalizar Edición' : 'Editar Columnas'}
+              </Button>
+              <Button 
+                onClick={handleCreateUser}
+                className="bg-minerd-green hover:bg-green-700 flex items-center"
+              >
+                <UserPlus className="w-4 h-4 mr-2" />
+                Nuevo Usuario
+              </Button>
+            </>
           )}
         </div>
       </div>
@@ -312,12 +331,108 @@ const UsersManagement: React.FC = () => {
             <Table>
               <TableHeader>
                 <TableRow className="bg-gray-50">
-                  <TableHead className="w-[250px] px-3 py-2">Usuario</TableHead>
-                  <TableHead className="w-[120px] px-3 py-2">Rol</TableHead>
-                  <TableHead className="w-[200px] px-3 py-2">Contacto</TableHead>
-                  <TableHead className="w-[120px] px-3 py-2">Estado</TableHead>
-                  <TableHead className="w-[140px] px-3 py-2">Fecha de Registro</TableHead>
-                  <TableHead className="w-[100px] px-3 py-2 text-center">Acciones</TableHead>
+                  <TableHead 
+                    className="px-3 py-2"
+                    style={{ width: columnWidths.user }}
+                  >
+                    Usuario
+                    {columnEditMode && user?.role === 'admin' && (
+                      <input
+                        type="range"
+                        min="200"
+                        max="400"
+                        step="10"
+                        value={parseInt(columnWidths.user)}
+                        onChange={(e) => setColumnWidths({...columnWidths, user: `${e.target.value}px`})}
+                        className="block w-full mt-1 h-1"
+                      />
+                    )}
+                  </TableHead>
+                  <TableHead 
+                    className="px-3 py-2"
+                    style={{ width: columnWidths.role }}
+                  >
+                    Rol
+                    {columnEditMode && user?.role === 'admin' && (
+                      <input
+                        type="range"
+                        min="80"
+                        max="200"
+                        step="10"
+                        value={parseInt(columnWidths.role)}
+                        onChange={(e) => setColumnWidths({...columnWidths, role: `${e.target.value}px`})}
+                        className="block w-full mt-1 h-1"
+                      />
+                    )}
+                  </TableHead>
+                  <TableHead 
+                    className="px-3 py-2"
+                    style={{ width: columnWidths.contact }}
+                  >
+                    Contacto
+                    {columnEditMode && user?.role === 'admin' && (
+                      <input
+                        type="range"
+                        min="150"
+                        max="300"
+                        step="10"
+                        value={parseInt(columnWidths.contact)}
+                        onChange={(e) => setColumnWidths({...columnWidths, contact: `${e.target.value}px`})}
+                        className="block w-full mt-1 h-1"
+                      />
+                    )}
+                  </TableHead>
+                  <TableHead 
+                    className="px-3 py-2"
+                    style={{ width: columnWidths.status }}
+                  >
+                    Estado
+                    {columnEditMode && user?.role === 'admin' && (
+                      <input
+                        type="range"
+                        min="80"
+                        max="200"
+                        step="10"
+                        value={parseInt(columnWidths.status)}
+                        onChange={(e) => setColumnWidths({...columnWidths, status: `${e.target.value}px`})}
+                        className="block w-full mt-1 h-1"
+                      />
+                    )}
+                  </TableHead>
+                  <TableHead 
+                    className="px-3 py-2"
+                    style={{ width: columnWidths.date }}
+                  >
+                    Fecha de Registro
+                    {columnEditMode && user?.role === 'admin' && (
+                      <input
+                        type="range"
+                        min="120"
+                        max="250"
+                        step="10"
+                        value={parseInt(columnWidths.date)}
+                        onChange={(e) => setColumnWidths({...columnWidths, date: `${e.target.value}px`})}
+                        className="block w-full mt-1 h-1"
+                      />
+                    )}
+                  </TableHead>
+                  <TableHead 
+                    className="px-3 py-2 text-center"
+                    style={{ width: columnWidths.actions }}
+                  >
+                    Acciones
+                    {columnEditMode && user?.role === 'admin' && (
+                      <input
+                        type="range"
+                        min="80"
+                        max="150"
+                        step="10"
+                        value={parseInt(columnWidths.actions)}
+                        onChange={(e) => setColumnWidths({...columnWidths, actions: `${e.target.value}px`})}
+                        className="block w-full mt-1 h-1"
+                      />
+                    )}
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
