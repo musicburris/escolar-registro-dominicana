@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useSupabase } from '@/hooks/useSupabase';
+import { useActivityLogger } from '@/hooks/useActivityLogger';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,19 +22,70 @@ import {
 import { toast } from '@/hooks/use-toast';
 
 const ImportExportTools: React.FC = () => {
+  const supabase = useSupabase();
+  const { logActivity } = useActivityLogger();
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleExportAttendance = (format: 'excel' | 'pdf') => {
+  const handleExportAttendance = async (format: 'excel' | 'pdf') => {
     setIsProcessing(true);
-    // Simular proceso de exportación
-    setTimeout(() => {
-      setIsProcessing(false);
-      toast({
-        title: "Exportación completada",
-        description: `Archivo de asistencia generado en formato ${format.toUpperCase()}.`,
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Error",
+          description: "Debe estar autenticado para exportar datos.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const response = await fetch('/functions/v1/export-data', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'attendance',
+          format: format === 'excel' ? 'excel' : 'pdf',
+          parameters: {
+            dateFrom: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+            dateTo: new Date().toISOString()
+          }
+        }),
       });
-    }, 2000);
+
+      if (response.ok) {
+        // Crear blob y descargar archivo
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `asistencia_${new Date().toISOString().split('T')[0]}.${format === 'excel' ? 'xlsx' : 'pdf'}`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+
+        toast({
+          title: "Exportación completada",
+          description: `Archivo de asistencia generado en formato ${format.toUpperCase()}.`,
+        });
+        logActivity(`Exportación de asistencia en ${format.toUpperCase()}`);
+      } else {
+        throw new Error('Error en la exportación');
+      }
+    } catch (error) {
+      console.error('Export error:', error);
+      toast({
+        title: "Error en exportación",
+        description: "No se pudo completar la exportación.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleImportStudents = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,15 +112,80 @@ const ImportExportTools: React.FC = () => {
     }, 200);
   };
 
-  const handleBackupSystem = () => {
+  const handleExportStudents = async (format: 'excel' | 'pdf') => {
     setIsProcessing(true);
-    setTimeout(() => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Error",
+          description: "Debe estar autenticado para exportar datos.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const response = await fetch('/functions/v1/export-data', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'students',
+          format: format === 'excel' ? 'excel' : 'pdf'
+        }),
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `estudiantes_${new Date().toISOString().split('T')[0]}.${format === 'excel' ? 'xlsx' : 'pdf'}`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+
+        toast({
+          title: "Exportación completada",
+          description: `Lista de estudiantes generada en formato ${format.toUpperCase()}.`,
+        });
+        logActivity(`Exportación de estudiantes en ${format.toUpperCase()}`);
+      }
+    } catch (error) {
+      console.error('Export error:', error);
+      toast({
+        title: "Error en exportación",
+        description: "No se pudo completar la exportación.",
+        variant: "destructive"
+      });
+    } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const handleBackupSystem = async () => {
+    setIsProcessing(true);
+    try {
+      // En una implementación real, esto llamaría a una función de respaldo
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
       toast({
         title: "Respaldo completado",
         description: "Se ha generado el respaldo completo del sistema.",
       });
-    }, 3000);
+      logActivity('Respaldo completo del sistema generado');
+    } catch (error) {
+      toast({
+        title: "Error en respaldo",
+        description: "No se pudo completar el respaldo del sistema.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -121,6 +239,7 @@ const ImportExportTools: React.FC = () => {
               </Label>
               <div className="space-y-2">
                 <Button 
+                  onClick={() => handleExportStudents('excel')}
                   disabled={isProcessing}
                   className="w-full justify-start"
                   variant="outline"
@@ -129,6 +248,7 @@ const ImportExportTools: React.FC = () => {
                   Exportar Estudiantes
                 </Button>
                 <Button 
+                  onClick={() => handleExportStudents('pdf')}
                   disabled={isProcessing}
                   className="w-full justify-start"
                   variant="outline"

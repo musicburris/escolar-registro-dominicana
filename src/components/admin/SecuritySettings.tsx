@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSupabase } from '@/hooks/useSupabase';
+import { useActivityLogger } from '@/hooks/useActivityLogger';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,6 +23,9 @@ import {
 import { toast } from '@/hooks/use-toast';
 
 const SecuritySettings: React.FC = () => {
+  const supabase = useSupabase();
+  const { logActivity } = useActivityLogger();
+  const [isLoading, setIsLoading] = useState(true);
   const [securitySettings, setSecuritySettings] = useState({
     twoFactorAuth: false,
     sessionTimeout: '30',
@@ -31,6 +36,45 @@ const SecuritySettings: React.FC = () => {
     requireStrongPassword: true,
     passwordExpiry: '90'
   });
+
+  // Cargar configuraciones desde Supabase
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+
+        const response = await fetch('/functions/v1/get-security-settings', {
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data) {
+            setSecuritySettings({
+              twoFactorAuth: result.data.two_factor_auth,
+              sessionTimeout: result.data.session_timeout?.toString() || '30',
+              ipWhitelist: result.data.ip_whitelist,
+              locationRestriction: result.data.location_restriction,
+              activityLogging: result.data.activity_logging,
+              loginAttempts: result.data.login_attempts?.toString() || '5',
+              requireStrongPassword: result.data.require_strong_password,
+              passwordExpiry: result.data.password_expiry?.toString() || '90'
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error loading security settings:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadSettings();
+  }, [supabase]);
 
   const [activityLogs] = useState([
     {
@@ -66,13 +110,53 @@ const SecuritySettings: React.FC = () => {
     });
   };
 
-  const handleSaveSettings = () => {
-    // Guardar configuraciones de seguridad
-    localStorage.setItem('securitySettings', JSON.stringify(securitySettings));
-    toast({
-      title: "Configuración de seguridad actualizada",
-      description: "Los cambios han sido aplicados al sistema.",
-    });
+  const handleSaveSettings = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Error",
+          description: "Debe estar autenticado para guardar configuraciones.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const response = await fetch('/functions/v1/save-security-settings', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          twoFactorAuth: securitySettings.twoFactorAuth,
+          sessionTimeout: parseInt(securitySettings.sessionTimeout),
+          ipWhitelist: securitySettings.ipWhitelist,
+          locationRestriction: securitySettings.locationRestriction,
+          activityLogging: securitySettings.activityLogging,
+          loginAttempts: parseInt(securitySettings.loginAttempts),
+          requireStrongPassword: securitySettings.requireStrongPassword,
+          passwordExpiry: parseInt(securitySettings.passwordExpiry)
+        }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Configuración de seguridad actualizada",
+          description: "Los cambios han sido aplicados al sistema.",
+        });
+        logActivity('Configuración de seguridad actualizada');
+      } else {
+        throw new Error('Error al guardar configuraciones');
+      }
+    } catch (error) {
+      console.error('Error saving security settings:', error);
+      toast({
+        title: "Error",
+        description: "No se pudieron guardar las configuraciones de seguridad.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (

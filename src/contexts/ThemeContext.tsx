@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { useSupabase } from '@/hooks/useSupabase';
+import { useActivityLogger } from '@/hooks/useActivityLogger';
 
 interface ThemeSettings {
   primaryColor: string;
@@ -66,6 +68,8 @@ const hexToHsl = (hex: string): string => {
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [settings, setSettings] = useState<ThemeSettings>(defaultSettings);
   const [isLoading, setIsLoading] = useState(true);
+  const supabase = useSupabase();
+  const { logActivity } = useActivityLogger();
 
   // Aplicar configuraciones al DOM
   const applySettings = (newSettings: ThemeSettings) => {
@@ -112,7 +116,39 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     const loadSettings = async () => {
       try {
-        // Cargar desde localStorage
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
+          // Cargar desde Supabase
+          const response = await fetch('/functions/v1/get-visual-settings', {
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            if (result.success && result.data) {
+              const supabaseSettings = {
+                primaryColor: result.data.primary_color,
+                secondaryColor: result.data.secondary_color,
+                accentColor: result.data.accent_color,
+                fontFamily: result.data.font_family,
+                fontSize: result.data.font_size,
+                theme: result.data.theme,
+                logoUrl: result.data.logo_url || '',
+                siteName: result.data.site_name,
+                subtitle: result.data.subtitle
+              };
+              setSettings(supabaseSettings);
+              applySettings(supabaseSettings);
+              return;
+            }
+          }
+        }
+        
+        // Fallback a localStorage
         const localSettings = localStorage.getItem('themeSettings');
         if (localSettings) {
           const parsed = JSON.parse(localSettings);
@@ -131,14 +167,47 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
     
     loadSettings();
-  }, []);
+  }, [supabase]);
 
-  const updateSettings = (newSettings: Partial<ThemeSettings>) => {
+  const updateSettings = async (newSettings: Partial<ThemeSettings>) => {
     const updatedSettings = { ...settings, ...newSettings };
     setSettings(updatedSettings);
     applySettings(updatedSettings);
     
-    // Guardar en localStorage
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session) {
+        // Guardar en Supabase
+        const response = await fetch('/functions/v1/save-visual-settings', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            primaryColor: updatedSettings.primaryColor,
+            secondaryColor: updatedSettings.secondaryColor,
+            accentColor: updatedSettings.accentColor,
+            fontFamily: updatedSettings.fontFamily,
+            fontSize: updatedSettings.fontSize,
+            theme: updatedSettings.theme,
+            logoUrl: updatedSettings.logoUrl,
+            siteName: updatedSettings.siteName,
+            subtitle: updatedSettings.subtitle,
+            isGlobal: false
+          }),
+        });
+
+        if (response.ok) {
+          logActivity('Configuración visual actualizada', { changes: newSettings });
+        }
+      }
+    } catch (error) {
+      console.error('Error saving to Supabase, falling back to localStorage:', error);
+    }
+    
+    // Siempre guardar en localStorage como respaldo
     localStorage.setItem('themeSettings', JSON.stringify(updatedSettings));
     
     console.log('Settings updated:', updatedSettings);
