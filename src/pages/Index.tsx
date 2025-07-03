@@ -30,10 +30,10 @@ const Index = () => {
   // Show loading spinner while checking authentication
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-minerd-light">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto text-minerd-blue" />
-          <p className="text-gray-600 font-opensans">Cargando sistema...</p>
+          <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
+          <p className="text-muted-foreground">Cargando sistema...</p>
         </div>
       </div>
     );
@@ -147,7 +147,7 @@ const Index = () => {
 
   return (
     <NotificationProvider>
-      <div className="min-h-screen bg-minerd-light flex flex-col">
+      <div className="min-h-screen bg-background flex flex-col">
         <Header 
           onMenuToggle={toggleSidebar}
           isMobileMenuOpen={isSidebarOpen}

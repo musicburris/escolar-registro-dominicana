@@ -49,6 +49,11 @@
     --sidebar-border: 220 13% 91%;
 
     --sidebar-ring: 217.2 91.2% 59.8%;
+    
+    /* MINERD Custom Colors */
+    --minerd-blue: 221 83% 22%;
+    --minerd-green: 162 85% 29%; 
+    --minerd-light: 0 0% 98%;
   }
 
   .dark {
@@ -87,6 +92,11 @@
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    
+    /* MINERD Custom Colors - Dark Mode */
+    --minerd-blue: 221 83% 35%;
+    --minerd-green: 162 85% 40%;
+    --minerd-light: 222.2 84% 4.9%;
   }
 }
 
