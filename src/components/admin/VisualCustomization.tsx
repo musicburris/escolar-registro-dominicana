@@ -332,7 +332,7 @@ const VisualCustomization: React.FC = () => {
       <Card>
         <CardContent className="pt-6">
           <div className="flex flex-col sm:flex-row gap-4">
-            <Button onClick={handleSave} className="bg-minerd-green hover:bg-green-700">
+            <Button onClick={handleSave} className="bg-[hsl(var(--minerd-green))] hover:bg-[hsl(var(--minerd-green))] hover:opacity-90 text-white">
               <Save className="w-4 h-4 mr-2" />
               Guardar Cambios
             </Button>
