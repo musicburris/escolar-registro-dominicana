@@ -1,6 +1,4 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useSupabase } from '@/hooks/useSupabase';
-import { useActivityLogger } from '@/hooks/useActivityLogger';
 
 interface ThemeSettings {
   primaryColor: string;
@@ -68,8 +66,6 @@ const hexToHsl = (hex: string): string => {
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [settings, setSettings] = useState<ThemeSettings>(defaultSettings);
   const [isLoading, setIsLoading] = useState(true);
-  const supabase = useSupabase();
-  const { logActivity } = useActivityLogger();
 
   // Aplicar configuraciones al DOM
   const applySettings = (newSettings: ThemeSettings) => {
@@ -102,21 +98,13 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     
     // Aplicar título del sitio
     document.title = newSettings.siteName;
-    
-    console.log('Settings applied:', {
-      primaryHsl,
-      secondaryHsl,
-      accentHsl,
-      font: newSettings.fontFamily,
-      size: newSettings.fontSize
-    });
   };
 
   // Cargar configuraciones guardadas
   useEffect(() => {
-    const loadSettings = async () => {
+    const loadSettings = () => {
       try {
-        // Cargar desde localStorage directamente por ahora
+        // Cargar desde localStorage
         const localSettings = localStorage.getItem('themeSettings');
         if (localSettings) {
           const parsed = JSON.parse(localSettings);
@@ -137,45 +125,12 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     loadSettings();
   }, []);
 
-  const updateSettings = async (newSettings: Partial<ThemeSettings>) => {
+  const updateSettings = (newSettings: Partial<ThemeSettings>) => {
     const updatedSettings = { ...settings, ...newSettings };
     setSettings(updatedSettings);
     applySettings(updatedSettings);
     
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session) {
-        // Guardar en Supabase
-        const response = await fetch('/functions/v1/save-visual-settings', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            primaryColor: updatedSettings.primaryColor,
-            secondaryColor: updatedSettings.secondaryColor,
-            accentColor: updatedSettings.accentColor,
-            fontFamily: updatedSettings.fontFamily,
-            fontSize: updatedSettings.fontSize,
-            theme: updatedSettings.theme,
-            logoUrl: updatedSettings.logoUrl,
-            siteName: updatedSettings.siteName,
-            subtitle: updatedSettings.subtitle,
-            isGlobal: false
-          }),
-        });
-
-        if (response.ok) {
-          logActivity('Configuración visual actualizada', { changes: newSettings });
-        }
-      }
-    } catch (error) {
-      console.error('Error saving to Supabase, falling back to localStorage:', error);
-    }
-    
-    // Siempre guardar en localStorage como respaldo
+    // Guardar en localStorage
     localStorage.setItem('themeSettings', JSON.stringify(updatedSettings));
     
     console.log('Settings updated:', updatedSettings);
