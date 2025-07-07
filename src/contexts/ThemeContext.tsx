@@ -116,39 +116,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     const loadSettings = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (session) {
-          // Cargar desde Supabase
-          const response = await fetch('/functions/v1/get-visual-settings', {
-            headers: {
-              'Authorization': `Bearer ${session.access_token}`,
-              'Content-Type': 'application/json',
-            },
-          });
-
-          if (response.ok) {
-            const result = await response.json();
-            if (result.success && result.data) {
-              const supabaseSettings = {
-                primaryColor: result.data.primary_color,
-                secondaryColor: result.data.secondary_color,
-                accentColor: result.data.accent_color,
-                fontFamily: result.data.font_family,
-                fontSize: result.data.font_size,
-                theme: result.data.theme,
-                logoUrl: result.data.logo_url || '',
-                siteName: result.data.site_name,
-                subtitle: result.data.subtitle
-              };
-              setSettings(supabaseSettings);
-              applySettings(supabaseSettings);
-              return;
-            }
-          }
-        }
-        
-        // Fallback a localStorage
+        // Cargar desde localStorage directamente por ahora
         const localSettings = localStorage.getItem('themeSettings');
         if (localSettings) {
           const parsed = JSON.parse(localSettings);
@@ -167,7 +135,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
     
     loadSettings();
-  }, [supabase]);
+  }, []);
 
   const updateSettings = async (newSettings: Partial<ThemeSettings>) => {
     const updatedSettings = { ...settings, ...newSettings };
