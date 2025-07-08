@@ -38,11 +38,6 @@ const ModuleControl: React.FC = () => {
       allowExcel: true,
       requireApproval: false
     },
-    customization: {
-      enabled: true,
-      teacherAccess: false,
-      studentAccess: false
-    },
     statistics: {
       enabled: true,
       realTime: true,
@@ -217,60 +212,6 @@ const ModuleControl: React.FC = () => {
                 <Switch
                   checked={moduleSettings.exports.requireApproval}
                   onCheckedChange={(checked) => handleModuleToggle('exports', 'requireApproval', checked)}
-                />
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Customization Module */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <div className="flex items-center">
-              <Settings className="mr-2 h-5 w-5" />
-              Módulo de Personalización
-            </div>
-            {getModuleStatus(moduleSettings.customization.enabled)}
-          </CardTitle>
-          <CardDescription>
-            Controla quién puede personalizar la apariencia del sistema
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <Label className="text-sm font-medium">Activar Personalización</Label>
-              <p className="text-sm text-gray-500">Habilita/deshabilita las opciones de personalización</p>
-            </div>
-            <Switch
-              checked={moduleSettings.customization.enabled}
-              onCheckedChange={(checked) => handleModuleToggle('customization', 'enabled', checked)}
-            />
-          </div>
-
-          {moduleSettings.customization.enabled && (
-            <div className="space-y-4 pl-4 border-l-2 border-gray-200">
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <Label className="text-sm font-medium">Acceso para docentes</Label>
-                  <p className="text-sm text-gray-500">Los docentes pueden cambiar temas/colores</p>
-                </div>
-                <Switch
-                  checked={moduleSettings.customization.teacherAccess}
-                  onCheckedChange={(checked) => handleModuleToggle('customization', 'teacherAccess', checked)}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <Label className="text-sm font-medium">Acceso para estudiantes</Label>
-                  <p className="text-sm text-gray-500">Los estudiantes pueden personalizar su vista</p>
-                </div>
-                <Switch
-                  checked={moduleSettings.customization.studentAccess}
-                  onCheckedChange={(checked) => handleModuleToggle('customization', 'studentAccess', checked)}
                 />
               </div>
             </div>

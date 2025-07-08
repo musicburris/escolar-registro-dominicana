@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Settings, 
-  Palette, 
   Download, 
   Upload, 
   Shield, 
@@ -20,7 +19,7 @@ import {
   Sun,
   Paintbrush
 } from 'lucide-react';
-import VisualCustomization from './VisualCustomization';
+
 import ImportExportTools from './ImportExportTools';
 import SecuritySettings from './SecuritySettings';
 import ModuleControl from './ModuleControl';
@@ -63,28 +62,24 @@ const AdminPanel: React.FC = () => {
       </div>
 
       {/* Main Tabs */}
-      <Tabs defaultValue="visual" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="visual" className="flex items-center gap-2">
-            <Palette className="h-4 w-4" />
-            Personalización
-          </TabsTrigger>
-          <TabsTrigger value="import-export" className="flex items-center gap-2">
-            <Database className="h-4 w-4" />
-            Datos
+      <Tabs defaultValue="modules" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="modules" className="flex items-center gap-2">
+            <Settings className="w-4 h-4" />
+            Módulos
           </TabsTrigger>
           <TabsTrigger value="security" className="flex items-center gap-2">
-            <Shield className="h-4 w-4" />
+            <Shield className="w-4 h-4" />
             Seguridad
           </TabsTrigger>
-          <TabsTrigger value="modules" className="flex items-center gap-2">
-            <Monitor className="h-4 w-4" />
-            Módulos
+          <TabsTrigger value="import-export" className="flex items-center gap-2">
+            <Database className="w-4 h-4" />
+            Datos
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="visual">
-          <VisualCustomization />
+        <TabsContent value="modules">
+          <ModuleControl />
         </TabsContent>
 
         <TabsContent value="import-export">
@@ -95,9 +90,6 @@ const AdminPanel: React.FC = () => {
           <SecuritySettings />
         </TabsContent>
 
-        <TabsContent value="modules">
-          <ModuleControl />
-        </TabsContent>
       </Tabs>
     </div>
   );
