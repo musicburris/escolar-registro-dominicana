@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { NotificationProvider } from '@/contexts/NotificationContext';
@@ -13,6 +12,7 @@ import StudentsManagement from '@/components/students/StudentsManagement';
 import UsersManagement from '@/components/users/UsersManagement';
 import AttendanceManagement from '@/components/attendance/AttendanceManagement';
 import GradesManagement from '@/components/grades/GradesManagement';
+import EvidencesManagement from '@/components/evidences/EvidencesManagement';
 import ReportsManagement from '@/components/reports/ReportsManagement';
 import CurriculumManagement from '@/components/curriculum/CurriculumManagement';
 import ObservationsManagement from '@/components/observations/ObservationsManagement';
@@ -119,6 +119,8 @@ const Index = () => {
         return <AttendanceManagement />;
       case 'grades':
         return <GradesManagement />;
+      case 'evidences':
+        return <EvidencesManagement />;
       case 'reports':
         return <ReportsManagement />;
       case 'curriculum':
