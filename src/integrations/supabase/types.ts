@@ -14,7 +14,171 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      activity_logs: {
+        Row: {
+          action: string
+          created_at: string | null
+          details: Json | null
+          id: string
+          ip_address: string | null
+          user_agent: string | null
+          user_email: string | null
+          user_id: string | null
+          user_name: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string | null
+          user_name?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string | null
+          user_name?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          assigned_sections: string[] | null
+          created_at: string | null
+          first_name: string | null
+          id: string
+          is_active: boolean | null
+          last_name: string | null
+          phone: string | null
+          role: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_sections?: string[] | null
+          created_at?: string | null
+          first_name?: string | null
+          id: string
+          is_active?: boolean | null
+          last_name?: string | null
+          phone?: string | null
+          role: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_sections?: string[] | null
+          created_at?: string | null
+          first_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_name?: string | null
+          phone?: string | null
+          role?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      security_settings: {
+        Row: {
+          activity_logging: boolean | null
+          allowed_ips: string[] | null
+          id: string
+          ip_whitelist: boolean | null
+          location_restriction: boolean | null
+          login_attempts: number | null
+          password_expiry: number | null
+          require_strong_password: boolean | null
+          session_timeout: number | null
+          two_factor_auth: boolean | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          activity_logging?: boolean | null
+          allowed_ips?: string[] | null
+          id?: string
+          ip_whitelist?: boolean | null
+          location_restriction?: boolean | null
+          login_attempts?: number | null
+          password_expiry?: number | null
+          require_strong_password?: boolean | null
+          session_timeout?: number | null
+          two_factor_auth?: boolean | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          activity_logging?: boolean | null
+          allowed_ips?: string[] | null
+          id?: string
+          ip_whitelist?: boolean | null
+          location_restriction?: boolean | null
+          login_attempts?: number | null
+          password_expiry?: number | null
+          require_strong_password?: boolean | null
+          session_timeout?: number | null
+          two_factor_auth?: boolean | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      visual_settings: {
+        Row: {
+          accent_color: string | null
+          font_family: string | null
+          font_size: string | null
+          id: string
+          is_global: boolean | null
+          logo_url: string | null
+          primary_color: string | null
+          secondary_color: string | null
+          site_name: string | null
+          subtitle: string | null
+          theme: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          accent_color?: string | null
+          font_family?: string | null
+          font_size?: string | null
+          id?: string
+          is_global?: boolean | null
+          logo_url?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          site_name?: string | null
+          subtitle?: string | null
+          theme?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          accent_color?: string | null
+          font_family?: string | null
+          font_size?: string | null
+          id?: string
+          is_global?: boolean | null
+          logo_url?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          site_name?: string | null
+          subtitle?: string | null
+          theme?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

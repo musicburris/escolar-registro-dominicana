@@ -1,17 +1,21 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { User as SupabaseUser, Session } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 import { User, AuthState, UserRole } from '@/types/auth';
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  session: Session | null;
   login: (email: string, password: string) => Promise<boolean>;
-  logout: () => void;
-  updateUser: (userData: Partial<User>) => void;
+  logout: () => Promise<void>;
+  signup: (email: string, password: string, firstName: string, lastName: string, role: UserRole) => Promise<boolean>;
+  updateUser: (userData: Partial<User>) => Promise<void>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
-  getAllUsers: () => User[];
-  getUserHistory: () => any[];
+  getAllUsers: () => Promise<User[]>;
+  getUserHistory: () => Promise<any[]>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -30,92 +34,105 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Transform Supabase user and profile to our User type
+  const transformUser = (supabaseUser: SupabaseUser, profile: any): User => {
+    return {
+      id: supabaseUser.id,
+      email: supabaseUser.email || '',
+      firstName: profile?.first_name || '',
+      lastName: profile?.last_name || '',
+      role: profile?.role as UserRole || 'student',
+      phone: profile?.phone || '',
+      isActive: profile?.is_active ?? true,
+      assignedSections: profile?.assigned_sections || [],
+      createdAt: new Date(profile?.created_at || supabaseUser.created_at),
+      updatedAt: new Date(profile?.updated_at || supabaseUser.updated_at || supabaseUser.created_at)
+    };
+  };
+
+  // Get user profile from database
+  const getUserProfile = async (userId: string) => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+    
+    if (error) {
+      console.error('Error fetching profile:', error);
+      return null;
+    }
+    
+    return data;
+  };
+
   useEffect(() => {
-    const checkAuth = () => {
-      const savedUser = localStorage.getItem('currentUser');
-      if (savedUser) {
-        setUser(JSON.parse(savedUser));
-        setIsAuthenticated(true);
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.email);
+        
+        setSession(session);
+        
+        if (session?.user) {
+          // Get user profile
+          const profile = await getUserProfile(session.user.id);
+          if (profile) {
+            const transformedUser = transformUser(session.user, profile);
+            setUser(transformedUser);
+            setIsAuthenticated(true);
+          }
+        } else {
+          setUser(null);
+          setIsAuthenticated(false);
+        }
+        
+        setIsLoading(false);
+      }
+    );
+
+    // Check for existing session
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session?.user) {
+        const profile = await getUserProfile(session.user.id);
+        if (profile) {
+          const transformedUser = transformUser(session.user, profile);
+          setUser(transformedUser);
+          setIsAuthenticated(true);
+        }
       }
       setIsLoading(false);
-    };
+    });
 
-    checkAuth();
+    return () => subscription.unsubscribe();
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       setIsLoading(true);
       
-      // Test users with complete User type structure
-      const testUsers: User[] = [
-        { 
-          id: '1', 
-          firstName: 'Admin', 
-          lastName: 'Sistema',
-          email: 'admin@test.com', 
-          role: 'admin' as UserRole,
-          phone: '809-555-0001',
-          isActive: true,
-          createdAt: new Date('2024-01-01'),
-          updatedAt: new Date()
-        },
-        { 
-          id: '2', 
-          firstName: 'María', 
-          lastName: 'González',
-          email: 'teacher@test.com', 
-          role: 'teacher' as UserRole,
-          phone: '809-555-0002',
-          isActive: true,
-          createdAt: new Date('2024-01-15'),
-          updatedAt: new Date()
-        },
-        { 
-          id: '3', 
-          firstName: 'Carmen', 
-          lastName: 'Pérez',
-          email: 'aux@test.com', 
-          role: 'auxiliary' as UserRole,
-          phone: '809-555-0003',
-          isActive: true,
-          createdAt: new Date('2024-02-01'),
-          updatedAt: new Date()
-        },
-        { 
-          id: '4', 
-          firstName: 'Juan', 
-          lastName: 'Rodríguez',
-          email: 'parent@test.com', 
-          role: 'parent' as UserRole,
-          phone: '809-555-0004',
-          isActive: true,
-          createdAt: new Date('2024-02-15'),
-          updatedAt: new Date()
-        },
-        { 
-          id: '5', 
-          firstName: 'Ana', 
-          lastName: 'Martínez',
-          email: 'student@test.com', 
-          role: 'student' as UserRole,
-          phone: '809-555-0005',
-          isActive: true,
-          createdAt: new Date('2024-03-01'),
-          updatedAt: new Date()
-        }
-      ];
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-      const foundUser = testUsers.find(u => u.email === email);
-      
-      if (foundUser && password === '123456') {
-        setUser(foundUser);
-        setIsAuthenticated(true);
-        localStorage.setItem('currentUser', JSON.stringify(foundUser));
-        return true;
+      if (error) {
+        console.error('Login error:', error.message);
+        return false;
+      }
+
+      if (data.user) {
+        const profile = await getUserProfile(data.user.id);
+        if (profile) {
+          const transformedUser = transformUser(data.user, profile);
+          setUser(transformedUser);
+          setIsAuthenticated(true);
+          return true;
+        }
       }
       
       return false;
@@ -127,139 +144,165 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    setIsAuthenticated(false);
-    localStorage.removeItem('currentUser');
+  const signup = async (
+    email: string, 
+    password: string, 
+    firstName: string, 
+    lastName: string, 
+    role: UserRole
+  ): Promise<boolean> => {
+    try {
+      setIsLoading(true);
+      
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            firstName,
+            lastName,
+            role
+          },
+          emailRedirectTo: `${window.location.origin}/`
+        }
+      });
+
+      if (error) {
+        console.error('Signup error:', error.message);
+        return false;
+      }
+
+      // The profile will be created automatically by the trigger
+      return true;
+    } catch (error) {
+      console.error('Error en signup:', error);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const updateUser = (userData: Partial<User>) => {
-    if (user) {
-      const updatedUser = { ...user, ...userData, updatedAt: new Date() };
-      setUser(updatedUser);
-      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+  const logout = async (): Promise<void> => {
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+      setSession(null);
+      setIsAuthenticated(false);
+    } catch (error) {
+      console.error('Error en logout:', error);
+    }
+  };
+
+  const updateUser = async (userData: Partial<User>): Promise<void> => {
+    if (!user || !session) return;
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          first_name: userData.firstName,
+          last_name: userData.lastName,
+          phone: userData.phone,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      // Update local state
+      setUser(prev => prev ? { ...prev, ...userData, updatedAt: new Date() } : null);
+    } catch (error) {
+      console.error('Error updating user:', error);
+      throw error;
     }
   };
 
   const changePassword = async (currentPassword: string, newPassword: string): Promise<void> => {
-    // Simulate password change
-    if (currentPassword !== '123456') {
-      throw new Error('Contraseña actual incorrecta');
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+    } catch (error) {
+      console.error('Error changing password:', error);
+      throw error;
     }
-    
-    // In a real app, this would make an API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    console.log('Password changed successfully');
   };
 
-  const getAllUsers = (): User[] => {
-    // Mock users data
-    return [
-      { 
-        id: '1', 
-        firstName: 'Admin', 
-        lastName: 'Sistema',
-        email: 'admin@test.com', 
-        role: 'admin' as UserRole,
-        phone: '809-555-0001',
-        isActive: true,
-        createdAt: new Date('2024-01-01'),
-        updatedAt: new Date()
-      },
-      { 
-        id: '2', 
-        firstName: 'María', 
-        lastName: 'González',
-        email: 'teacher@test.com', 
-        role: 'teacher' as UserRole,
-        phone: '809-555-0002',
-        isActive: true,
-        createdAt: new Date('2024-01-15'),
-        updatedAt: new Date()
-      },
-      { 
-        id: '3', 
-        firstName: 'Carmen', 
-        lastName: 'Pérez',
-        email: 'aux@test.com', 
-        role: 'auxiliary' as UserRole,
-        phone: '809-555-0003',
-        isActive: true,
-        createdAt: new Date('2024-02-01'),
-        updatedAt: new Date()
-      },
-      { 
-        id: '4', 
-        firstName: 'Juan', 
-        lastName: 'Rodríguez',
-        email: 'parent@test.com', 
-        role: 'parent' as UserRole,
-        phone: '809-555-0004',
-        isActive: true,
-        createdAt: new Date('2024-02-15'),
-        updatedAt: new Date()
-      },
-      { 
-        id: '5', 
-        firstName: 'Ana', 
-        lastName: 'Martínez',
-        email: 'student@test.com', 
-        role: 'student' as UserRole,
-        phone: '809-555-0005',
-        isActive: true,
-        createdAt: new Date('2024-03-01'),
-        updatedAt: new Date()
+  const getAllUsers = async (): Promise<User[]> => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*, auth.users!inner(email, created_at)')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching users:', error);
+        return [];
       }
-    ];
+
+      return data.map((profile: any) => ({
+        id: profile.id,
+        email: profile.users?.email || '',
+        firstName: profile.first_name || '',
+        lastName: profile.last_name || '',
+        role: profile.role as UserRole,
+        phone: profile.phone || '',
+        isActive: profile.is_active,
+        assignedSections: profile.assigned_sections || [],
+        createdAt: new Date(profile.created_at),
+        updatedAt: new Date(profile.updated_at)
+      }));
+    } catch (error) {
+      console.error('Error getting all users:', error);
+      return [];
+    }
   };
 
-  const getUserHistory = () => {
-    // Mock history data
-    return [
-      {
-        id: '1',
-        userId: '1',
-        userName: 'Admin Sistema',
-        action: 'Inicio de sesión',
-        module: 'autenticacion',
-        details: 'Usuario administrador inició sesión exitosamente',
-        timestamp: new Date('2024-12-10T10:30:00'),
-        status: 'success',
-        ipAddress: '192.168.1.1'
-      },
-      {
-        id: '2',
-        userId: '2',
-        userName: 'María González',
-        action: 'Actualización de perfil',
-        module: 'perfil',
-        details: 'Actualizó información de contacto',
-        timestamp: new Date('2024-12-10T09:15:00'),
-        status: 'success',
-        ipAddress: '192.168.1.2'
-      },
-      {
-        id: '3',
-        userId: '1',
-        userName: 'Admin Sistema',
-        action: 'Gestión de usuarios',
-        module: 'usuarios',
-        details: 'Modificó estado de usuario',
-        timestamp: new Date('2024-12-09T16:45:00'),
-        status: 'warning',
-        ipAddress: '192.168.1.1'
+  const getUserHistory = async (): Promise<any[]> => {
+    try {
+      const { data, error } = await supabase
+        .from('activity_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) {
+        console.error('Error fetching user history:', error);
+        return [];
       }
-    ];
+
+      return data.map((log: any) => ({
+        id: log.id,
+        userId: log.user_id,
+        userName: log.user_name,
+        action: log.action,
+        module: 'sistema',
+        details: log.details?.description || log.action,
+        timestamp: new Date(log.created_at),
+        status: 'success',
+        ipAddress: log.ip_address
+      }));
+    } catch (error) {
+      console.error('Error getting user history:', error);
+      return [];
+    }
   };
 
   return (
     <AuthContext.Provider value={{
       user,
+      session,
       isAuthenticated,
       isLoading,
       login,
       logout,
+      signup,
       updateUser,
       changePassword,
       getAllUsers,

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { User } from '@/types/auth';
@@ -57,9 +56,24 @@ const UsersManagement: React.FC = () => {
   });
 
   useEffect(() => {
-    // Load users from AuthContext
-    const allUsers = getAllUsers();
-    setUsers(allUsers);
+    const loadUsers = async () => {
+      try {
+        setIsLoading(true);
+        const allUsers = await getAllUsers();
+        setUsers(allUsers);
+      } catch (error) {
+        console.error('Error loading users:', error);
+        toast({
+          title: "Error",
+          description: "No se pudieron cargar los usuarios",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadUsers();
   }, [getAllUsers]);
 
   const filteredUsers = users.filter(u => {
@@ -167,12 +181,24 @@ const UsersManagement: React.FC = () => {
       return;
     }
     
-    // TODO: Implement create user modal
     toast({
       title: "Funcionalidad en desarrollo",
       description: "El modal de creación de usuarios estará disponible próximamente",
     });
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4 animate-fade-in">
+        <div className="flex justify-center items-center py-20">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-minerd-blue mx-auto mb-4"></div>
+            <p className="text-gray-600">Cargando usuarios...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 animate-fade-in">

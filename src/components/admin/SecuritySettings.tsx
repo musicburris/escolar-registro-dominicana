@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { useSupabase } from '@/hooks/useSupabase';
+import { useAuth } from '@/contexts/AuthContext';
 import { useActivityLogger } from '@/hooks/useActivityLogger';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,9 +24,10 @@ import {
 import { toast } from '@/hooks/use-toast';
 
 const SecuritySettings: React.FC = () => {
-  const supabase = useSupabase();
+  const { session } = useAuth();
   const { logActivity } = useActivityLogger();
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [securitySettings, setSecuritySettings] = useState({
     twoFactorAuth: false,
     sessionTimeout: '30',
@@ -37,14 +39,15 @@ const SecuritySettings: React.FC = () => {
     passwordExpiry: '90'
   });
 
+  const [activityLogs, setActivityLogs] = useState<any[]>([]);
+
   // Cargar configuraciones desde Supabase
   useEffect(() => {
     const loadSettings = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
         if (!session) return;
 
-        const response = await fetch('/functions/v1/get-security-settings', {
+        const response = await fetch('https://afkieiblgauopgtuzqdp.supabase.co/functions/v1/get-security-settings', {
           headers: {
             'Authorization': `Bearer ${session.access_token}`,
             'Content-Type': 'application/json',
@@ -66,6 +69,21 @@ const SecuritySettings: React.FC = () => {
             });
           }
         }
+
+        // Load activity logs
+        const logsResponse = await fetch('https://afkieiblgauopgtuzqdp.supabase.co/functions/v1/get-activity-logs', {
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (logsResponse.ok) {
+          const logsResult = await logsResponse.json();
+          if (logsResult.success && logsResult.data) {
+            setActivityLogs(logsResult.data.slice(0, 10)); // Show last 10 logs
+          }
+        }
       } catch (error) {
         console.error('Error loading security settings:', error);
       } finally {
@@ -74,34 +92,7 @@ const SecuritySettings: React.FC = () => {
     };
 
     loadSettings();
-  }, [supabase]);
-
-  const [activityLogs] = useState([
-    {
-      id: '1',
-      user: 'Juan Pérez',
-      action: 'Inicio de sesión',
-      timestamp: '2024-01-15 09:30:25',
-      ip: '192.168.1.100',
-      status: 'success'
-    },
-    {
-      id: '2',
-      user: 'María García',
-      action: 'Modificó asistencia',
-      timestamp: '2024-01-15 09:15:45',
-      ip: '192.168.1.101',
-      status: 'success'
-    },
-    {
-      id: '3',
-      user: 'Desconocido',
-      action: 'Intento de login fallido',
-      timestamp: '2024-01-15 08:45:12',
-      ip: '203.45.67.89',
-      status: 'failed'
-    }
-  ]);
+  }, [session]);
 
   const handleSettingChange = (key: string, value: boolean | string) => {
     setSecuritySettings({
@@ -112,7 +103,6 @@ const SecuritySettings: React.FC = () => {
 
   const handleSaveSettings = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         toast({
           title: "Error",
@@ -122,7 +112,9 @@ const SecuritySettings: React.FC = () => {
         return;
       }
 
-      const response = await fetch('/functions/v1/save-security-settings', {
+      setIsSaving(true);
+
+      const response = await fetch('https://afkieiblgauopgtuzqdp.supabase.co/functions/v1/save-security-settings', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
@@ -156,8 +148,23 @@ const SecuritySettings: React.FC = () => {
         description: "No se pudieron guardar las configuraciones de seguridad.",
         variant: "destructive"
       });
+    } finally {
+      setIsSaving(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-center items-center py-20">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-minerd-blue mx-auto mb-4"></div>
+            <p className="text-gray-600">Cargando configuraciones de seguridad...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -233,14 +240,6 @@ const SecuritySettings: React.FC = () => {
               </div>
             </div>
           </div>
-
-          <Alert>
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
-              <strong>Importante:</strong> La implementación completa de 2FA y gestión de contraseñas 
-              requiere integración con Supabase para autenticación segura.
-            </AlertDescription>
-          </Alert>
         </CardContent>
       </Card>
 
@@ -344,49 +343,43 @@ const SecuritySettings: React.FC = () => {
             />
           </div>
 
-          {securitySettings.activityLogging && (
+          {securitySettings.activityLogging && activityLogs.length > 0 && (
             <div className="space-y-3">
               <Label className="text-sm font-medium">Actividad Reciente</Label>
               <div className="space-y-2 max-h-60 overflow-y-auto">
                 {activityLogs.map((log) => (
                   <div key={log.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center space-x-3">
-                      {log.status === 'success' ? (
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                      ) : (
-                        <AlertTriangle className="h-4 w-4 text-red-500" />
-                      )}
+                      <CheckCircle className="h-4 w-4 text-green-500" />
                       <div>
-                        <p className="text-sm font-medium">{log.user}</p>
+                        <p className="text-sm font-medium">{log.user_name || log.user_email}</p>
                         <p className="text-xs text-gray-500">{log.action}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs text-gray-500">{log.timestamp}</p>
-                      <p className="text-xs text-gray-400">{log.ip}</p>
+                      <p className="text-xs text-gray-500">
+                        {new Date(log.created_at).toLocaleDateString('es-DO')}
+                      </p>
+                      <p className="text-xs text-gray-400">{log.ip_address || 'IP no disponible'}</p>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
           )}
-
-          <Alert>
-            <Eye className="h-4 w-4" />
-            <AlertDescription>
-              Los logs completos de actividades requieren integración con Supabase 
-              para almacenamiento persistente y análisis avanzado.
-            </AlertDescription>
-          </Alert>
         </CardContent>
       </Card>
 
       {/* Save Settings */}
       <Card>
         <CardContent className="pt-6">
-          <Button onClick={handleSaveSettings} className="bg-minerd-blue hover:bg-blue-700">
+          <Button 
+            onClick={handleSaveSettings} 
+            className="bg-minerd-blue hover:bg-blue-700"
+            disabled={isSaving}
+          >
             <Shield className="w-4 h-4 mr-2" />
-            Aplicar Configuración de Seguridad
+            {isSaving ? 'Guardando...' : 'Aplicar Configuración de Seguridad'}
           </Button>
         </CardContent>
       </Card>

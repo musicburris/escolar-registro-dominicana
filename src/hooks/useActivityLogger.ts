@@ -1,44 +1,39 @@
 
 import { useCallback } from 'react';
-import { useSupabase } from './useSupabase';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useActivityLogger = () => {
-  const supabase = useSupabase();
+  const { user, session } = useAuth();
 
   const logActivity = useCallback(async (action: string, details?: any) => {
     try {
-      // Check if we have real Supabase configuration
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-      
-      if (!supabaseUrl || !supabaseKey) {
-        console.log('Activity logged (mock):', { action, details });
+      if (!session || !user) {
+        console.log('No authenticated user, skipping activity log');
         return;
       }
 
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-
-      const response = await fetch('/functions/v1/log-activity', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const { error } = await supabase
+        .from('activity_logs')
+        .insert({
+          user_id: user.id,
+          user_email: user.email,
+          user_name: `${user.firstName} ${user.lastName}`,
           action,
-          details,
-          userAgent: navigator.userAgent,
-        }),
-      });
+          details: details ? { description: details } : {},
+          ip_address: null, // Browser can't access IP directly
+          user_agent: navigator.userAgent
+        });
 
-      if (!response.ok) {
-        throw new Error('Failed to log activity');
+      if (error) {
+        console.error('Error logging activity:', error);
+      } else {
+        console.log('Activity logged:', action);
       }
     } catch (error) {
       console.error('Error logging activity:', error);
     }
-  }, [supabase]);
+  }, [user, session]);
 
   return { logActivity };
 };
