@@ -105,6 +105,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setIsAuthenticated(true);
         }
       }
+      // Always set loading to false to allow access without authentication
       setIsLoading(false);
     });
 
