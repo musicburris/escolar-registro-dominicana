@@ -51,8 +51,13 @@ const Sidebar: React.FC<SidebarProps> = ({
 
     const allItems = [...baseItems, ...adminItems];
     
+    // Si no hay usuario autenticado, mostrar funciones de administración para configuración inicial
+    if (!user) {
+      return allItems.filter(item => item.roles.includes('admin'));
+    }
+    
     return allItems.filter(item => 
-      user && item.roles.includes(user.role)
+      item.roles.includes(user.role)
     );
   };
 

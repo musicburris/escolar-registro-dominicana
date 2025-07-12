@@ -53,6 +53,29 @@ const Index = () => {
   };
 
   const renderDashboard = () => {
+    // Si no hay usuario autenticado, mostrar panel de configuración inicial
+    if (!user) {
+      return (
+        <div className="text-center py-20">
+          <h2 className="text-2xl font-montserrat text-minerd-blue mb-4">
+            Configuración Inicial del Sistema
+          </h2>
+          <p className="text-gray-600 font-opensans mb-6">
+            Bienvenido al Sistema Escolar MINERD. Para comenzar, configura los usuarios y las secciones del sistema.
+          </p>
+          <div className="max-w-2xl mx-auto text-left bg-blue-50 p-6 rounded-lg">
+            <h3 className="font-semibold text-minerd-blue mb-4">Pasos recomendados:</h3>
+            <ol className="list-decimal list-inside space-y-2 text-gray-700">
+              <li>Crear usuarios del sistema (Administradores, Profesores, etc.)</li>
+              <li>Configurar las secciones y grados</li>
+              <li>Registrar estudiantes</li>
+              <li>Configurar el currículo académico</li>
+            </ol>
+          </div>
+        </div>
+      );
+    }
+    
     switch (user?.role) {
       case 'admin':
         return <AdminDashboard onSectionChange={setActiveSection} />;
