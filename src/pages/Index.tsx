@@ -30,6 +30,18 @@ const Index = () => {
   const [activeSection, setActiveSection] = useState('dashboard');
   const [showSystemSetup, setShowSystemSetup] = useState(false);
 
+  // Escuchar evento para abrir configuración del sistema
+  React.useEffect(() => {
+    const handleOpenSystemConfig = () => {
+      setShowSystemSetup(true);
+    };
+
+    window.addEventListener('openSystemConfig', handleOpenSystemConfig);
+    return () => {
+      window.removeEventListener('openSystemConfig', handleOpenSystemConfig);
+    };
+  }, []);
+
   // Show loading spinner while checking authentication
   if (isLoading) {
     return (
@@ -46,18 +58,6 @@ const Index = () => {
   // if (!isAuthenticated) {
   //   return <LoginForm />;
   // }
-
-  // Escuchar evento para abrir configuración del sistema
-  React.useEffect(() => {
-    const handleOpenSystemConfig = () => {
-      setShowSystemSetup(true);
-    };
-
-    window.addEventListener('openSystemConfig', handleOpenSystemConfig);
-    return () => {
-      window.removeEventListener('openSystemConfig', handleOpenSystemConfig);
-    };
-  }, []);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
