@@ -56,11 +56,11 @@ const LoginForm: React.FC = () => {
 
   const fillTestCredentials = (role: string) => {
     const credentials = {
-      admin: { email: 'admin@test.com', password: '123456' },
-      teacher: { email: 'teacher@test.com', password: '123456' },
-      auxiliary: { email: 'aux@test.com', password: '123456' },
-      parent: { email: 'parent@test.com', password: '123456' },
-      student: { email: 'student@test.com', password: '123456' }
+      admin: { email: 'director@ejemplo.edu.do', password: 'demo123' },
+      teacher: { email: 'profesor@ejemplo.edu.do', password: 'demo123' },
+      auxiliary: { email: 'auxiliar@ejemplo.edu.do', password: 'demo123' },
+      parent: { email: 'padre@ejemplo.com', password: 'demo123' },
+      student: { email: '202300001', password: 'demo123' }
     };
     
     const cred = credentials[role as keyof typeof credentials];
@@ -97,13 +97,13 @@ const LoginForm: React.FC = () => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Correo Electrónico</Label>
+                <Label htmlFor="email">Usuario / Email</Label>
                 <Input
                   id="email"
-                  type="email"
+                  type="text"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="usuario@ejemplo.com"
+                  placeholder="usuario@ejemplo.com o RNE"
                   disabled={isLoading}
                 />
               </div>
@@ -139,7 +139,7 @@ const LoginForm: React.FC = () => {
             {/* Botones de prueba */}
             <div className="mt-6 pt-6 border-t">
               <p className="text-sm text-gray-600 mb-3 text-center">
-                Usuarios de prueba:
+                Usuarios de demostración:
               </p>
               <div className="grid grid-cols-2 gap-2">
                 <Button
@@ -148,7 +148,7 @@ const LoginForm: React.FC = () => {
                   onClick={() => fillTestCredentials('admin')}
                   disabled={isLoading}
                 >
-                  Admin
+                  Director
                 </Button>
                 <Button
                   variant="outline"
@@ -169,14 +169,25 @@ const LoginForm: React.FC = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => fillTestCredentials('student')}
+                  onClick={() => fillTestCredentials('parent')}
                   disabled={isLoading}
                 >
-                  Estudiante
+                  Padre/Tutor
+                </Button>
+              </div>
+              <div className="mt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fillTestCredentials('student')}
+                  disabled={isLoading}
+                  className="w-full"
+                >
+                  Estudiante (RNE: 202300001)
                 </Button>
               </div>
               <p className="text-xs text-gray-500 mt-2 text-center">
-                Contraseña para todos: 123456
+                Contraseña para todos: demo123
               </p>
             </div>
           </CardContent>
