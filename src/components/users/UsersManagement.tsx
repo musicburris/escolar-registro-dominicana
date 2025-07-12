@@ -46,6 +46,7 @@ const UsersManagement: React.FC = () => {
   const [selectedRole, setSelectedRole] = useState('all');
   const [historyModalOpen, setHistoryModalOpen] = useState(false);
   const [columnEditMode, setColumnEditMode] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [columnWidths, setColumnWidths] = useState({
     user: '250px',
     role: '120px',

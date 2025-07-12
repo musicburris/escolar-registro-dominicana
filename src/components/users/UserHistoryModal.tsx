@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -59,6 +58,7 @@ const UserHistoryModal: React.FC<UserHistoryModalProps> = ({ open, onOpenChange 
   const [selectedUser, setSelectedUser] = useState('all');
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [users, setUsers] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Definir módulos válidos con valores seguros
   const moduleOptions = [
@@ -80,19 +80,32 @@ const UserHistoryModal: React.FC<UserHistoryModalProps> = ({ open, onOpenChange 
 
   useEffect(() => {
     if (open) {
-      const historyData = getUserHistory();
-      const usersData = getAllUsers();
-      
-      console.log('Raw users data:', usersData);
-      
-      // Convert timestamp strings to Date objects if needed
-      const processedHistory = historyData.map((entry: any) => ({
-        ...entry,
-        timestamp: typeof entry.timestamp === 'string' ? new Date(entry.timestamp) : entry.timestamp
-      }));
-      
-      setHistory(processedHistory);
-      setUsers(usersData);
+      const loadData = async () => {
+        try {
+          setIsLoading(true);
+          const [historyData, usersData] = await Promise.all([
+            getUserHistory(),
+            getAllUsers()
+          ]);
+          
+          console.log('Raw users data:', usersData);
+          
+          // Convert timestamp strings to Date objects if needed
+          const processedHistory = historyData.map((entry: any) => ({
+            ...entry,
+            timestamp: typeof entry.timestamp === 'string' ? new Date(entry.timestamp) : entry.timestamp
+          }));
+          
+          setHistory(processedHistory);
+          setUsers(usersData);
+        } catch (error) {
+          console.error('Error loading history and users data:', error);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      loadData();
     }
   }, [open, getUserHistory, getAllUsers]);
 
@@ -179,6 +192,27 @@ const UserHistoryModal: React.FC<UserHistoryModalProps> = ({ open, onOpenChange 
   });
 
   console.log('Valid users for select:', validUsers);
+
+  if (isLoading) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle className="font-montserrat flex items-center">
+              <History className="mr-2 h-5 w-5" />
+              Histórico de Actividades de Usuarios
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex justify-center items-center py-20">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-minerd-blue mx-auto mb-4"></div>
+              <p className="text-gray-600">Cargando histórico...</p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
