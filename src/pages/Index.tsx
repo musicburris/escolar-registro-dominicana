@@ -39,10 +39,10 @@ const Index = () => {
     );
   }
 
-  // Show login form if not authenticated
-  if (!isAuthenticated) {
-    return <LoginForm />;
-  }
+  // Permitir acceso sin autenticación para configuración inicial
+  // if (!isAuthenticated) {
+  //   return <LoginForm />;
+  // }
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
