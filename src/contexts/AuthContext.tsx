@@ -36,7 +36,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Cambiado a false para acceso inmediato
 
   // Transform Supabase user and profile to our User type
   const transformUser = (supabaseUser: SupabaseUser, profile: any): User => {
@@ -56,22 +56,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Get user profile from database
   const getUserProfile = async (userId: string) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
-    
-    if (error) {
-      console.error('Error fetching profile:', error);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching profile:', error);
+        return null;
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('Error in getUserProfile:', error);
       return null;
     }
-    
-    return data;
   };
 
   useEffect(() => {
-    // Set up auth state listener
+    // Permitir acceso inmediato sin autenticación requerida
+    setIsLoading(false);
+    
+    // Set up auth state listener (opcional)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.email);
@@ -90,12 +98,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setUser(null);
           setIsAuthenticated(false);
         }
-        
-        setIsLoading(false);
       }
     );
 
-    // Check for existing session
+    // Check for existing session (opcional, no bloquea el acceso)
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
         const profile = await getUserProfile(session.user.id);
@@ -105,8 +111,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setIsAuthenticated(true);
         }
       }
-      // Always set loading to false to allow access without authentication
-      setIsLoading(false);
+    }).catch(error => {
+      console.error('Error getting session:', error);
+      // Continúa sin bloquear
     });
 
     return () => subscription.unsubscribe();
