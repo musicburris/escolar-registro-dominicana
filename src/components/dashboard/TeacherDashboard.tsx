@@ -2,190 +2,63 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { 
-  GraduationCap, 
-  Calendar, 
-  Award, 
-  FileText, 
   Users, 
-  Clock,
+  Calendar, 
+  FileText, 
   BookOpen,
-  AlertCircle
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  FolderOpen
 } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
-import { toast } from '@/hooks/use-toast';
 
 interface TeacherDashboardProps {
-  onSectionChange?: (section: string) => void;
+  onSectionChange: (section: string) => void;
 }
 
 const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ onSectionChange }) => {
-  const { user } = useAuth();
-
-  // Mock data for demonstration
-  const assignedSections = [
-    {
-      id: '1A',
-      grade: 1,
-      section: 'A',
-      students: 28,
-      subject: 'Lengua Española',
-      nextClass: '8:00 AM',
-      attendance: 96.4
-    },
-    {
-      id: '2B',
-      grade: 2,
-      section: 'B',
-      students: 26,
-      subject: 'Matemática',
-      nextClass: '10:00 AM',
-      attendance: 94.2
-    },
-    {
-      id: '3A',
-      grade: 3,
-      section: 'A',
-      students: 24,
-      subject: 'Ciencias Sociales',
-      nextClass: '2:00 PM',
-      attendance: 98.1
-    }
+  const myStats = [
+    { title: 'Mis Estudiantes', value: '156', icon: Users },
+    { title: 'Secciones a Cargo', value: '6', icon: BookOpen },
+    { title: 'Asistencia Hoy', value: '92%', icon: Calendar },
+    { title: 'Por Calificar', value: '12', icon: FileText }
   ];
 
-  const pendingTasks = [
-    {
-      id: 1,
-      task: 'Registrar asistencia',
-      section: '1er A',
-      deadline: 'Hoy, 5:00 PM',
-      priority: 'high'
-    },
-    {
-      id: 2,
-      task: 'Calificaciones P3',
-      section: '2do B',
-      deadline: 'Mañana',
-      priority: 'medium'
-    },
-    {
-      id: 3,
-      task: 'Observaciones trimestrales',
-      section: '3er A',
-      deadline: 'En 3 días',
-      priority: 'low'
-    }
+  const recentActivities = [
+    { type: 'grade', title: 'Calificaciones pendientes', description: 'Matemática - 2° A', urgent: true },
+    { type: 'attendance', title: 'Asistencia registrada', description: 'Lengua Española - 1° B', urgent: false },
+    { type: 'evidence', title: 'Evidencias subidas', description: '5 nuevas evidencias por revisar', urgent: false }
   ];
 
   const quickActions = [
-    {
-      title: 'Registrar Asistencia',
-      description: 'Marcar presente/ausente',
-      icon: Calendar,
-      color: 'bg-blue-500',
-      action: 'attendance'
-    },
-    {
-      title: 'Ingresar Calificaciones',
-      description: 'Bloques de competencias',
-      icon: Award,
-      color: 'bg-green-500',
-      action: 'grades'
-    },
-    {
-      title: 'Generar Boletas',
-      description: 'Reportes en PDF',
-      icon: FileText,
-      color: 'bg-purple-500',
-      action: 'reports'
-    },
-    {
-      title: 'Observaciones',
-      description: 'Notas y recomendaciones',
-      icon: BookOpen,
-      color: 'bg-orange-500',
-      action: 'observations'
-    }
+    { title: 'Tomar Asistencia', action: () => onSectionChange('attendance'), icon: Calendar },
+    { title: 'Registrar Calificaciones', action: () => onSectionChange('grades'), icon: FileText },
+    { title: 'Subir Evidencias', action: () => onSectionChange('evidences'), icon: FolderOpen },
+    { title: 'Ver Mis Estudiantes', action: () => onSectionChange('students'), icon: Users }
   ];
-
-  const handleQuickAction = (action: string) => {
-    if (onSectionChange) {
-      onSectionChange(action);
-      toast({
-        title: "Navegando",
-        description: `Accediendo a ${action === 'attendance' ? 'Asistencia' : action === 'grades' ? 'Calificaciones' : action === 'reports' ? 'Boletas y Reportes' : 'Observaciones'}`,
-      });
-    } else {
-      toast({
-        title: "Función disponible",
-        description: `Redirigiendo a ${action === 'attendance' ? 'Asistencia' : action === 'grades' ? 'Calificaciones' : action === 'reports' ? 'Boletas y Reportes' : 'Observaciones'}`,
-      });
-    }
-  };
-
-  const handleViewStudentList = (sectionId: string) => {
-    toast({
-      title: "Lista de estudiantes",
-      description: `Mostrando estudiantes de la sección ${sectionId}`,
-    });
-    if (onSectionChange) {
-      onSectionChange('students');
-    }
-  };
-
-  const handleTakeAttendance = (sectionId: string) => {
-    toast({
-      title: "Registro de asistencia",
-      description: `Iniciando registro para la sección ${sectionId}`,
-    });
-    if (onSectionChange) {
-      onSectionChange('attendance');
-    }
-  };
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-title font-montserrat text-minerd-blue">
-            Panel Docente
-          </h1>
-          <p className="text-body font-opensans text-gray-600">
-            Bienvenido/a {user?.firstName} - Gestión de secciones asignadas
-          </p>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-            <Clock className="w-3 h-3 mr-1" />
-            Período Q3 Activo
-          </Badge>
-        </div>
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Panel del Profesor</h1>
+        <p className="text-gray-600 mt-2">Gestiona tus clases y estudiantes</p>
       </div>
 
-      {/* Quick Actions Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {quickActions.map((action, index) => {
-          const Icon = action.icon;
+      {/* Statistics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {myStats.map((stat, index) => {
+          const Icon = stat.icon;
           return (
-            <Card 
-              key={index} 
-              className="hover:shadow-lg transition-all cursor-pointer group hover:scale-105"
-              onClick={() => handleQuickAction(action.action)}
-            >
-              <CardContent className="p-4">
-                <div className="flex flex-col items-center text-center space-y-3">
-                  <div className={`p-3 rounded-full ${action.color} group-hover:scale-110 transition-transform`}>
-                    <Icon className="h-6 w-6 text-white" />
-                  </div>
+            <Card key={index} className="hover:shadow-lg transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-medium text-sm font-montserrat">
-                      {action.title}
-                    </h3>
-                    <p className="text-xs text-gray-500 font-opensans">
-                      {action.description}
-                    </p>
+                    <p className="text-sm font-medium text-gray-600">{stat.title}</p>
+                    <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                  </div>
+                  <div className="bg-blue-100 p-3 rounded-full">
+                    <Icon className="w-6 h-6 text-blue-600" />
                   </div>
                 </div>
               </CardContent>
@@ -194,162 +67,91 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ onSectionChange }) 
         })}
       </div>
 
-      {/* Assigned Sections */}
+      {/* Quick Actions */}
+      <div>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">Acciones Rápidas</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {quickActions.map((action, index) => {
+            const Icon = action.icon;
+            return (
+              <Button 
+                key={index}
+                variant="outline" 
+                className="h-20 flex-col gap-2"
+                onClick={action.action}
+              >
+                <Icon className="w-6 h-6" />
+                <span>{action.title}</span>
+              </Button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Recent Activities */}
       <Card>
         <CardHeader>
-          <CardTitle className="font-montserrat flex items-center">
-            <GraduationCap className="mr-2 h-5 w-5" />
-            Mis Secciones Asignadas
+          <CardTitle className="flex items-center gap-2">
+            <Clock className="w-5 h-5" />
+            Actividades Recientes
           </CardTitle>
-          <CardDescription className="font-opensans">
-            Gestiona tus secciones y estudiantes
-          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {assignedSections.map((section) => (
-              <Card key={section.id} className="border-l-4 border-l-minerd-blue hover:shadow-md transition-shadow">
-                <CardHeader className="pb-3">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-lg font-montserrat">
-                        {section.grade}° Grado - Sección {section.section}
-                      </CardTitle>
-                      <CardDescription className="font-opensans">
-                        {section.subject}
-                      </CardDescription>
-                    </div>
-                    <Badge variant="secondary" className="text-xs">
-                      {section.students} estudiantes
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Próxima clase:</span>
-                    <span className="text-sm font-medium text-minerd-blue">
-                      {section.nextClass}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Asistencia:</span>
-                    <span className="text-sm font-medium text-green-600">
-                      {section.attendance}%
-                    </span>
-                  </div>
-                  <div className="flex space-x-2 pt-2">
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      className="flex-1 text-xs"
-                      onClick={() => handleViewStudentList(section.id)}
-                    >
-                      <Users className="w-3 h-3 mr-1" />
-                      Ver Lista
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      className="flex-1 text-xs bg-minerd-green hover:bg-green-700"
-                      onClick={() => handleTakeAttendance(section.id)}
-                    >
-                      <Calendar className="w-3 h-3 mr-1" />
-                      Asistencia
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+          <div className="space-y-4">
+            {recentActivities.map((activity, index) => (
+              <div key={index} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+                <div className={`p-2 rounded-full ${
+                  activity.urgent ? 'bg-red-100' : 'bg-blue-100'
+                }`}>
+                  {activity.urgent ? (
+                    <AlertCircle className="w-4 h-4 text-red-600" />
+                  ) : (
+                    <CheckCircle className="w-4 h-4 text-blue-600" />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium">{activity.title}</p>
+                  <p className="text-sm text-gray-600">{activity.description}</p>
+                </div>
+                {activity.urgent && (
+                  <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full">
+                    Urgente
+                  </span>
+                )}
+              </div>
             ))}
           </div>
         </CardContent>
       </Card>
 
-      {/* Bottom Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Pending Tasks */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-montserrat flex items-center">
-              <AlertCircle className="mr-2 h-5 w-5" />
-              Tareas Pendientes
-            </CardTitle>
-            <CardDescription className="font-opensans">
-              Actividades por completar
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {pendingTasks.map((task) => (
-                <div key={task.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">
-                      {task.task}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {task.section} • {task.deadline}
-                    </p>
-                  </div>
-                  <Badge 
-                    variant={task.priority === 'high' ? 'destructive' : task.priority === 'medium' ? 'default' : 'secondary'}
-                    className="text-xs"
-                  >
-                    {task.priority === 'high' ? 'Urgente' : task.priority === 'medium' ? 'Normal' : 'Baja'}
-                  </Badge>
-                </div>
-              ))}
+      {/* My Schedule */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Mi Horario de Hoy</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+              <div>
+                <p className="font-medium">Matemática - 1° A</p>
+                <p className="text-sm text-gray-600">8:00 AM - 9:00 AM</p>
+              </div>
+              <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                En curso
+              </span>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Recent Activity */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-montserrat">Actividad Reciente</CardTitle>
-            <CardDescription className="font-opensans">
-              Últimas acciones realizadas
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-start space-x-3">
-                <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">
-                    Asistencia registrada
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    2do B - 26 estudiantes presentes
-                  </p>
-                  <p className="text-xs text-gray-400">Hace 2 horas</p>
-                </div>
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div>
+                <p className="font-medium">Lengua Española - 2° B</p>
+                <p className="text-sm text-gray-600">10:00 AM - 11:00 AM</p>
               </div>
-              <div className="flex items-start space-x-3">
-                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">
-                    Calificaciones actualizadas
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    1er A - Lengua Española P3
-                  </p>
-                  <p className="text-xs text-gray-400">Ayer</p>
-                </div>
-              </div>
-              <div className="flex items-start space-x-3">
-                <div className="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">
-                    Boleta generada
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Juan Pérez - 3er A
-                  </p>
-                  <p className="text-xs text-gray-400">Hace 2 días</p>
-                </div>
-              </div>
+              <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded-full">
+                Siguiente
+              </span>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

@@ -1,7 +1,16 @@
-import React, { useState } from 'react';
+
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotifications } from '@/contexts/NotificationContext';
-import { Button } from '@/components/ui/button';
+import { 
+  Menu, 
+  Bell, 
+  LogOut, 
+  User,
+  School
+} from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,181 +19,117 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Menu, User, Settings, Bell } from 'lucide-react';
-import NotificationsModal from '@/components/notifications/NotificationsModal';
-import ProfileModal from '@/components/profile/ProfileModal';
-import UserSettingsModal from '@/components/settings/UserSettingsModal';
 
 interface HeaderProps {
   onMenuToggle: () => void;
   isMobileMenuOpen: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ onMenuToggle, isMobileMenuOpen }) => {
+const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
   const { user, logout } = useAuth();
   const { unreadCount } = useNotifications();
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
-  const [userSettingsOpen, setUserSettingsOpen] = useState(false);
 
-  const getRoleLabel = (role: string) => {
-    const labels = {
-      admin: 'Administrador',
-      teacher: 'Docente',
-      auxiliary: 'Auxiliar',
-      parent: 'Padre/Tutor',
-      student: 'Estudiante'
-    };
-    return labels[role as keyof typeof labels] || role;
+  const handleLogout = () => {
+    logout();
   };
 
-  const getRoleBadgeVariant = (role: string): "default" | "destructive" | "outline" | "secondary" => {
-    const variants: Record<string, "default" | "destructive" | "outline" | "secondary"> = {
-      admin: 'default',
-      teacher: 'secondary',
-      auxiliary: 'outline',
-      parent: 'destructive',
-      student: 'secondary'
+  const getUserInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(word => word.charAt(0))
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const getRoleDisplayName = (role: string) => {
+    const roleNames = {
+      admin: 'Administrador',
+      teacher: 'Profesor',
+      auxiliary: 'Auxiliar',
+      parent: 'Padre/Madre',
+      student: 'Estudiante'
     };
-    return variants[role] || 'default';
+    return roleNames[role as keyof typeof roleNames] || role;
   };
 
   return (
-    <>
-      <header className="bg-minerd-blue text-white shadow-lg border-b border-minerd-blue/20 sticky top-0 z-50">
-        <div className="mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* Left section */}
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onMenuToggle}
-                className="lg:hidden text-white hover:bg-white/10"
-              >
-                <Menu className="h-6 w-6" />
-              </Button>
-              
-              <div className="flex items-center space-x-3">
-                <div className="flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-                    <span className="text-minerd-blue font-bold text-sm">RD</span>
-                  </div>
-                  <div className="hidden sm:block">
-                    <h1 className="font-montserrat font-bold text-lg">
-                      Registro Escolar
-                    </h1>
-                    <p className="text-xs text-blue-100">
-                      1er Ciclo Secundaria - RD
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Right section */}
-            <div className="flex items-center space-x-4">
-              {/* Notifications */}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="relative text-white hover:bg-white/10"
-                onClick={() => setNotificationsOpen(true)}
-              >
-                <Bell className="h-5 w-5" />
-                {unreadCount > 0 && (
-                  <Badge 
-                    variant="destructive" 
-                    className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
-                  >
-                    {unreadCount}
-                  </Badge>
-                )}
-              </Button>
-
-              {/* User Menu */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-10 w-auto rounded-full hover:bg-white/10 px-3">
-                    <div className="flex items-center space-x-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={user?.avatar} />
-                        <AvatarFallback className="bg-white text-minerd-blue font-semibold">
-                          {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="hidden md:block text-left">
-                        <p className="text-sm font-medium">
-                          {user?.firstName} {user?.lastName}
-                        </p>
-                        <Badge 
-                          variant={getRoleBadgeVariant(user?.role || '')} 
-                          className="text-xs mt-1"
-                        >
-                          {getRoleLabel(user?.role || '')}
-                        </Badge>
-                      </div>
-                    </div>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">
-                        {user?.firstName} {user?.lastName}
-                      </p>
-                      <p className="text-xs leading-none text-muted-foreground">
-                        {user?.email}
-                      </p>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem 
-                    className="cursor-pointer"
-                    onClick={() => setProfileOpen(true)}
-                  >
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Perfil</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    className="cursor-pointer"
-                    onClick={() => setUserSettingsOpen(true)}
-                  >
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Configuración</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem 
-                    className="cursor-pointer text-red-600 focus:text-red-600"
-                    onClick={logout}
-                  >
-                    <span>Cerrar sesión</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+    <header className="bg-white border-b border-gray-200 px-4 lg:px-6 h-16 flex items-center justify-between shadow-sm">
+      {/* Left section */}
+      <div className="flex items-center gap-4">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onMenuToggle}
+          className="lg:hidden"
+        >
+          <Menu className="w-5 h-5" />
+        </Button>
+        
+        <div className="flex items-center gap-3">
+          <div className="bg-blue-600 p-2 rounded-lg">
+            <School className="w-6 h-6 text-white" />
+          </div>
+          <div className="hidden sm:block">
+            <h1 className="text-lg font-semibold text-gray-900">
+              Sistema Escolar
+            </h1>
+            <p className="text-xs text-gray-500">
+              Registro 1er Ciclo Secundaria
+            </p>
           </div>
         </div>
-      </header>
+      </div>
 
-      {/* Modals */}
-      <NotificationsModal
-        open={notificationsOpen}
-        onOpenChange={setNotificationsOpen}
-      />
-      
-      <ProfileModal
-        open={profileOpen}
-        onOpenChange={setProfileOpen}
-      />
+      {/* Right section */}
+      <div className="flex items-center gap-3">
+        {/* Notifications */}
+        <Button variant="ghost" size="sm" className="relative">
+          <Bell className="w-5 h-5" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+              {unreadCount}
+            </span>
+          )}
+        </Button>
 
-      <UserSettingsModal
-        open={userSettingsOpen}
-        onOpenChange={setUserSettingsOpen}
-      />
-    </>
+        {/* User menu */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+              <Avatar className="h-10 w-10">
+                <AvatarFallback className="bg-blue-100 text-blue-600 font-semibold">
+                  {user ? getUserInitials(user.name) : 'U'}
+                </AvatarFallback>
+              </Avatar>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56" align="end">
+            <DropdownMenuLabel className="font-normal">
+              <div className="flex flex-col space-y-1">
+                <p className="text-sm font-medium leading-none">{user?.name}</p>
+                <p className="text-xs leading-none text-muted-foreground">
+                  {user?.email}
+                </p>
+                <p className="text-xs leading-none text-muted-foreground">
+                  {user && getRoleDisplayName(user.role)}
+                </p>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>
+              <User className="mr-2 h-4 w-4" />
+              <span>Perfil</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Cerrar sesión</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </header>
   );
 };
 
