@@ -114,7 +114,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           {/* User info */}
           <div className="p-4 border-t border-gray-200">
             <div className="text-sm">
-              <p className="font-medium text-gray-900">{user?.name}</p>
+              <p className="font-medium text-gray-900">{user ? `${user.firstName} ${user.lastName}` : 'Usuario'}</p>
               <p className="text-gray-500">{user?.role}</p>
             </div>
           </div>
