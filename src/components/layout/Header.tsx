@@ -33,6 +33,11 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
     logout();
   };
 
+  const handleSystemConfig = () => {
+    // Esta función se puede pasar como prop desde Index.tsx
+    window.dispatchEvent(new CustomEvent('openSystemConfig'));
+  };
+
   const getUserInitials = (firstName: string, lastName: string) => {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
   };
@@ -127,7 +132,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={handleSystemConfig}>
             <User className="w-4 h-4 mr-2" />
             Configurar Sistema
           </Button>

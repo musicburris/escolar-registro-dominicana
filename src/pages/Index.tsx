@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import SystemSetup from '@/components/setup/SystemSetup';
 import { NotificationProvider } from '@/contexts/NotificationContext';
 import LoginForm from '@/components/auth/LoginForm';
 import Header from '@/components/layout/Header';
@@ -26,6 +28,7 @@ const Index = () => {
   const { user, isAuthenticated, isLoading } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('dashboard');
+  const [showSystemSetup, setShowSystemSetup] = useState(false);
 
   // Show loading spinner while checking authentication
   if (isLoading) {
@@ -43,6 +46,18 @@ const Index = () => {
   // if (!isAuthenticated) {
   //   return <LoginForm />;
   // }
+
+  // Escuchar evento para abrir configuración del sistema
+  React.useEffect(() => {
+    const handleOpenSystemConfig = () => {
+      setShowSystemSetup(true);
+    };
+
+    window.addEventListener('openSystemConfig', handleOpenSystemConfig);
+    return () => {
+      window.removeEventListener('openSystemConfig', handleOpenSystemConfig);
+    };
+  }, []);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -189,7 +204,20 @@ const Index = () => {
           {/* Main Content */}
           <main className="flex-1 lg:ml-64 flex flex-col">
             <div className="p-6 flex-1">
-              {renderContent()}
+              {showSystemSetup ? (
+                <div>
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => setShowSystemSetup(false)}
+                    className="mb-4"
+                  >
+                    ← Volver al Dashboard
+                  </Button>
+                  <SystemSetup />
+                </div>
+              ) : (
+                renderContent()
+              )}
             </div>
             <Footer />
           </main>
