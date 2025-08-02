@@ -123,6 +123,104 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setIsLoading(true);
       
+      // Usuarios de demostración - simulación para demo
+      const demoUsers = {
+        'director@ejemplo.edu.do': {
+          id: 'demo-admin-001',
+          email: 'director@ejemplo.edu.do',
+          firstName: 'Director',
+          lastName: 'Sistema',
+          role: 'admin' as UserRole,
+          phone: '+1-809-000-0001',
+          avatar: '',
+          isActive: true,
+          assignedSections: [],
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        'profesor@ejemplo.edu.do': {
+          id: 'demo-teacher-001',
+          email: 'profesor@ejemplo.edu.do',
+          firstName: 'Profesor',
+          lastName: 'Demostración',
+          role: 'teacher' as UserRole,
+          phone: '+1-809-000-0002',
+          avatar: '',
+          isActive: true,
+          assignedSections: ['1A', '2B'],
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        'auxiliar@ejemplo.edu.do': {
+          id: 'demo-auxiliary-001',
+          email: 'auxiliar@ejemplo.edu.do',
+          firstName: 'Auxiliar',
+          lastName: 'Administrativo',
+          role: 'auxiliary' as UserRole,
+          phone: '+1-809-000-0003',
+          avatar: '',
+          isActive: true,
+          assignedSections: [],
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        'padre@ejemplo.com': {
+          id: 'demo-parent-001',
+          email: 'padre@ejemplo.com',
+          firstName: 'Padre',
+          lastName: 'Familia',
+          role: 'parent' as UserRole,
+          phone: '+1-809-000-0004',
+          avatar: '',
+          isActive: true,
+          assignedSections: [],
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        '202300001': {
+          id: 'demo-student-001',
+          email: '202300001',
+          firstName: 'Estudiante',
+          lastName: 'Demo',
+          role: 'student' as UserRole,
+          phone: '+1-809-000-0005',
+          avatar: '',
+          isActive: true,
+          assignedSections: ['1A'],
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+      };
+
+      // Verificar si es usuario de demostración
+      if (demoUsers[email as keyof typeof demoUsers] && password === 'demo123') {
+        const demoUser = demoUsers[email as keyof typeof demoUsers];
+        setUser(demoUser);
+        setIsAuthenticated(true);
+        
+        // Crear sesión simulada
+        setSession({
+          access_token: 'demo-token-' + demoUser.id,
+          refresh_token: 'demo-refresh-' + demoUser.id,
+          expires_in: 3600,
+          expires_at: Date.now() + 3600000,
+          token_type: 'bearer',
+          user: {
+            id: demoUser.id,
+            email: demoUser.email,
+            user_metadata: {
+              firstName: demoUser.firstName,
+              lastName: demoUser.lastName,
+              role: demoUser.role
+            }
+          }
+        } as any);
+        
+        console.log('Demo login successful for:', email);
+        return true;
+      }
+
+      // Intentar login real con Supabase para usuarios reales
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
