@@ -1,9 +1,10 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotifications } from '@/contexts/NotificationContext';
+import NotificationsModal from '@/components/notifications/NotificationsModal';
 import { 
   Menu, 
   Bell, 
@@ -28,6 +29,7 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
   const { user, logout, isAuthenticated } = useAuth();
   const { unreadCount } = useNotifications();
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -85,7 +87,12 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
       <div className="flex items-center gap-3">
         {/* Notifications */}
         {isAuthenticated && (
-          <Button variant="ghost" size="sm" className="relative">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="relative"
+            onClick={() => setNotificationsOpen(true)}
+          >
             <Bell className="w-5 h-5" />
             {unreadCount > 0 && (
               <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
@@ -138,6 +145,12 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
           </Button>
         )}
       </div>
+      
+      {/* Notifications Modal */}
+      <NotificationsModal 
+        open={notificationsOpen} 
+        onOpenChange={setNotificationsOpen} 
+      />
     </header>
   );
 };

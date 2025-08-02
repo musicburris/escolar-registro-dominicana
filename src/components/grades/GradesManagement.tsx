@@ -15,6 +15,7 @@ import AuditoriaModal from '@/components/grades/AuditoriaModal';
 import GradesUpload from '@/components/grades/GradesUpload';
 import IndicadoresLogroManager from '@/components/grades/IndicadoresLogroManager';
 import ListaCotejoManager from '@/components/grades/ListaCotejoManager';
+import CompetenciaConfigModal from '@/components/grades/CompetenciaConfigModal';
 
 interface BloquePeriodos {
   p1?: number;
@@ -739,73 +740,13 @@ const GradesManagement: React.FC = () => {
 
       {/* Configuration Modal - Solo para administradores */}
       {user?.role === 'admin' && (
-        <Dialog open={configModalOpen} onOpenChange={setConfigModalOpen}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Configuración Curricular - Bloques de Competencias</DialogTitle>
-              <DialogDescription>
-                Configura el código, nombre y competencias para cada bloque de la asignatura seleccionada
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-6">
-              {bloquesCompetencias.map((bloque) => (
-                <Card key={bloque.id}>
-                  <CardHeader>
-                    <CardTitle className="text-lg">{bloque.codigo} - {bloque.nombre}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Código del Bloque:</label>
-                        <Input
-                          value={bloque.codigo}
-                          onChange={(e) => updateCompetenciasBloque(bloque.id, { codigo: e.target.value })}
-                          placeholder="Ej: PC1"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Nombre del Bloque:</label>
-                        <Input
-                          value={bloque.nombre}
-                          onChange={(e) => updateCompetenciasBloque(bloque.id, { nombre: e.target.value })}
-                          placeholder="Ej: Comprensión Lectora"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Competencias del Bloque:</label>
-                      <Textarea
-                        value={bloque.descripcionCompetencias}
-                        onChange={(e) => updateCompetenciasBloque(bloque.id, { descripcionCompetencias: e.target.value })}
-                        placeholder="Describe las competencias de este bloque..."
-                        className="min-h-[120px]"
-                        maxLength={1000}
-                      />
-                      <div className="text-xs text-gray-500">
-                        {bloque.descripcionCompetencias.length}/1000 caracteres
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-              <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => setConfigModalOpen(false)}>
-                  Cancelar
-                </Button>
-                <Button onClick={() => {
-                  setConfigModalOpen(false);
-                  toast({
-                    title: "Configuración guardada",
-                    description: "Los bloques de competencias han sido actualizados",
-                  });
-                }}>
-                  Guardar Configuración
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <CompetenciaConfigModal
+          open={configModalOpen}
+          onOpenChange={setConfigModalOpen}
+          bloquesCompetencias={bloquesCompetencias}
+          onUpdateBloques={setBloquesCompetencias}
+          selectedSubject={selectedSubject}
+        />
       )}
 
       {/* Indicadores de Logro Manager - Solo para administradores */}
