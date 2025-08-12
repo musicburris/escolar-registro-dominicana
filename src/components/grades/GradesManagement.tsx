@@ -506,7 +506,6 @@ const GradesManagement: React.FC = () => {
             <div className="flex items-end">
               <Button 
                 onClick={loadGrades}
-                disabled={!selectedSection || !selectedSubject}
                 className="w-full bg-minerd-blue hover:bg-blue-700"
               >
                 Cargar Calificaciones

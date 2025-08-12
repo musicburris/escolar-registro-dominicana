@@ -25,7 +25,12 @@ import { toast } from '@/hooks/use-toast';
 interface EvidenceUploadModalProps {
   period: 'p1' | 'p2' | 'p3' | 'p4';
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (payload: {
+    title: string;
+    competenceBlock: 'pc1' | 'pc2' | 'pc3' | 'pc4';
+    filesCount: number;
+    studentsCount: number;
+  }) => void;
 }
 
 const EvidenceUploadModal: React.FC<EvidenceUploadModalProps> = ({

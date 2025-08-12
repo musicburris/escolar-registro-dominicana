@@ -56,6 +56,63 @@ const EvidencesManagement: React.FC = () => {
     { value: 'pc4', label: 'PC4', description: 'Cuarto bloque de competencias' }
   ];
 
+  // Carpeta inicial para mostrar y permitir añadir nuevas
+  const initialFolders = [
+    {
+      id: '1',
+      title: 'Proyecto de Volcanes',
+      description: 'Investigación sobre volcanes y actividad geológica',
+      competenceBlock: 'pc1',
+      studentsCount: 25,
+      evidencesCount: 47,
+      completedCount: 22,
+      pendingCount: 3,
+      date: '2024-03-15',
+      recentActivity: '2024-03-20',
+      files: [
+        { type: 'image', count: 23 },
+        { type: 'video', count: 8 },
+        { type: 'document', count: 16 }
+      ]
+    },
+    {
+      id: '2',
+      title: 'Experimentos de Química',
+      description: 'Reacciones químicas básicas y observaciones',
+      competenceBlock: 'pc2',
+      studentsCount: 25,
+      evidencesCount: 38,
+      completedCount: 20,
+      pendingCount: 5,
+      date: '2024-03-10',
+      recentActivity: '2024-03-18',
+      files: [
+        { type: 'image', count: 15 },
+        { type: 'video', count: 12 },
+        { type: 'document', count: 11 }
+      ]
+    },
+    {
+      id: '3',
+      title: 'Matemáticas Aplicadas',
+      description: 'Resolución de problemas matemáticos del entorno',
+      competenceBlock: 'pc1',
+      studentsCount: 25,
+      evidencesCount: 52,
+      completedCount: 25,
+      pendingCount: 0,
+      date: '2024-03-05',
+      recentActivity: '2024-03-19',
+      files: [
+        { type: 'image', count: 30 },
+        { type: 'video', count: 5 },
+        { type: 'document', count: 17 }
+      ]
+    }
+  ];
+
+  const [folders, setFolders] = useState(initialFolders);
+
   const handleCreateFolder = () => {
     setShowUploadModal(true);
     toast({
@@ -65,9 +122,10 @@ const EvidencesManagement: React.FC = () => {
   };
 
   const handleQuickUpload = () => {
+    setShowUploadModal(true);
     toast({
       title: "Subida rápida",
-      description: "Función de subida rápida disponible próximamente",
+      description: "Selecciona archivos y crea la carpeta de evidencias",
     });
   };
 
@@ -196,6 +254,7 @@ const EvidencesManagement: React.FC = () => {
           <EvidenceFolderView 
             period={selectedPeriod}
             onCreateFolder={handleCreateFolder}
+            folders={folders}
           />
         </TabsContent>
 

@@ -24,20 +24,36 @@ import {
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
+type FolderItem = {
+  id: string;
+  title: string;
+  description: string;
+  competenceBlock: 'pc1' | 'pc2' | 'pc3' | 'pc4';
+  studentsCount: number;
+  evidencesCount: number;
+  completedCount: number;
+  pendingCount: number;
+  date: string;
+  recentActivity: string;
+  files: { type: 'image' | 'video' | 'document' | 'audio'; count: number }[];
+};
+
 interface EvidenceFolderViewProps {
   period: 'p1' | 'p2' | 'p3' | 'p4';
   onCreateFolder: () => void;
+  folders?: FolderItem[];
 }
 
 const EvidenceFolderView: React.FC<EvidenceFolderViewProps> = ({
   period,
-  onCreateFolder
+  onCreateFolder,
+  folders: foldersData
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCompetence, setSelectedCompetence] = useState<string>('all');
 
   // Mock data - carpetas de evidencias
-  const folders = [
+  const defaultFolders = [
     {
       id: '1',
       title: 'Proyecto de Volcanes',
@@ -137,7 +153,8 @@ const EvidenceFolderView: React.FC<EvidenceFolderViewProps> = ({
     });
   };
 
-  const filteredFolders = folders.filter(folder => {
+  const dataFolders = foldersData ?? defaultFolders;
+  const filteredFolders = dataFolders.filter(folder => {
     const matchesSearch = folder.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          folder.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCompetence = selectedCompetence === 'all' || folder.competenceBlock === selectedCompetence;
