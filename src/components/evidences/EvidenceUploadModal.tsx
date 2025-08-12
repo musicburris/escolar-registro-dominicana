@@ -27,6 +27,7 @@ interface EvidenceUploadModalProps {
   onClose: () => void;
   onSuccess: (payload: {
     title: string;
+    description?: string;
     competenceBlock: 'pc1' | 'pc2' | 'pc3' | 'pc4';
     filesCount: number;
     studentsCount: number;
@@ -164,7 +165,13 @@ const EvidenceUploadModal: React.FC<EvidenceUploadModalProps> = ({
 
     // Simular tiempo de procesamiento
     setTimeout(() => {
-      onSuccess();
+      onSuccess({
+        title: activityTitle.trim(),
+        description: activityDescription.trim(),
+        competenceBlock,
+        filesCount: files.length,
+        studentsCount: selectedStudents.length,
+      });
       toast({
         title: "¡Evidencias creadas exitosamente!",
         description: `Se crearon evidencias para ${selectedStudents.length} estudiantes en ${period.toUpperCase()}`,

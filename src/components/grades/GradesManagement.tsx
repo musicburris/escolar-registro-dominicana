@@ -516,7 +516,6 @@ const GradesManagement: React.FC = () => {
               <Button 
                 variant="outline"
                 onClick={() => setUploadModalOpen(true)}
-                disabled={!selectedSection || !selectedSubject}
                 className="w-full flex items-center"
               >
                 <Upload className="w-4 h-4 mr-2" />

@@ -56,8 +56,22 @@ const EvidencesManagement: React.FC = () => {
     { value: 'pc4', label: 'PC4', description: 'Cuarto bloque de competencias' }
   ];
 
+  type FolderItem = {
+    id: string;
+    title: string;
+    description: string;
+    competenceBlock: 'pc1' | 'pc2' | 'pc3' | 'pc4';
+    studentsCount: number;
+    evidencesCount: number;
+    completedCount: number;
+    pendingCount: number;
+    date: string;
+    recentActivity: string;
+    files: { type: 'image' | 'video' | 'document' | 'audio'; count: number }[];
+  };
+
   // Carpeta inicial para mostrar y permitir añadir nuevas
-  const initialFolders = [
+  const initialFolders: FolderItem[] = [
     {
       id: '1',
       title: 'Proyecto de Volcanes',
@@ -111,7 +125,7 @@ const EvidencesManagement: React.FC = () => {
     }
   ];
 
-  const [folders, setFolders] = useState(initialFolders);
+  const [folders, setFolders] = useState<FolderItem[]>(initialFolders);
 
   const handleCreateFolder = () => {
     setShowUploadModal(true);
@@ -304,11 +318,26 @@ const EvidencesManagement: React.FC = () => {
         <EvidenceUploadModal
           period={selectedPeriod}
           onClose={() => setShowUploadModal(false)}
-          onSuccess={() => {
+          onSuccess={(payload) => {
+            const today = new Date().toISOString().slice(0, 10);
+            const newFolder: FolderItem = {
+              id: Date.now().toString(),
+              title: payload.title || 'Nueva carpeta',
+              description: payload.description || 'Carpeta de evidencias',
+              competenceBlock: payload.competenceBlock,
+              studentsCount: payload.studentsCount,
+              evidencesCount: payload.filesCount,
+              completedCount: 0,
+              pendingCount: payload.studentsCount,
+              date: today,
+              recentActivity: today,
+              files: [{ type: 'document', count: payload.filesCount }]
+            };
+            setFolders(prev => [newFolder, ...prev]);
             setShowUploadModal(false);
             toast({
-              title: "Evidencia creada",
-              description: "La carpeta de evidencias ha sido creada exitosamente",
+              title: 'Evidencia creada',
+              description: `Se creó "${newFolder.title}" con ${newFolder.evidencesCount} archivo(s)`,
             });
           }}
         />
