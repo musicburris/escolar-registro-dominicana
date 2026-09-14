@@ -36,7 +36,7 @@ else
   codesign --force --sign - dist/AulaLocal.app
 fi
 codesign --verify --deep --strict dist/AulaLocal.app
-lipo -verify_arch arm64 dist/AulaLocal.app/Contents/MacOS/AulaLocal
+lipo dist/AulaLocal.app/Contents/MacOS/AulaLocal -verify_arch arm64
 QT_QPA_PLATFORM=offscreen dist/AulaLocal.app/Contents/MacOS/AulaLocal --self-test | tee docs/evidencias/validacion-m1.json
 python3 - <<'PY'
 import json
