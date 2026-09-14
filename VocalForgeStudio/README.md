@@ -38,6 +38,8 @@ swift test
 
 El producto no tiene código x86_64, Windows, Linux, CUDA ni NVIDIA.
 
+La automatización oficial también instala el runtime administrado y comprueba que PyTorch fue compilado con soporte MPS en un runner Apple M1 ARM64.
+
 ## Privacidad y uso responsable
 
 No hay telemetría ni APIs externas. Solo deben importarse o entrenarse voces propias o con autorización verificable. El formato `.vfvoice` requiere registrar consentimiento y procedencia.
