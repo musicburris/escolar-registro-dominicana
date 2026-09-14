@@ -27,7 +27,8 @@ if [ -n "${AULALOCAL_SIGN_IDENTITY:-}" ]; then
 else
   build_app
 fi
-/usr/libexec/PlistBuddy -c 'Set :LSMinimumSystemVersion 12.0' dist/AulaLocal.app/Contents/Info.plist
+/usr/libexec/PlistBuddy -c 'Set :LSMinimumSystemVersion 12.0' dist/AulaLocal.app/Contents/Info.plist 2>/dev/null || \
+  /usr/libexec/PlistBuddy -c 'Add :LSMinimumSystemVersion string 12.0' dist/AulaLocal.app/Contents/Info.plist
 # El cambio del plist requiere volver a sellar el bundle; PyInstaller firma los binarios internos.
 if [ -n "${AULALOCAL_SIGN_IDENTITY:-}" ]; then
   codesign --force --options runtime --entitlements scripts/entitlements.plist --sign "$AULALOCAL_SIGN_IDENTITY" dist/AulaLocal.app
