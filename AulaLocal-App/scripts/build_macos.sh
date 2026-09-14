@@ -10,12 +10,13 @@ BUILD_PYTHON="${AULALOCAL_BUILD_PYTHON:-python3}"
 "$BUILD_PYTHON" -m venv .venv-build
 .venv-build/bin/python -m pip install --disable-pip-version-check -r requirements-build.txt
 .venv-build/bin/python -m pip install --no-deps -e .
-mkdir -p docs/evidencias
+mkdir -p docs/evidencias build-assets
+.venv-build/bin/python scripts/make_icon.py build-assets/AulaLocal.png
 QT_QPA_PLATFORM=offscreen .venv-build/bin/python -m pytest -q --junitxml=docs/evidencias/tests-macos.xml
 export MACOSX_DEPLOYMENT_TARGET=12.0
 build_app() {
   .venv-build/bin/python -m PyInstaller --noconfirm --clean --windowed --onedir \
-    --name AulaLocal --target-architecture arm64 \
+    --name AulaLocal --target-architecture arm64 --icon build-assets/AulaLocal.png \
     --osx-bundle-identifier com.aulalocal.desktop \
     --add-data 'aulalocal/schema.sql:aulalocal' \
     --collect-data reportlab --collect-data openpyxl \
