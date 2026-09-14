@@ -12,6 +12,7 @@ Aplicación nativa y exclusiva para macOS Apple Silicon. **VocalForge Studio 0.2
 - Lectura del estado térmico público de macOS y reducción de ritmo sin cancelar el render.
 - Modos Preview, High, Studio y Ultra siempre visibles.
 - Importación segura de `.vfvoice` con manifiesto, consentimiento y SHA-256.
+- Entrenamiento local real y selección directa del checkpoint entrenado en la pantalla de conversión.
 - Gestión de espacio; limpiar caché nunca borra voces ni proyectos.
 - Pruebas automatizadas y empaquetado DMG.
 
@@ -20,6 +21,8 @@ Aplicación nativa y exclusiva para macOS Apple Silicon. **VocalForge Studio 0.2
 La aplicación incluye el motor y un gestor ARM64. Pulsa **Instalar motor** una sola vez: VocalForge descarga Python y las dependencias/modelos necesarios sin Terminal. Esta fase requiere internet y varios gigabytes libres. Al terminar, conversión, proyectos, voces y entrenamiento se ejecutan localmente. Seed-VC se distribuye como módulo GPL-3.0 separado y con su código fuente completo.
 
 En equipos de 8 GB, el motor prioriza estabilidad mediante la ruta neuronal CPU ARM64 y procesamiento secuencial; en 16 GB o más activa MPS. La calidad del modelo no se reduce: el perfil de 8 GB tarda más.
+
+`Lyrics Lock` guarda la letra de referencia y Seed-VC preserva el contenido de la interpretación fuente. Esta versión no afirma una alineación fonética rígida palabra por palabra; esa capacidad queda identificada como experimental en la interfaz.
 
 ## Instalación para una persona usuaria
 

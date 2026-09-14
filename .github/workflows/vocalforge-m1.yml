@@ -51,7 +51,11 @@ jobs:
           "$ENGINE_TEST/venv/bin/python" inference.py --source "$ENGINE_TEST/source.wav" --target "$ENGINE_TEST/reference.wav" --output "$ENGINE_TEST/output" --diffusion-steps 4 --f0-condition True --fp16 False
           find "$ENGINE_TEST/output" -name '*.wav' -size +1k | grep -q .
           "$ENGINE_TEST/venv/bin/python" train.py --config configs/presets/config_dit_mel_seed_uvit_whisper_base_f0_44k.yml --dataset-dir "$ENGINE_TEST/dataset" --run-name ci_m1_training --batch-size 1 --max-steps 1 --save-every 1 --num-workers 0
-          find . -path '*ci_m1_training*' -name '*.pth' -size +1k | grep -q .
+          CHECKPOINT="$(find . -path '*ci_m1_training*' -name '*.pth' -size +1k | head -n 1)"
+          test -n "$CHECKPOINT"
+          mkdir -p "$ENGINE_TEST/trained-output"
+          "$ENGINE_TEST/venv/bin/python" inference.py --source "$ENGINE_TEST/source.wav" --target "$ENGINE_TEST/reference.wav" --output "$ENGINE_TEST/trained-output" --diffusion-steps 2 --f0-condition True --fp16 False --checkpoint "$CHECKPOINT" --config configs/presets/config_dit_mel_seed_uvit_whisper_base_f0_44k.yml
+          find "$ENGINE_TEST/trained-output" -name '*.wav' -size +1k | grep -q .
       - uses: actions/upload-artifact@v4
         with:
           name: VocalForgeStudio-0.2.0-AppleSilicon

@@ -21,6 +21,7 @@ final class StudioStore: ObservableObject {
         self.paths = paths
         try? paths.prepare()
         load()
+        rescanVoiceModels()
         refreshStorage()
         if projects.isEmpty { createProject() }
     }
@@ -106,12 +107,17 @@ final class StudioStore: ObservableObject {
         let projectID = projects[index].id
         let quality = projects[index].quality
         let semitones = Int(projects[index].transpose)
-        projects[index].status = "Clonación neuronal en Metal…"
+        let voiceModelID = projects[index].voiceModelID
+        let checkpoint = voiceModelID.map { paths.voiceModels.appendingPathComponent("\($0.uuidString).vfvoice/weights.pth") }
+        projects[index].status = "Clonación neuronal con perfil automático…"
         Task {
             do {
                 let source = try Self.resolve(sourceBookmark)
                 let reference = try Self.resolve(referenceBookmark)
-                let output = try await engine.convert(source: source, reference: reference, quality: quality, semitones: semitones, outputDirectory: paths.renders)
+                if let checkpoint, !FileManager.default.fileExists(atPath: checkpoint.path) {
+                    throw NeuralEngineError.missingResource("pesos de la voz entrenada")
+                }
+                let output = try await engine.convert(source: source, reference: reference, checkpoint: checkpoint, quality: quality, semitones: semitones, outputDirectory: paths.renders)
                 if let i = projects.firstIndex(where: { $0.id == projectID }) {
                     projects[i].outputFilename = output.lastPathComponent
                     projects[i].status = "Clonación neuronal completada"
@@ -157,6 +163,14 @@ final class StudioStore: ObservableObject {
         if let data = try? Data(contentsOf: paths.voicesFile), let value = try? JSONDecoder.vocalForge.decode([VoiceModelManifest].self, from: data) { voices = value }
     }
     func refreshStorage() { storage = StorageScanner.snapshot(paths: paths) }
+    func rescanVoiceModels() {
+        guard let packages = try? FileManager.default.contentsOfDirectory(at: paths.voiceModels, includingPropertiesForKeys: nil) else { return }
+        let discovered = packages.compactMap { package -> VoiceModelManifest? in
+            guard package.pathExtension == "vfvoice", let data = try? Data(contentsOf: package.appendingPathComponent("manifest.json")) else { return nil }
+            return try? JSONDecoder.vocalForge.decode(VoiceModelManifest.self, from: data)
+        }
+        if !discovered.isEmpty { voices = discovered.sorted { $0.createdAt > $1.createdAt }; saveVoices() }
+    }
     static func resolve(_ bookmark: Data) throws -> URL {
         var stale = false
         let url = try URL(resolvingBookmarkData: bookmark, options: .withSecurityScope, relativeTo: nil, bookmarkDataIsStale: &stale)

@@ -73,8 +73,12 @@ struct ConversionView: View {
                         VStack(alignment: .leading, spacing: 16) {
                             HStack { Text("Calidad"); Spacer(); Picker("", selection: qualityBinding) { ForEach(QualityProfile.allCases) { Text($0.rawValue).tag($0) } }.pickerStyle(.segmented).frame(width: 440) }
                             Text(project.quality.detail).foregroundStyle(.secondary)
-                            Toggle("Lyrics Lock — conservar pronunciación y texto", isOn: lyricsLockBinding)
+                            Toggle("Lyrics Lock — guía de letra experimental", isOn: lyricsLockBinding)
+                            if !store.voices.isEmpty {
+                                HStack { Text("Voz entrenada"); Spacer(); Picker("Voz entrenada", selection: voiceBinding) { Text("Zero-shot (referencia)").tag(Optional<UUID>.none); ForEach(store.voices) { voice in Text(voice.displayName).tag(Optional(voice.id)) } }.frame(width: 360) }
+                            }
                             TextEditor(text: lyricsBinding).font(.body.monospaced()).frame(minHeight: 92).overlay(RoundedRectangle(cornerRadius: 6).stroke(.quaternary))
+                            Text("La letra queda guardada como referencia del proyecto. Seed-VC preserva el contenido de la interpretación, pero esta versión no garantiza alineación fonética palabra por palabra.").font(.caption).foregroundStyle(.secondary)
                             HStack { Text("Transposición"); Slider(value: transposeBinding, in: -12...12, step: 1); Text("\(Int(project.transpose)) st").monospacedDigit().frame(width: 50) }
                         }.padding(8)
                     }
@@ -88,13 +92,14 @@ struct ConversionView: View {
                     EngineStatusPanel()
                 } else { ContentUnavailableView("Selecciona un proyecto", systemImage: "rectangle.stack") }
             }.padding(30)
-        }
+        }.onAppear { store.rescanVoiceModels() }
     }
     private var isEngineReady: Bool { if case .ready = neural.state { return true }; return false }
     private var qualityBinding: Binding<QualityProfile> { .init(get: { store.selectedProject?.quality ?? .high }, set: { v in store.updateProject { $0.quality = v } }) }
     private var lyricsLockBinding: Binding<Bool> { .init(get: { store.selectedProject?.lyricsLock ?? true }, set: { v in store.updateProject { $0.lyricsLock = v } }) }
     private var lyricsBinding: Binding<String> { .init(get: { store.selectedProject?.lyrics ?? "" }, set: { v in store.updateProject { $0.lyrics = v } }) }
     private var transposeBinding: Binding<Double> { .init(get: { store.selectedProject?.transpose ?? 0 }, set: { v in store.updateProject { $0.transpose = v } }) }
+    private var voiceBinding: Binding<UUID?> { .init(get: { store.selectedProject?.voiceModelID }, set: { v in store.updateProject { $0.voiceModelID = v } }) }
 }
 
 struct FileWell: View {
@@ -114,7 +119,7 @@ struct TrainingView: View {
                     HStack { Label(neural.datasetURL?.lastPathComponent ?? "Sin grabaciones seleccionadas", systemImage: "folder"); Spacer(); Button("Seleccionar carpeta…") { neural.chooseDataset() } }
                     Toggle("Confirmo que la voz es propia o tengo autorización para clonarla", isOn: $neural.consentConfirmed)
                     Divider()
-                    Label("MPS · batch automático 1 · checkpoints · perfil \(store.hardware.memoryGB) GB", systemImage: "memorychip")
+                    Label("Backend automático · batch 1 · checkpoints · perfil \(store.hardware.memoryGB) GB", systemImage: "memorychip")
                     ProgressView(value: neural.progress)
                     HStack { Text(neural.state.title).foregroundStyle(.secondary); Spacer(); Button("Entrenar voz", systemImage: "brain") { neural.train() }.buttonStyle(.borderedProminent).disabled(neural.state.isBusy) }
                 }.padding(10)
@@ -131,7 +136,7 @@ struct EngineStatusPanel: View {
         GroupBox("Motor profesional") {
             HStack(spacing: 12) {
                 Image(systemName: ready ? "checkmark.seal.fill" : "arrow.down.circle.fill").foregroundStyle(ready ? .green : .purple).font(.title2)
-                VStack(alignment: .leading) { Text(neural.state.title).font(.headline); Text("Seed-VC 44.1 kHz · PyTorch MPS · procesamiento local").font(.caption).foregroundStyle(.secondary) }
+                VStack(alignment: .leading) { Text(neural.state.title).font(.headline); Text("Seed-VC 44.1 kHz · MPS/CPU ARM64 automático · procesamiento local").font(.caption).foregroundStyle(.secondary) }
                 Spacer()
                 if !ready { Button(neural.state.isBusy ? "Instalando…" : "Instalar motor") { neural.install() }.buttonStyle(.borderedProminent).disabled(neural.state.isBusy) }
             }.padding(6)
@@ -147,7 +152,7 @@ struct ModelsView: View {
             HStack { PageHeader(title: "Voces", subtitle: "Paquetes verificables .vfvoice"); Button("Importar .vfvoice", systemImage: "square.and.arrow.down") { store.importVoiceModel() } }
             if store.voices.isEmpty { ContentUnavailableView("Aún no hay voces", systemImage: "person.wave.2", description: Text("Los modelos originales nunca se eliminan al optimizarlos.")) }
             else { List(store.voices) { voice in HStack { Image(systemName: "person.wave.2.fill").foregroundStyle(.purple); VStack(alignment: .leading) { Text(voice.displayName).font(.headline); Text("\(voice.architecture) · \(voice.sampleRate) Hz").foregroundStyle(.secondary) }; Spacer(); Label("Verificado", systemImage: "checkmark.seal.fill").foregroundStyle(.green) }.padding(.vertical, 5) } }
-        }.padding(30)
+        }.padding(30).onAppear { store.rescanVoiceModels() }
     }
 }
 

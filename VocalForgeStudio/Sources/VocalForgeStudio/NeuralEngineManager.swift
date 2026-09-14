@@ -90,14 +90,18 @@ final class NeuralEngineManager: ObservableObject {
         }
     }
 
-    func convert(source: URL, reference: URL, quality: QualityProfile, semitones: Int, outputDirectory: URL) async throws -> URL {
+    func convert(source: URL, reference: URL, checkpoint: URL?, quality: QualityProfile, semitones: Int, outputDirectory: URL) async throws -> URL {
         guard FileManager.default.isExecutableFile(atPath: python.path) else { throw NeuralEngineError.missingResource("motor profesional") }
         state = .running("Clonando timbre con red neuronal…"); progress = 0.1
         let job = outputDirectory.appendingPathComponent("job-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: job, withIntermediateDirectories: true)
         let steps = quality == .preview ? 10 : quality == .high ? 25 : quality == .studio ? 35 : 50
         do {
-            let output = try await Self.run(python, ["inference.py", "--source", source.path, "--target", reference.path, "--output", job.path, "--diffusion-steps", "\(steps)", "--f0-condition", "True", "--auto-f0-adjust", "False", "--semi-tone-shift", "\(semitones)", "--fp16", "False"], cwd: sourceRoot, env: environment)
+            var arguments = ["inference.py", "--source", source.path, "--target", reference.path, "--output", job.path, "--diffusion-steps", "\(steps)", "--f0-condition", "True", "--auto-f0-adjust", "False", "--semi-tone-shift", "\(semitones)", "--fp16", "False"]
+            if let checkpoint {
+                arguments += ["--checkpoint", checkpoint.path, "--config", sourceRoot.appendingPathComponent("configs/presets/config_dit_mel_seed_uvit_whisper_base_f0_44k.yml").path]
+            }
+            let output = try await Self.run(python, arguments, cwd: sourceRoot, env: environment)
             append(output); progress = 0.95
             let result = try FileManager.default.contentsOfDirectory(at: job, includingPropertiesForKeys: nil).first { $0.pathExtension.lowercased() == "wav" }
             guard let result else { throw NeuralEngineError.noOutput }
