@@ -19,6 +19,8 @@ Aplicación nativa y exclusiva para macOS Apple Silicon. **VocalForge Studio 0.2
 
 La aplicación incluye el motor y un gestor ARM64. Pulsa **Instalar motor** una sola vez: VocalForge descarga Python y las dependencias/modelos necesarios sin Terminal. Esta fase requiere internet y varios gigabytes libres. Al terminar, conversión, proyectos, voces y entrenamiento se ejecutan localmente. Seed-VC se distribuye como módulo GPL-3.0 separado y con su código fuente completo.
 
+En equipos de 8 GB, el motor prioriza estabilidad mediante la ruta neuronal CPU ARM64 y procesamiento secuencial; en 16 GB o más activa MPS. La calidad del modelo no se reduce: el perfil de 8 GB tarda más.
+
 ## Instalación para una persona usuaria
 
 1. Abre `VocalForgeStudio.dmg`.

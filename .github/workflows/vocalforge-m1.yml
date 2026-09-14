@@ -39,6 +39,7 @@ jobs:
           export HF_HOME="$ENGINE_TEST/models"
           export HF_HUB_CACHE="$ENGINE_TEST/models/hub"
           export PYTORCH_ENABLE_MPS_FALLBACK=1
+          export VOCALFORGE_DEVICE=cpu
           say -v Samantha -o "$ENGINE_TEST/source.aiff" "I will sing this melody with feeling"
           say -v Daniel -o "$ENGINE_TEST/reference.aiff" "This is the authorized reference voice"
           afconvert -f WAVE -d LEI16@44100 "$ENGINE_TEST/source.aiff" "$ENGINE_TEST/source.wav"

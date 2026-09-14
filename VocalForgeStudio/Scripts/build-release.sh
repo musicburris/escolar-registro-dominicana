@@ -26,6 +26,7 @@ cp "$ENGINE_BUILD/uv-aarch64-apple-darwin/uv" "$CONTENTS/Resources/tools/uv"
 chmod 755 "$CONTENTS/Resources/tools/uv"
 git clone --quiet https://github.com/Plachtaa/seed-vc.git "$ENGINE_BUILD/seed-vc"
 git -C "$ENGINE_BUILD/seed-vc" checkout --quiet 51383efd921027683c89e5348211d93ff12ac2a8
+git -C "$ENGINE_BUILD/seed-vc" apply "$PWD/EnginePatches/seed-vc-macos.patch"
 rm -rf "$ENGINE_BUILD/seed-vc/.git"
 ditto "$ENGINE_BUILD/seed-vc" "$CONTENTS/Resources/seed-vc"
 cp Resources/engine-requirements.txt "$CONTENTS/Resources/engine-requirements.txt"

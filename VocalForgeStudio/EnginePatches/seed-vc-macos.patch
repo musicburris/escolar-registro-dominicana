@@ -1,0 +1,30 @@
+diff --git a/inference.py b/inference.py
+--- a/inference.py
++++ b/inference.py
+@@ -26,7 +26,10 @@ from hf_utils import load_custom_model_from_hf
+ 
+ # Load model and configuration
+ # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+-if torch.cuda.is_available():
++forced_device = os.environ.get("VOCALFORGE_DEVICE", "").lower()
++if forced_device in ("cpu", "mps"):
++    device = torch.device(forced_device)
++elif torch.cuda.is_available():
+     device = torch.device("cuda")
+ elif torch.backends.mps.is_available():
+     device = torch.device("mps")
+diff --git a/train.py b/train.py
+--- a/train.py
++++ b/train.py
+@@ -430,7 +430,10 @@ if __name__ == '__main__':
+     parser.add_argument('--num-workers', type=int, default=0)
+     parser.add_argument("--gpu", type=int, help="Which GPU id to use", default=0)
+     args = parser.parse_args()
+-    if torch.backends.mps.is_available():
++    forced_device = os.environ.get("VOCALFORGE_DEVICE", "").lower()
++    if forced_device in ("cpu", "mps"):
++        args.device = forced_device
++    elif torch.backends.mps.is_available():
+         args.device = "mps"
+     else:
+         args.device = f"cuda:{args.gpu}" if args.gpu else "cuda:0"

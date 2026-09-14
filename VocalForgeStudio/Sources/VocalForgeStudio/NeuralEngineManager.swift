@@ -50,12 +50,13 @@ final class NeuralEngineManager: ObservableObject {
         env["HF_HUB_CACHE"] = paths.aiModels.appendingPathComponent("HuggingFace/hub").path
         env["UV_CACHE_DIR"] = paths.cache.appendingPathComponent("uv").path
         env["UV_PYTHON_INSTALL_DIR"] = engineRoot.appendingPathComponent("python").path
+        env["VOCALFORGE_DEVICE"] = HardwareAnalyzer.analyze().memoryGB <= 8 ? "cpu" : "mps"
         return env
     }
 
     init(paths: StudioPaths = .live) {
         self.paths = paths
-        state = FileManager.default.isExecutableFile(atPath: python.path) ? .ready("Metal / PyTorch MPS") : .notInstalled
+        state = FileManager.default.isExecutableFile(atPath: python.path) ? .ready(Self.backendLabel) : .notInstalled
     }
 
     func chooseDataset() {
@@ -84,7 +85,7 @@ final class NeuralEngineManager: ObservableObject {
                 append(try await Self.run(uv, ["pip", "install", "--python", python.path, "-r", requirements.path], cwd: engineRoot, env: environment))
                 progress = 0.9; state = .installing("Comprobando Metal…")
                 let probe = try await Self.run(python, ["-c", "import torch,torchaudio,librosa,transformers; assert torch.backends.mps.is_available(); print('MPS_READY', torch.__version__)"], cwd: sourceRoot, env: environment)
-                append(probe); progress = 1; state = .ready("Metal / PyTorch MPS")
+                append(probe); progress = 1; state = .ready(Self.backendLabel)
             } catch { state = .failed(error.localizedDescription); append(error.localizedDescription) }
         }
     }
@@ -103,7 +104,7 @@ final class NeuralEngineManager: ObservableObject {
             let destination = outputDirectory.appendingPathComponent("VocalForge-\(UUID().uuidString.prefix(8)).wav")
             try FileManager.default.moveItem(at: result, to: destination)
             try? FileManager.default.removeItem(at: job)
-            progress = 1; state = .ready("Metal / PyTorch MPS")
+            progress = 1; state = .ready(Self.backendLabel)
             return destination
         } catch { state = .failed(error.localizedDescription); throw error }
     }
@@ -123,7 +124,7 @@ final class NeuralEngineManager: ObservableObject {
                 let checkpoint = try Self.findNewestCheckpoint(in: sourceRoot, run: run)
                 let package = try makeVoicePackage(name: name, checkpoint: checkpoint)
                 append("Modelo creado: \(package.lastPathComponent)")
-                progress = 1; state = .ready("Entrenamiento completado · Metal / MPS")
+                progress = 1; state = .ready("Entrenamiento completado · \(Self.backendLabel)")
             } catch { state = .failed(error.localizedDescription); append(error.localizedDescription) }
         }
     }
@@ -140,6 +141,7 @@ final class NeuralEngineManager: ObservableObject {
     }
 
     private func append(_ text: String) { log += (log.isEmpty ? "" : "\n") + text }
+    private static var backendLabel: String { HardwareAnalyzer.analyze().memoryGB <= 8 ? "ARM64 memoria segura" : "Metal / PyTorch MPS" }
     private static func findNewestCheckpoint(in root: URL, run: String) throws -> URL {
         let e = FileManager.default.enumerator(at: root, includingPropertiesForKeys: [.contentModificationDateKey])
         let files = (e?.allObjects as? [URL] ?? []).filter { $0.pathExtension == "pth" && $0.path.contains(run) }
