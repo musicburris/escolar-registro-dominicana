@@ -15,6 +15,8 @@ Aplicación nativa y exclusiva para macOS Apple Silicon. **VocalForge Studio 0.3
 - Entrenamiento local real y selección directa del checkpoint entrenado en la pantalla de conversión.
 - Selector por proyecto para alternar entre todas las voces entrenadas.
 - Limpieza opcional Sin limpieza, Natural o Profunda; conserva también el render original.
+
+La limpieza **Natural** limita la atenuación para proteger el carácter del canto. **Profunda** añade un postfiltro más intenso para fuentes contaminadas; ninguna modalidad sobrescribe el render neuronal original.
 - Gestión de espacio; limpiar caché nunca borra voces ni proyectos.
 - Pruebas automatizadas y empaquetado DMG.
 
