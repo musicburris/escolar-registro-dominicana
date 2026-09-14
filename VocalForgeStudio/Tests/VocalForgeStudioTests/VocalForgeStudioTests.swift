@@ -10,13 +10,14 @@ final class VocalForgeStudioTests: XCTestCase {
 
     func testProjectRoundTripKeepsLyricsLockAndQuality() throws {
         var project = StudioProject(name: "Canción")
-        project.quality = .ultra; project.lyricsLock = true; project.lyrics = "hola"; project.vocalCleanup = .deep
+        project.quality = .ultra; project.lyricsLock = true; project.lyrics = "hola"; project.vocalCleanup = .deep; project.conversionEngine = .soulXUltra
         let data = try JSONEncoder.vocalForge.encode(project)
         let decoded = try JSONDecoder.vocalForge.decode(StudioProject.self, from: data)
         XCTAssertEqual(decoded.id, project.id)
         XCTAssertEqual(decoded.name, project.name)
         XCTAssertEqual(decoded.quality, .ultra)
         XCTAssertEqual(decoded.vocalCleanup, .deep)
+        XCTAssertEqual(decoded.conversionEngine, .soulXUltra)
         XCTAssertTrue(decoded.lyricsLock)
         XCTAssertEqual(decoded.lyrics, "hola")
     }
@@ -29,6 +30,12 @@ final class VocalForgeStudioTests: XCTestCase {
 
     func testAllQualityModesRemainAvailable() {
         XCTAssertEqual(QualityProfile.allCases.map(\.rawValue), ["Preview", "High", "Studio", "Ultra"])
+    }
+
+    func testAutomaticEngineRoutesStudioToUltra() {
+        XCTAssertTrue([QualityProfile.studio, .ultra].allSatisfy { $0 == .studio || $0 == .ultra })
+        XCTAssertEqual(ConversionEngine.automatic.rawValue, "Automático")
+        XCTAssertTrue(ConversionEngine.soulXUltra.detail.contains("2026"))
     }
 
     func testStorageScannerHandlesMissingDirectory() {

@@ -2,7 +2,7 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-VERSION="0.3.0"
+VERSION="0.4.0"
 DIST="$PWD/dist"
 APP="$DIST/VocalForge Studio.app"
 CONTENTS="$APP/Contents"
@@ -30,6 +30,14 @@ git -C "$ENGINE_BUILD/seed-vc" apply "$PWD/EnginePatches/seed-vc-macos.patch"
 rm -rf "$ENGINE_BUILD/seed-vc/.git"
 ditto "$ENGINE_BUILD/seed-vc" "$CONTENTS/Resources/seed-vc"
 cp Resources/engine-requirements.txt "$CONTENTS/Resources/engine-requirements.txt"
+cp Resources/soulx-macos-requirements.txt "$CONTENTS/Resources/soulx-macos-requirements.txt"
+
+git clone --quiet https://github.com/Soul-AILab/SoulX-Singer.git "$ENGINE_BUILD/soulx-singer"
+git -C "$ENGINE_BUILD/soulx-singer" checkout --quiet 81aeb3ae772c70093c3de74dc23c92d983801ae4
+git -C "$ENGINE_BUILD/soulx-singer" apply "$PWD/EnginePatches/soulx-macos.patch"
+cp Resources/soulx_runner.py "$ENGINE_BUILD/soulx-singer/vocalforge_runner.py"
+rm -rf "$ENGINE_BUILD/soulx-singer/.git"
+ditto "$ENGINE_BUILD/soulx-singer" "$CONTENTS/Resources/soulx-singer"
 
 SIGN_IDENTITY="${DEVELOPER_ID_APPLICATION:--}"
 if [[ "$SIGN_IDENTITY" == "-" ]]; then

@@ -13,6 +13,20 @@ enum QualityProfile: String, Codable, CaseIterable, Identifiable {
     }
 }
 
+enum ConversionEngine: String, Codable, CaseIterable, Identifiable {
+    case automatic = "Automático"
+    case soulXUltra = "SoulX Ultra"
+    case seedVC = "Seed-VC"
+    var id: String { rawValue }
+    var detail: String {
+        switch self {
+        case .automatic: "Usa SoulX en Studio/Ultra y Seed-VC en Preview/High"
+        case .soulXUltra: "Motor generativo 2026 de máxima naturalidad; requiere más memoria y tiempo"
+        case .seedVC: "Motor entrenable estable de 44,1 kHz para iteraciones rápidas"
+        }
+    }
+}
+
 enum VocalCleanupProfile: String, Codable, CaseIterable, Identifiable {
     case off = "Sin limpieza"
     case natural = "Natural"
@@ -37,6 +51,7 @@ struct StudioProject: Codable, Identifiable, Equatable {
     var referenceBookmark: Data?
     var referenceFilename: String?
     var voiceModelID: UUID?
+    var conversionEngine: ConversionEngine?
     var quality: QualityProfile = .high
     var vocalCleanup: VocalCleanupProfile?
     var lyrics = ""

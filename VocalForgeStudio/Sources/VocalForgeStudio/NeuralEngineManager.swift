@@ -42,8 +42,11 @@ final class NeuralEngineManager: ObservableObject {
     private var sourceRoot: URL { engineRoot.appendingPathComponent("seed-vc") }
     private var venv: URL { engineRoot.appendingPathComponent("venv") }
     private var python: URL { venv.appendingPathComponent("bin/python") }
+    private var ultraSourceRoot: URL { engineRoot.appendingPathComponent("soulx-singer") }
+    private var ultraVenv: URL { engineRoot.appendingPathComponent("ultra-venv") }
+    private var ultraPython: URL { ultraVenv.appendingPathComponent("bin/python") }
     private var versionFile: URL { engineRoot.appendingPathComponent("runtime-version.txt") }
-    private static let requiredRuntimeVersion = "0.3.0"
+    private static let requiredRuntimeVersion = "0.4.0"
     private var environment: [String: String] {
         var env = ProcessInfo.processInfo.environment
         env["PYTHONUNBUFFERED"] = "1"
@@ -77,8 +80,11 @@ final class NeuralEngineManager: ObservableObject {
                 try fm.createDirectory(at: engineRoot, withIntermediateDirectories: true)
                 guard let uv = Bundle.main.resourceURL?.appendingPathComponent("tools/uv"), fm.isExecutableFile(atPath: uv.path) else { throw NeuralEngineError.missingResource("uv ARM64") }
                 guard let bundledSource = Bundle.main.resourceURL?.appendingPathComponent("seed-vc"), fm.fileExists(atPath: bundledSource.path) else { throw NeuralEngineError.missingResource("Seed-VC") }
+                guard let bundledUltra = Bundle.main.resourceURL?.appendingPathComponent("soulx-singer"), fm.fileExists(atPath: bundledUltra.path) else { throw NeuralEngineError.missingResource("SoulX Singer Ultra") }
                 if fm.fileExists(atPath: sourceRoot.path) { try fm.removeItem(at: sourceRoot) }
                 try fm.copyItem(at: bundledSource, to: sourceRoot)
+                if fm.fileExists(atPath: ultraSourceRoot.path) { try fm.removeItem(at: ultraSourceRoot) }
+                try fm.copyItem(at: bundledUltra, to: ultraSourceRoot)
 
                 append(try await Self.run(uv, ["python", "install", "3.10.16"], cwd: engineRoot, env: environment))
                 progress = 0.22; state = .installing("Creando runtime aislado…")
@@ -89,14 +95,26 @@ final class NeuralEngineManager: ObservableObject {
                 progress = 0.9; state = .installing("Comprobando Metal…")
                 let probe = try await Self.run(python, ["-c", "import torch,torchaudio,librosa,transformers,df; assert torch.backends.mps.is_available(); print('MPS_READY', torch.__version__, 'CLEANUP_READY')"], cwd: sourceRoot, env: environment)
                 append(probe)
+                progress = 0.55; state = .installing("Instalando SoulX Singer Ultra…")
+                append(try await Self.run(uv, ["venv", "--python", "3.10.16", "--seed", ultraVenv.path], cwd: engineRoot, env: environment))
+                guard let ultraRequirements = Bundle.main.resourceURL?.appendingPathComponent("soulx-macos-requirements.txt") else { throw NeuralEngineError.missingResource("dependencias SoulX") }
+                append(try await Self.run(uv, ["pip", "install", "--python", ultraPython.path, "-r", ultraRequirements.path], cwd: engineRoot, env: environment))
+                progress = 0.72; state = .installing("Descargando modelos Ultra verificados…")
+                let hf = ultraVenv.appendingPathComponent("bin/hf")
+                append(try await Self.run(hf, ["download", "Soul-AILab/SoulX-Singer", "--local-dir", ultraSourceRoot.appendingPathComponent("pretrained_models/SoulX-Singer").path], cwd: ultraSourceRoot, env: environment))
+                append(try await Self.run(hf, ["download", "Soul-AILab/SoulX-Singer-Preprocess", "--local-dir", ultraSourceRoot.appendingPathComponent("pretrained_models/SoulX-Singer-Preprocess").path], cwd: ultraSourceRoot, env: environment))
+                progress = 0.96; state = .installing("Validando SoulX en Apple Silicon…")
+                append(try await Self.run(ultraPython, ["-c", "import torch; from soulxsinger.models.soulxsinger_svc import SoulXSingerSVC; print('SOULX_READY', 'mps' if torch.backends.mps.is_available() else 'cpu')"], cwd: ultraSourceRoot, env: environment))
                 try Self.requiredRuntimeVersion.write(to: versionFile, atomically: true, encoding: .utf8)
                 progress = 1; state = .ready(Self.backendLabel)
             } catch { state = .failed(error.localizedDescription); append(error.localizedDescription) }
         }
     }
 
-    func convert(source: URL, reference: URL, checkpoint: URL?, quality: QualityProfile, semitones: Int, cleanup: VocalCleanupProfile, outputDirectory: URL) async throws -> URL {
+    func convert(source: URL, reference: URL, checkpoint: URL?, engine: ConversionEngine, quality: QualityProfile, semitones: Int, cleanup: VocalCleanupProfile, outputDirectory: URL) async throws -> URL {
         guard FileManager.default.isExecutableFile(atPath: python.path) else { throw NeuralEngineError.missingResource("motor profesional") }
+        let useUltra = engine == .soulXUltra || (engine == .automatic && (quality == .studio || quality == .ultra))
+        if useUltra { return try await convertUltra(source: source, reference: reference, quality: quality, semitones: semitones, cleanup: cleanup, outputDirectory: outputDirectory) }
         state = .running("Clonando timbre con red neuronal…"); progress = 0.1
         let job = outputDirectory.appendingPathComponent("job-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: job, withIntermediateDirectories: true)
@@ -133,6 +151,38 @@ final class NeuralEngineManager: ObservableObject {
         } catch { state = .failed(error.localizedDescription); throw error }
     }
 
+    private func convertUltra(source: URL, reference: URL, quality: QualityProfile, semitones: Int, cleanup: VocalCleanupProfile, outputDirectory: URL) async throws -> URL {
+        guard FileManager.default.isExecutableFile(atPath: ultraPython.path) else { throw NeuralEngineError.missingResource("SoulX Singer Ultra") }
+        state = .running("Generando interpretación con SoulX Ultra…"); progress = 0.08
+        let job = outputDirectory.appendingPathComponent("ultra-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: job, withIntermediateDirectories: true)
+        let steps = quality == .ultra ? 64 : 40
+        do {
+            append(try await Self.run(ultraPython, ["vocalforge_runner.py", "--source", source.path, "--reference", reference.path, "--output", job.path, "--steps", "\(steps)", "--cfg", "2.0", "--transpose", "\(semitones)"], cwd: ultraSourceRoot, env: environment))
+            let generated = job.appendingPathComponent("generated/generated.wav")
+            guard FileManager.default.fileExists(atPath: generated.path) else { throw NeuralEngineError.noOutput }
+            let id = String(UUID().uuidString.prefix(8))
+            let original = outputDirectory.appendingPathComponent("VocalForge-Ultra-\(id)-original.wav")
+            try FileManager.default.moveItem(at: generated, to: original)
+            var destination = original
+            if cleanup != .off {
+                state = .running("Finalizando voz limpia de estudio…"); progress = 0.96
+                let clean = job.appendingPathComponent("clean")
+                try FileManager.default.createDirectory(at: clean, withIntermediateDirectories: true)
+                var args = ["-m", "df.enhance", "--output-dir", clean.path, "--no-suffix", "--atten-lim", cleanup == .natural ? "12" : "24", "--log-level", "INFO"]
+                if cleanup == .deep { args.append("--pf") }; args.append(original.path)
+                append(try await Self.run(python, args, cwd: sourceRoot, env: environment))
+                let result = clean.appendingPathComponent(original.lastPathComponent)
+                guard FileManager.default.fileExists(atPath: result.path) else { throw NeuralEngineError.noOutput }
+                destination = outputDirectory.appendingPathComponent("VocalForge-Ultra-\(id)-clean.wav")
+                try FileManager.default.moveItem(at: result, to: destination)
+            }
+            try? FileManager.default.removeItem(at: job)
+            progress = 1; state = .ready("SoulX Ultra + Seed-VC · Apple Silicon")
+            return destination
+        } catch { state = .failed(error.localizedDescription); throw error }
+    }
+
     func train() {
         guard let datasetURL else { state = .failed("Selecciona las grabaciones"); return }
         guard consentConfirmed else { state = .failed(NeuralEngineError.consentRequired.localizedDescription); return }
@@ -158,8 +208,11 @@ final class NeuralEngineManager: ObservableObject {
         try FileManager.default.createDirectory(at: package, withIntermediateDirectories: true)
         let weights = package.appendingPathComponent("weights.pth")
         try FileManager.default.copyItem(at: checkpoint, to: weights)
+        if let reference = Self.firstAudio(in: datasetURL) {
+            try FileManager.default.copyItem(at: reference, to: package.appendingPathComponent("reference.\(reference.pathExtension.lowercased())"))
+        }
         let hash = SHA256.hash(data: try Data(contentsOf: weights)).map { String(format: "%02x", $0) }.joined()
-        let manifest = VoiceModelManifest(id: id, formatVersion: 1, displayName: name, architecture: "Seed-VC DiT F0 44.1k", engineID: "seed-vc-mps", sampleRate: 44100, checksumSHA256: hash, createdAt: Date(), vocalRange: nil, consentConfirmed: true, sourceNotice: "Entrenada localmente con autorización confirmada")
+        let manifest = VoiceModelManifest(id: id, formatVersion: 2, displayName: name, architecture: "Seed-VC entrenada + referencia SoulX Ultra", engineID: "vocalforge-dual", sampleRate: 44100, checksumSHA256: hash, createdAt: Date(), vocalRange: nil, consentConfirmed: true, sourceNotice: "Entrenada localmente con autorización confirmada")
         try JSONEncoder.vocalForge.encode(manifest).write(to: package.appendingPathComponent("manifest.json"), options: .atomic)
         return package
     }
@@ -172,6 +225,11 @@ final class NeuralEngineManager: ObservableObject {
         func date(_ url: URL) -> Date { (try? url.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast }
         guard let file = files.max(by: { date($0) < date($1) }) else { throw NeuralEngineError.noCheckpoint }
         return file
+    }
+    private static func firstAudio(in folder: URL?) -> URL? {
+        guard let folder, let e = FileManager.default.enumerator(at: folder, includingPropertiesForKeys: nil) else { return nil }
+        let allowed = Set(["wav", "aif", "aiff", "flac", "mp3", "m4a"])
+        return (e.allObjects as? [URL])?.first { allowed.contains($0.pathExtension.lowercased()) }
     }
 
     nonisolated private static func run(_ executable: URL, _ arguments: [String], cwd: URL, env: [String: String]) async throws -> String {

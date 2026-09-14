@@ -73,13 +73,15 @@ struct ConversionView: View {
                         VStack(alignment: .leading, spacing: 16) {
                             HStack { Text("Calidad"); Spacer(); Picker("", selection: qualityBinding) { ForEach(QualityProfile.allCases) { Text($0.rawValue).tag($0) } }.pickerStyle(.segmented).frame(width: 440) }
                             Text(project.quality.detail).foregroundStyle(.secondary)
+                            HStack { Text("Motor neuronal"); Spacer(); Picker("Motor neuronal", selection: engineBinding) { ForEach(ConversionEngine.allCases) { Text($0.rawValue).tag($0) } }.frame(width: 360) }
+                            Text(engineBinding.wrappedValue.detail).font(.caption).foregroundStyle(.secondary)
                             Toggle("Lyrics Lock — guía de letra experimental", isOn: lyricsLockBinding)
                             HStack { Text("Voz para esta canción"); Spacer(); Picker("Voz para esta canción", selection: voiceBinding) { Text("Solo referencia (sin entrenamiento)").tag(Optional<UUID>.none); ForEach(store.voices) { voice in Text(voice.displayName).tag(Optional(voice.id)) } }.frame(width: 360) }
                             if store.voices.isEmpty { Text("Cuando entrenes voces, aparecerán aquí para poder intercambiarlas entre proyectos.").font(.caption).foregroundStyle(.secondary) }
                             HStack { Text("Limpieza de voz"); Spacer(); Picker("Limpieza de voz", selection: cleanupBinding) { ForEach(VocalCleanupProfile.allCases) { Text($0.rawValue).tag($0) } }.pickerStyle(.segmented).frame(width: 440) }
                             Text(cleanupBinding.wrappedValue.detail).font(.caption).foregroundStyle(.secondary)
                             TextEditor(text: lyricsBinding).font(.body.monospaced()).frame(minHeight: 92).overlay(RoundedRectangle(cornerRadius: 6).stroke(.quaternary))
-                            Text("La letra queda guardada como referencia del proyecto. Seed-VC preserva el contenido de la interpretación, pero esta versión no garantiza alineación fonética palabra por palabra.").font(.caption).foregroundStyle(.secondary)
+                            Text("La letra queda guardada como referencia. SoulX preserva melodía, ritmo y contenido desde el audio fuente; Lyrics Lock fonético estricto continúa marcado como experimental.").font(.caption).foregroundStyle(.secondary)
                             HStack { Text("Transposición"); Slider(value: transposeBinding, in: -12...12, step: 1); Text("\(Int(project.transpose)) st").monospacedDigit().frame(width: 50) }
                         }.padding(8)
                     }
@@ -97,6 +99,7 @@ struct ConversionView: View {
     }
     private var isEngineReady: Bool { if case .ready = neural.state { return true }; return false }
     private var qualityBinding: Binding<QualityProfile> { .init(get: { store.selectedProject?.quality ?? .high }, set: { v in store.updateProject { $0.quality = v } }) }
+    private var engineBinding: Binding<ConversionEngine> { .init(get: { store.selectedProject?.conversionEngine ?? .automatic }, set: { v in store.updateProject { $0.conversionEngine = v } }) }
     private var lyricsLockBinding: Binding<Bool> { .init(get: { store.selectedProject?.lyricsLock ?? true }, set: { v in store.updateProject { $0.lyricsLock = v } }) }
     private var lyricsBinding: Binding<String> { .init(get: { store.selectedProject?.lyrics ?? "" }, set: { v in store.updateProject { $0.lyrics = v } }) }
     private var transposeBinding: Binding<Double> { .init(get: { store.selectedProject?.transpose ?? 0 }, set: { v in store.updateProject { $0.transpose = v } }) }
@@ -138,7 +141,7 @@ struct EngineStatusPanel: View {
         GroupBox("Motor profesional") {
             HStack(spacing: 12) {
                 Image(systemName: ready ? "checkmark.seal.fill" : "arrow.down.circle.fill").foregroundStyle(ready ? .green : .purple).font(.title2)
-                VStack(alignment: .leading) { Text(neural.state.title).font(.headline); Text("Seed-VC 44.1 kHz · MPS/CPU ARM64 automático · procesamiento local").font(.caption).foregroundStyle(.secondary) }
+                VStack(alignment: .leading) { Text(neural.state.title).font(.headline); Text("SoulX Singer Ultra 2026 + Seed-VC 44.1 kHz · Metal/CPU · procesamiento local").font(.caption).foregroundStyle(.secondary) }
                 Spacer()
                 if !ready { Button(neural.state.isBusy ? "Instalando…" : "Instalar motor") { neural.install() }.buttonStyle(.borderedProminent).disabled(neural.state.isBusy) }
             }.padding(6)

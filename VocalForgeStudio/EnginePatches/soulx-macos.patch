@@ -1,0 +1,35 @@
+diff --git a/preprocess/tools/vocal_separation/model.py b/preprocess/tools/vocal_separation/model.py
+--- a/preprocess/tools/vocal_separation/model.py
++++ b/preprocess/tools/vocal_separation/model.py
+@@ -152,12 +152,15 @@ class VocalSeparator:
+ 
+         sep_model, sep_config, dereverb_model, dereverb_config, args = build_models(args_dict, use_der=use_der)
+ 
+-        sep_model = sep_model.half()
++        use_half = str(device).startswith("cuda")
++        if use_half:
++            sep_model = sep_model.half()
+         sep_model = sep_model.to(device)
+         sep_config.inference.chunk_size = int(chunk_length_sec * sep_config.audio.sample_rate)
+         if dereverb_model is not None:
+             dereverb_config.inference.chunk_size = int(chunk_length_sec * dereverb_config.audio.sample_rate)
+-            dereverb_model = dereverb_model.half()
++            if use_half:
++                dereverb_model = dereverb_model.half()
+             dereverb_model = dereverb_model.to(device)
+ 
+         self.sep_model = sep_model
+diff --git a/preprocess/pipeline.py b/preprocess/pipeline.py
+--- a/preprocess/pipeline.py
++++ b/preprocess/pipeline.py
+@@ -29,8 +29,9 @@ class PreprocessPipeline:
+                 sep_model_path="pretrained_models/SoulX-Singer-Preprocess/mel-band-roformer-karaoke/mel_band_roformer_karaoke_becruily.ckpt",
+                 sep_config_path="pretrained_models/SoulX-Singer-Preprocess/mel-band-roformer-karaoke/config_karaoke_becruily.yaml",
+                 der_model_path="pretrained_models/SoulX-Singer-Preprocess/dereverb_mel_band_roformer/dereverb_mel_band_roformer_anvuew_sdr_19.1729.ckpt",
+                 der_config_path="pretrained_models/SoulX-Singer-Preprocess/dereverb_mel_band_roformer/dereverb_mel_band_roformer_anvuew.yaml",
+-                device=device
++                device=device,
++                use_der=True
+             )
+         else:
+             self.vocal_separator = None

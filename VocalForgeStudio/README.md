@@ -1,6 +1,6 @@
 # VocalForge Studio
 
-Aplicación nativa y exclusiva para macOS Apple Silicon. **VocalForge Studio 0.3.0** integra clonación neuronal de canto y entrenamiento local mediante Seed-VC 44.1 kHz, selección intercambiable de voces entrenadas y limpieza neuronal DeepFilterNet3.
+Aplicación nativa y exclusiva para macOS Apple Silicon. **VocalForge Studio 0.4.0** incorpora SoulX‑Singer‑SVC (2026) como motor Studio/Ultra, Seed‑VC 44.1 kHz para entrenamiento y conversión rápida, selección intercambiable de voces y limpieza neuronal DeepFilterNet3.
 
 ## Qué funciona en esta build
 
@@ -12,6 +12,8 @@ Aplicación nativa y exclusiva para macOS Apple Silicon. **VocalForge Studio 0.3
 - Lectura del estado térmico público de macOS y reducción de ritmo sin cancelar el render.
 - Modos Preview, High, Studio y Ultra siempre visibles.
 - Importación segura de `.vfvoice` con manifiesto, consentimiento y SHA-256.
+- Motor Automático: SoulX Ultra para Studio/Ultra y Seed‑VC para Preview/High.
+- Cada voz nueva conserva pesos entrenados y una referencia autorizada para poder usarse indistintamente con ambos motores.
 - Entrenamiento local real y selección directa del checkpoint entrenado en la pantalla de conversión.
 - Selector por proyecto para alternar entre todas las voces entrenadas.
 - Limpieza opcional Sin limpieza, Natural o Profunda; conserva también el render original.
@@ -22,7 +24,7 @@ La limpieza **Natural** limita la atenuación para proteger el carácter del can
 
 ## Instalación del motor profesional
 
-La aplicación incluye el motor y un gestor ARM64. Pulsa **Instalar motor** una sola vez: VocalForge descarga Python y las dependencias/modelos necesarios sin Terminal. Esta fase requiere internet y varios gigabytes libres. Al terminar, conversión, proyectos, voces y entrenamiento se ejecutan localmente. Seed-VC se distribuye como módulo GPL-3.0 separado y con su código fuente completo.
+La aplicación incluye ambos motores y un gestor ARM64. Pulsa **Instalar motor** una sola vez: VocalForge descarga Python, SoulX, Seed‑VC y sus modelos sin Terminal. Esta fase requiere internet, bastante espacio libre y puede tardar. Al terminar, conversión, proyectos, voces y entrenamiento se ejecutan localmente. SoulX usa Apache‑2.0; Seed‑VC se distribuye como módulo GPL‑3.0 separado y con su código fuente completo.
 
 En equipos de 8 GB, el motor prioriza estabilidad mediante la ruta neuronal CPU ARM64 y procesamiento secuencial; en 16 GB o más activa MPS. La calidad del modelo no se reduce: el perfil de 8 GB tarda más.
 

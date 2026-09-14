@@ -98,9 +98,8 @@ final class StudioStore: ObservableObject {
 
     func renderNeural(using engine: NeuralEngineManager) {
         guard !isRendering, let index = selectedIndex,
-              let sourceBookmark = projects[index].sourceBookmark,
-              let referenceBookmark = projects[index].referenceBookmark else {
-            alertMessage = "Selecciona la voz fuente y una referencia vocal."
+              let sourceBookmark = projects[index].sourceBookmark else {
+            alertMessage = "Selecciona la voz fuente."
             return
         }
         isRendering = true
@@ -108,17 +107,22 @@ final class StudioStore: ObservableObject {
         let quality = projects[index].quality
         let semitones = Int(projects[index].transpose)
         let cleanup = projects[index].vocalCleanup ?? .natural
+        let conversionEngine = projects[index].conversionEngine ?? .automatic
         let voiceModelID = projects[index].voiceModelID
         let checkpoint = voiceModelID.map { paths.voiceModels.appendingPathComponent("\($0.uuidString).vfvoice/weights.pth") }
         projects[index].status = "Clonación neuronal con perfil automático…"
         Task {
             do {
                 let source = try Self.resolve(sourceBookmark)
-                let reference = try Self.resolve(referenceBookmark)
+                let packageReference = voiceModelID.flatMap { Self.voiceReference(in: paths.voiceModels.appendingPathComponent("\($0.uuidString).vfvoice")) }
+                let reference: URL
+                if let packageReference { reference = packageReference }
+                else if let bookmark = projects[index].referenceBookmark { reference = try Self.resolve(bookmark) }
+                else { throw NeuralEngineError.missingResource("referencia vocal de la voz seleccionada") }
                 if let checkpoint, !FileManager.default.fileExists(atPath: checkpoint.path) {
                     throw NeuralEngineError.missingResource("pesos de la voz entrenada")
                 }
-                let output = try await engine.convert(source: source, reference: reference, checkpoint: checkpoint, quality: quality, semitones: semitones, cleanup: cleanup, outputDirectory: paths.renders)
+                let output = try await engine.convert(source: source, reference: reference, checkpoint: checkpoint, engine: conversionEngine, quality: quality, semitones: semitones, cleanup: cleanup, outputDirectory: paths.renders)
                 if let i = projects.firstIndex(where: { $0.id == projectID }) {
                     projects[i].outputFilename = output.lastPathComponent
                     projects[i].status = "Clonación neuronal completada"
@@ -176,6 +180,10 @@ final class StudioStore: ObservableObject {
         var stale = false
         let url = try URL(resolvingBookmarkData: bookmark, options: .withSecurityScope, relativeTo: nil, bookmarkDataIsStale: &stale)
         _ = url.startAccessingSecurityScopedResource(); return url
+    }
+    static func voiceReference(in package: URL) -> URL? {
+        let allowed = Set(["wav", "aif", "aiff", "flac", "mp3", "m4a"])
+        return (try? FileManager.default.contentsOfDirectory(at: package, includingPropertiesForKeys: nil))?.first { $0.lastPathComponent.hasPrefix("reference.") && allowed.contains($0.pathExtension.lowercased()) }
     }
 }
 

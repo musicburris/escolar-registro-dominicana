@@ -24,7 +24,10 @@ jobs:
         run: |
           file "dist/VocalForge Studio.app/Contents/MacOS/VocalForgeStudio"
           codesign -dv --verbose=4 "dist/VocalForge Studio.app"
-          hdiutil verify dist/VocalForgeStudio-0.3.0-arm64.dmg
+          hdiutil verify dist/VocalForgeStudio-0.4.0-arm64.dmg
+          test -f "dist/VocalForge Studio.app/Contents/Resources/soulx-singer/vocalforge_runner.py"
+          test -f "dist/VocalForge Studio.app/Contents/Resources/soulx-macos-requirements.txt"
+          "dist/VocalForge Studio.app/Contents/Resources/tools/uv" run --python 3.10 python -m py_compile "dist/VocalForge Studio.app/Contents/Resources/soulx-singer/vocalforge_runner.py"
       - name: Validate managed neural runtime
         timeout-minutes: 30
         run: |
@@ -62,9 +65,9 @@ jobs:
           find "$ENGINE_TEST/clean-output" -name '*.wav' -size +1k | grep -q .
       - uses: actions/upload-artifact@v4
         with:
-          name: VocalForgeStudio-0.3.0-AppleSilicon
+          name: VocalForgeStudio-0.4.0-AppleSilicon
           path: |
-            VocalForgeStudio/dist/VocalForgeStudio-0.3.0-arm64.dmg
-            VocalForgeStudio/dist/VocalForgeStudio-0.3.0-arm64.zip
+            VocalForgeStudio/dist/VocalForgeStudio-0.4.0-arm64.dmg
+            VocalForgeStudio/dist/VocalForgeStudio-0.4.0-arm64.zip
             VocalForgeStudio/dist/SHA256SUMS.txt
           if-no-files-found: error
