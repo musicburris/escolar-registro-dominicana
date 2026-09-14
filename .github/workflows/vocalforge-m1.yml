@@ -25,6 +25,17 @@ jobs:
           file "dist/VocalForge Studio.app/Contents/MacOS/VocalForgeStudio"
           codesign -dv --verbose=4 "dist/VocalForge Studio.app"
           hdiutil verify dist/VocalForgeStudio-0.2.0-arm64.dmg
+      - name: Validate managed neural runtime
+        timeout-minutes: 30
+        run: |
+          ENGINE_TEST="$RUNNER_TEMP/vocalforge-engine-test"
+          UV="dist/VocalForge Studio.app/Contents/Resources/tools/uv"
+          export UV_PYTHON_INSTALL_DIR="$ENGINE_TEST/python"
+          export UV_CACHE_DIR="$ENGINE_TEST/cache"
+          "$UV" python install 3.10.16
+          "$UV" venv --python 3.10.16 --seed "$ENGINE_TEST/venv"
+          "$UV" pip install --python "$ENGINE_TEST/venv/bin/python" -r Resources/engine-requirements.txt
+          "$ENGINE_TEST/venv/bin/python" -c "import torch, torchaudio, librosa, transformers; print('torch', torch.__version__); print('mps_built', torch.backends.mps.is_built()); print('mps_available', torch.backends.mps.is_available()); assert torch.backends.mps.is_built()"
       - uses: actions/upload-artifact@v4
         with:
           name: VocalForgeStudio-0.2.0-AppleSilicon
