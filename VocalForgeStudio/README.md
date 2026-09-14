@@ -1,13 +1,13 @@
 # VocalForge Studio
 
-Aplicación nativa y exclusiva para macOS Apple Silicon. Esta entrega es **VocalForge Studio Core 0.1.0**: una base instalable ARM64 con proyectos locales, análisis de hardware, guardado automático, procesamiento de audio por chunks, protección térmica, Storage Manager, formato `.vfvoice` verificable y arquitectura de motores sustituibles.
+Aplicación nativa y exclusiva para macOS Apple Silicon. **VocalForge Studio 0.2.0** integra clonación neuronal de canto y entrenamiento local mediante Seed-VC 44.1 kHz sobre PyTorch MPS, manteniendo el motor separado de la interfaz nativa.
 
 ## Qué funciona en esta build
 
 - Aplicación SwiftUI/AppKit nativa ARM64, sin Rosetta.
 - Importación de WAV, AIFF, M4A y MP3 mediante diálogos de macOS.
 - Proyectos persistentes en `Application Support/VocalForge Studio`.
-- Preview de audio real, offline y por segmentos usando AVFoundation + Accelerate.
+- Preview DSP usando AVFoundation + Accelerate y clonación neuronal SVC mediante Metal/MPS.
 - Perfiles automáticos desde M1 8 GB hasta equipos de alta memoria.
 - Lectura del estado térmico público de macOS y reducción de ritmo sin cancelar el render.
 - Modos Preview, High, Studio y Ultra siempre visibles.
@@ -15,9 +15,9 @@ Aplicación nativa y exclusiva para macOS Apple Silicon. Esta entrega es **Vocal
 - Gestión de espacio; limpiar caché nunca borra voces ni proyectos.
 - Pruebas automatizadas y empaquetado DMG.
 
-## Límite honesto
+## Instalación del motor profesional
 
-El preview DSP **no es clonación de voz**. El motor neuronal SVC y el entrenamiento están deliberadamente desacoplados y bloqueados en esta build hasta que una implementación MLX supere pruebas acústicas y de memoria en M1. Seed-VC no se integra como núcleo porque quedó archivado y su GPL-3.0 condiciona la distribución. La interfaz no finge conversiones ni entrenamientos inexistentes.
+La aplicación incluye el motor y un gestor ARM64. Pulsa **Instalar motor** una sola vez: VocalForge descarga Python y las dependencias/modelos necesarios sin Terminal. Esta fase requiere internet y varios gigabytes libres. Al terminar, conversión, proyectos, voces y entrenamiento se ejecutan localmente. Seed-VC se distribuye como módulo GPL-3.0 separado y con su código fuente completo.
 
 ## Instalación para una persona usuaria
 

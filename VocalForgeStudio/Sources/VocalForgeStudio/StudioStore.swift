@@ -95,6 +95,34 @@ final class StudioStore: ObservableObject {
         }
     }
 
+    func renderNeural(using engine: NeuralEngineManager) {
+        guard !isRendering, let index = selectedIndex,
+              let sourceBookmark = projects[index].sourceBookmark,
+              let referenceBookmark = projects[index].referenceBookmark else {
+            alertMessage = "Selecciona la voz fuente y una referencia vocal."
+            return
+        }
+        isRendering = true
+        let projectID = projects[index].id
+        let quality = projects[index].quality
+        let semitones = Int(projects[index].transpose)
+        projects[index].status = "Clonación neuronal en Metal…"
+        Task {
+            do {
+                let source = try Self.resolve(sourceBookmark)
+                let reference = try Self.resolve(referenceBookmark)
+                let output = try await engine.convert(source: source, reference: reference, quality: quality, semitones: semitones, outputDirectory: paths.renders)
+                if let i = projects.firstIndex(where: { $0.id == projectID }) {
+                    projects[i].outputFilename = output.lastPathComponent
+                    projects[i].status = "Clonación neuronal completada"
+                    projects[i].progress = 1
+                }
+                save(); refreshStorage()
+            } catch { alertMessage = error.localizedDescription; if let i = projects.firstIndex(where: { $0.id == projectID }) { projects[i].status = "La conversión falló; el proyecto está guardado" } }
+            isRendering = false
+        }
+    }
+
     func revealOutput() {
         guard let name = selectedProject?.outputFilename else { return }
         NSWorkspace.shared.activateFileViewerSelecting([paths.renders.appendingPathComponent(name)])
@@ -129,7 +157,7 @@ final class StudioStore: ObservableObject {
         if let data = try? Data(contentsOf: paths.voicesFile), let value = try? JSONDecoder.vocalForge.decode([VoiceModelManifest].self, from: data) { voices = value }
     }
     func refreshStorage() { storage = StorageScanner.snapshot(paths: paths) }
-    private static func resolve(_ bookmark: Data) throws -> URL {
+    static func resolve(_ bookmark: Data) throws -> URL {
         var stale = false
         let url = try URL(resolvingBookmarkData: bookmark, options: .withSecurityScope, relativeTo: nil, bookmarkDataIsStale: &stale)
         _ = url.startAccessingSecurityScopedResource(); return url

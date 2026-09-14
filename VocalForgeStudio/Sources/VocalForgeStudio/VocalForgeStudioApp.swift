@@ -3,11 +3,13 @@ import SwiftUI
 @main
 struct VocalForgeStudioApp: App {
     @StateObject private var store = StudioStore()
+    @StateObject private var neural = NeuralEngineManager()
 
     var body: some Scene {
         WindowGroup {
             RootView()
                 .environmentObject(store)
+                .environmentObject(neural)
                 .frame(minWidth: 1080, minHeight: 700)
         }
         .windowToolbarStyle(.unified)
@@ -21,6 +23,6 @@ struct VocalForgeStudioApp: App {
                 Button("Importar voz…") { store.importVoiceModel() }
             }
         }
-        Settings { SettingsView().environmentObject(store) }
+        Settings { SettingsView().environmentObject(store).environmentObject(neural) }
     }
 }

@@ -59,6 +59,7 @@ struct ProjectsView: View {
 
 struct ConversionView: View {
     @EnvironmentObject var store: StudioStore
+    @EnvironmentObject var neural: NeuralEngineManager
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
@@ -81,13 +82,15 @@ struct ConversionView: View {
                         VStack(alignment: .leading, spacing: 6) { Text(project.status).font(.headline); ProgressView(value: project.progress).frame(width: 360) }
                         Spacer()
                         if project.outputFilename != nil { Button("Mostrar resultado", systemImage: "folder") { store.revealOutput() } }
-                        Button(store.isRendering ? "Procesando…" : "Crear preview local", systemImage: "play.fill") { store.renderPreview() }.buttonStyle(.borderedProminent).disabled(store.isRendering)
+                        Button("Preview DSP", systemImage: "waveform") { store.renderPreview() }.disabled(store.isRendering)
+                        Button(store.isRendering ? "Procesando…" : "Clonar voz", systemImage: "brain.head.profile") { store.renderNeural(using: neural) }.buttonStyle(.borderedProminent).disabled(store.isRendering || !isEngineReady)
                     }
-                    Label("El preview incluido procesa audio realmente por chunks con AVFoundation/Accelerate, pero no se presenta como clonación de timbre. El módulo SVC profesional aparece separado hasta superar validación acústica.", systemImage: "checkmark.shield").font(.callout).foregroundStyle(.secondary)
+                    EngineStatusPanel()
                 } else { ContentUnavailableView("Selecciona un proyecto", systemImage: "rectangle.stack") }
             }.padding(30)
         }
     }
+    private var isEngineReady: Bool { if case .ready = neural.state { return true }; return false }
     private var qualityBinding: Binding<QualityProfile> { .init(get: { store.selectedProject?.quality ?? .high }, set: { v in store.updateProject { $0.quality = v } }) }
     private var lyricsLockBinding: Binding<Bool> { .init(get: { store.selectedProject?.lyricsLock ?? true }, set: { v in store.updateProject { $0.lyricsLock = v } }) }
     private var lyricsBinding: Binding<String> { .init(get: { store.selectedProject?.lyrics ?? "" }, set: { v in store.updateProject { $0.lyrics = v } }) }
@@ -101,21 +104,40 @@ struct FileWell: View {
 
 struct TrainingView: View {
     @EnvironmentObject var store: StudioStore
+    @EnvironmentObject var neural: NeuralEngineManager
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
             PageHeader(title: "Entrenar voz", subtitle: "Fine-tuning local con consentimiento documentado")
-            GroupBox("Preparación del dataset") {
+            GroupBox("Entrenamiento neuronal local") {
                 VStack(alignment: .leading, spacing: 14) {
-                    Label("Grabaciones limpias, una sola voz y sin efectos", systemImage: "1.circle.fill")
-                    Label("Análisis de clipping, ruido, silencio y rango vocal", systemImage: "2.circle.fill")
-                    Label("Segmentación y checkpoints adaptados a \(store.hardware.memoryGB) GB", systemImage: "3.circle.fill")
+                    TextField("Nombre de la voz", text: $neural.voiceName)
+                    HStack { Label(neural.datasetURL?.lastPathComponent ?? "Sin grabaciones seleccionadas", systemImage: "folder"); Spacer(); Button("Seleccionar carpeta…") { neural.chooseDataset() } }
+                    Toggle("Confirmo que la voz es propia o tengo autorización para clonarla", isOn: $neural.consentConfirmed)
                     Divider()
-                    Label("El entrenamiento neuronal permanece bloqueado en esta build hasta integrar y validar el runtime MLX SVC. No se simula entrenamiento.", systemImage: "lock.shield").foregroundStyle(.orange)
+                    Label("MPS · batch automático 1 · checkpoints · perfil \(store.hardware.memoryGB) GB", systemImage: "memorychip")
+                    ProgressView(value: neural.progress)
+                    HStack { Text(neural.state.title).foregroundStyle(.secondary); Spacer(); Button("Entrenar voz", systemImage: "brain") { neural.train() }.buttonStyle(.borderedProminent).disabled(neural.state.isBusy) }
                 }.padding(10)
             }
+            EngineStatusPanel()
             Spacer()
         }.padding(30)
     }
+}
+
+struct EngineStatusPanel: View {
+    @EnvironmentObject var neural: NeuralEngineManager
+    var body: some View {
+        GroupBox("Motor profesional") {
+            HStack(spacing: 12) {
+                Image(systemName: ready ? "checkmark.seal.fill" : "arrow.down.circle.fill").foregroundStyle(ready ? .green : .purple).font(.title2)
+                VStack(alignment: .leading) { Text(neural.state.title).font(.headline); Text("Seed-VC 44.1 kHz · PyTorch MPS · procesamiento local").font(.caption).foregroundStyle(.secondary) }
+                Spacer()
+                if !ready { Button(neural.state.isBusy ? "Instalando…" : "Instalar motor") { neural.install() }.buttonStyle(.borderedProminent).disabled(neural.state.isBusy) }
+            }.padding(6)
+        }
+    }
+    private var ready: Bool { if case .ready = neural.state { return true }; return false }
 }
 
 struct ModelsView: View {
@@ -168,5 +190,6 @@ struct StorageView: View {
 
 struct SettingsView: View {
     @EnvironmentObject var store: StudioStore
-    var body: some View { Form { Section("Privacidad") { LabeledContent("Procesamiento", value: "100 % local"); LabeledContent("Telemetría", value: "Desactivada") }; Section("Motores") { ForEach(store.engines) { engine in LabeledContent(engine.name, value: engine.backend) } } }.formStyle(.grouped).frame(width: 560, height: 370) }
+    @EnvironmentObject var neural: NeuralEngineManager
+    var body: some View { Form { Section("Privacidad") { LabeledContent("Procesamiento", value: "100 % local"); LabeledContent("Telemetría", value: "Desactivada") }; Section("Motor profesional") { LabeledContent("Estado", value: neural.state.title); ForEach(store.engines) { engine in LabeledContent(engine.name, value: engine.backend) } } }.formStyle(.grouped).frame(width: 560, height: 370) }
 }

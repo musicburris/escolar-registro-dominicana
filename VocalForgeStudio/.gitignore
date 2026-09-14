@@ -1,4 +1,5 @@
 .build/
 dist/
+.engine-build/
 .DS_Store
 Package.resolved

@@ -48,7 +48,9 @@ enum VoicePackage {
         guard let data = try? Data(contentsOf: manifestURL), let manifest = try? JSONDecoder.vocalForge.decode(VoiceModelManifest.self, from: data) else { throw VoicePackageError.missingManifest }
         guard manifest.formatVersion == 1 else { throw VoicePackageError.invalidFormat }
         guard manifest.consentConfirmed else { throw VoicePackageError.consentMissing }
-        let weights = source.appendingPathComponent("weights.safetensors")
+        let safeWeights = source.appendingPathComponent("weights.safetensors")
+        let nativeWeights = source.appendingPathComponent("weights.pth")
+        let weights = FileManager.default.fileExists(atPath: safeWeights.path) ? safeWeights : nativeWeights
         let digest = SHA256.hash(data: try Data(contentsOf: weights)).map { String(format: "%02x", $0) }.joined()
         guard digest == manifest.checksumSHA256.lowercased() else { throw VoicePackageError.checksumMismatch }
         let destination = folder.appendingPathComponent("\(manifest.id.uuidString).vfvoice")
@@ -62,8 +64,8 @@ enum EngineRegistry {
     static func discover() -> [EngineDescriptor] {
         [
             .init(id: "native-preview", name: "VocalForge Native Preview", backend: "AVFoundation + Accelerate", purpose: "Audio local por chunks; no clona timbre", state: .ready),
-            .init(id: "mlx-svc", name: "VocalForge MLX SVC", backend: "MLX / Metal", purpose: "Motor profesional en validación acústica", state: .optional),
-            .init(id: "seed-vc", name: "Seed-VC Compatibility", backend: "PyTorch MPS", purpose: "Compatibilidad experimental GPL-3.0", state: .unavailable("No se distribuye integrado: repositorio archivado"))
+            .init(id: "mlx-svc", name: "VocalForge MLX SVC", backend: "MLX / Metal", purpose: "Motor futuro optimizado", state: .optional),
+            .init(id: "seed-vc", name: "Seed-VC Professional", backend: "PyTorch MPS", purpose: "Clonación neuronal y entrenamiento local GPL-3.0", state: .optional)
         ]
     }
 }
