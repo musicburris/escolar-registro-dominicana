@@ -1,0 +1,35 @@
+name: VocalForge Apple Silicon M1
+on:
+  workflow_dispatch:
+  push:
+    branches: [vocalforge-macos-build]
+    paths: ["VocalForgeStudio/**"]
+
+jobs:
+  build-and-test:
+    runs-on: macos-14
+    defaults:
+      run:
+        working-directory: VocalForgeStudio
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify Apple Silicon runner
+        run: |
+          uname -a
+          sysctl -n machdep.cpu.brand_string
+          test "$(uname -m)" = "arm64"
+      - name: Build, test and package
+        run: chmod +x Scripts/build-release.sh && Scripts/build-release.sh
+      - name: Inspect product
+        run: |
+          file "dist/VocalForge Studio.app/Contents/MacOS/VocalForgeStudio"
+          codesign -dv --verbose=4 "dist/VocalForge Studio.app"
+          hdiutil verify dist/VocalForgeStudio-0.1.0-arm64.dmg
+      - uses: actions/upload-artifact@v4
+        with:
+          name: VocalForgeStudio-0.1.0-AppleSilicon
+          path: |
+            VocalForgeStudio/dist/VocalForgeStudio-0.1.0-arm64.dmg
+            VocalForgeStudio/dist/VocalForgeStudio-0.1.0-arm64.zip
+            VocalForgeStudio/dist/SHA256SUMS.txt
+          if-no-files-found: error
