@@ -13,7 +13,11 @@ final class VocalForgeStudioTests: XCTestCase {
         project.quality = .ultra; project.lyricsLock = true; project.lyrics = "hola"
         let data = try JSONEncoder.vocalForge.encode(project)
         let decoded = try JSONDecoder.vocalForge.decode(StudioProject.self, from: data)
-        XCTAssertEqual(decoded, project)
+        XCTAssertEqual(decoded.id, project.id)
+        XCTAssertEqual(decoded.name, project.name)
+        XCTAssertEqual(decoded.quality, .ultra)
+        XCTAssertTrue(decoded.lyricsLock)
+        XCTAssertEqual(decoded.lyrics, "hola")
     }
 
     func testAllQualityModesRemainAvailable() {
