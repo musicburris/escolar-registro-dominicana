@@ -24,7 +24,7 @@ jobs:
         run: |
           file "dist/VocalForge Studio.app/Contents/MacOS/VocalForgeStudio"
           codesign -dv --verbose=4 "dist/VocalForge Studio.app"
-          hdiutil verify dist/VocalForgeStudio-0.2.0-arm64.dmg
+          hdiutil verify dist/VocalForgeStudio-0.3.0-arm64.dmg
       - name: Validate managed neural runtime
         timeout-minutes: 30
         run: |
