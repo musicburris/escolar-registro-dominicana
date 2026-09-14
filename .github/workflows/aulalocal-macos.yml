@@ -13,6 +13,10 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          architecture: arm64
       - name: Verificar máquina Apple Silicon
         run: test "$(uname -m)" = arm64 && sw_vers && system_profiler SPHardwareDataType
       - name: Construir y ejecutar pruebas
@@ -28,3 +32,4 @@ jobs:
             AulaLocal-App/docs/evidencias/tests-macos.xml
             AulaLocal-App/docs/evidencias/validacion-m1.json
           if-no-files-found: error
+
