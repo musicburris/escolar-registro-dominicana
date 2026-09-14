@@ -42,6 +42,8 @@ final class NeuralEngineManager: ObservableObject {
     private var sourceRoot: URL { engineRoot.appendingPathComponent("seed-vc") }
     private var venv: URL { engineRoot.appendingPathComponent("venv") }
     private var python: URL { venv.appendingPathComponent("bin/python") }
+    private var versionFile: URL { engineRoot.appendingPathComponent("runtime-version.txt") }
+    private static let requiredRuntimeVersion = "0.3.0"
     private var environment: [String: String] {
         var env = ProcessInfo.processInfo.environment
         env["PYTHONUNBUFFERED"] = "1"
@@ -56,7 +58,8 @@ final class NeuralEngineManager: ObservableObject {
 
     init(paths: StudioPaths = .live) {
         self.paths = paths
-        state = FileManager.default.isExecutableFile(atPath: python.path) ? .ready(Self.backendLabel) : .notInstalled
+        let installedVersion = try? String(contentsOf: versionFile, encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines)
+        state = FileManager.default.isExecutableFile(atPath: python.path) && installedVersion == Self.requiredRuntimeVersion ? .ready(Self.backendLabel) : .notInstalled
     }
 
     func chooseDataset() {
@@ -84,8 +87,10 @@ final class NeuralEngineManager: ObservableObject {
                 guard let requirements = Bundle.main.resourceURL?.appendingPathComponent("engine-requirements.txt") else { throw NeuralEngineError.missingResource("dependencias") }
                 append(try await Self.run(uv, ["pip", "install", "--python", python.path, "-r", requirements.path], cwd: engineRoot, env: environment))
                 progress = 0.9; state = .installing("Comprobando Metal…")
-                let probe = try await Self.run(python, ["-c", "import torch,torchaudio,librosa,transformers; assert torch.backends.mps.is_available(); print('MPS_READY', torch.__version__)"], cwd: sourceRoot, env: environment)
-                append(probe); progress = 1; state = .ready(Self.backendLabel)
+                let probe = try await Self.run(python, ["-c", "import torch,torchaudio,librosa,transformers,df; assert torch.backends.mps.is_available(); print('MPS_READY', torch.__version__, 'CLEANUP_READY')"], cwd: sourceRoot, env: environment)
+                append(probe)
+                try Self.requiredRuntimeVersion.write(to: versionFile, atomically: true, encoding: .utf8)
+                progress = 1; state = .ready(Self.backendLabel)
             } catch { state = .failed(error.localizedDescription); append(error.localizedDescription) }
         }
     }
