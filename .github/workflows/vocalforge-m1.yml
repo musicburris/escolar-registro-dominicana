@@ -35,7 +35,7 @@ jobs:
           "$UV" python install 3.10.16
           "$UV" venv --python 3.10.16 --seed "$ENGINE_TEST/venv"
           "$UV" pip install --python "$ENGINE_TEST/venv/bin/python" -r Resources/engine-requirements.txt
-          "$ENGINE_TEST/venv/bin/python" -c "import torch, torchaudio, librosa, transformers; print('torch', torch.__version__); print('mps_built', torch.backends.mps.is_built()); print('mps_available', torch.backends.mps.is_available()); assert torch.backends.mps.is_built()"
+          "$ENGINE_TEST/venv/bin/python" -c "import torch, torchaudio, librosa, transformers, df; print('torch', torch.__version__); print('mps_built', torch.backends.mps.is_built()); print('mps_available', torch.backends.mps.is_available()); assert torch.backends.mps.is_built()"
           export HF_HOME="$ENGINE_TEST/models"
           export HF_HUB_CACHE="$ENGINE_TEST/models/hub"
           export PYTORCH_ENABLE_MPS_FALLBACK=1
@@ -56,11 +56,15 @@ jobs:
           mkdir -p "$ENGINE_TEST/trained-output"
           "$ENGINE_TEST/venv/bin/python" inference.py --source "$ENGINE_TEST/source.wav" --target "$ENGINE_TEST/reference.wav" --output "$ENGINE_TEST/trained-output" --diffusion-steps 2 --f0-condition True --fp16 False --checkpoint "$CHECKPOINT" --config configs/presets/config_dit_mel_seed_uvit_whisper_base_f0_44k.yml
           find "$ENGINE_TEST/trained-output" -name '*.wav' -size +1k | grep -q .
+          mkdir -p "$ENGINE_TEST/clean-output"
+          TRAINED_WAV="$(find "$ENGINE_TEST/trained-output" -name '*.wav' -size +1k | head -n 1)"
+          "$ENGINE_TEST/venv/bin/python" -m df.enhance --output-dir "$ENGINE_TEST/clean-output" --no-suffix --atten-lim 12 --log-level INFO "$TRAINED_WAV"
+          find "$ENGINE_TEST/clean-output" -name '*.wav' -size +1k | grep -q .
       - uses: actions/upload-artifact@v4
         with:
-          name: VocalForgeStudio-0.2.0-AppleSilicon
+          name: VocalForgeStudio-0.3.0-AppleSilicon
           path: |
-            VocalForgeStudio/dist/VocalForgeStudio-0.2.0-arm64.dmg
-            VocalForgeStudio/dist/VocalForgeStudio-0.2.0-arm64.zip
+            VocalForgeStudio/dist/VocalForgeStudio-0.3.0-arm64.dmg
+            VocalForgeStudio/dist/VocalForgeStudio-0.3.0-arm64.zip
             VocalForgeStudio/dist/SHA256SUMS.txt
           if-no-files-found: error

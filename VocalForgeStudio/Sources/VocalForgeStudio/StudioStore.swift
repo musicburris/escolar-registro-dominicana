@@ -107,6 +107,7 @@ final class StudioStore: ObservableObject {
         let projectID = projects[index].id
         let quality = projects[index].quality
         let semitones = Int(projects[index].transpose)
+        let cleanup = projects[index].vocalCleanup ?? .natural
         let voiceModelID = projects[index].voiceModelID
         let checkpoint = voiceModelID.map { paths.voiceModels.appendingPathComponent("\($0.uuidString).vfvoice/weights.pth") }
         projects[index].status = "Clonación neuronal con perfil automático…"
@@ -117,7 +118,7 @@ final class StudioStore: ObservableObject {
                 if let checkpoint, !FileManager.default.fileExists(atPath: checkpoint.path) {
                     throw NeuralEngineError.missingResource("pesos de la voz entrenada")
                 }
-                let output = try await engine.convert(source: source, reference: reference, checkpoint: checkpoint, quality: quality, semitones: semitones, outputDirectory: paths.renders)
+                let output = try await engine.convert(source: source, reference: reference, checkpoint: checkpoint, quality: quality, semitones: semitones, cleanup: cleanup, outputDirectory: paths.renders)
                 if let i = projects.firstIndex(where: { $0.id == projectID }) {
                     projects[i].outputFilename = output.lastPathComponent
                     projects[i].status = "Clonación neuronal completada"

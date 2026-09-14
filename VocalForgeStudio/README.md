@@ -1,6 +1,6 @@
 # VocalForge Studio
 
-Aplicación nativa y exclusiva para macOS Apple Silicon. **VocalForge Studio 0.2.0** integra clonación neuronal de canto y entrenamiento local mediante Seed-VC 44.1 kHz sobre PyTorch MPS, manteniendo el motor separado de la interfaz nativa.
+Aplicación nativa y exclusiva para macOS Apple Silicon. **VocalForge Studio 0.3.0** integra clonación neuronal de canto y entrenamiento local mediante Seed-VC 44.1 kHz, selección intercambiable de voces entrenadas y limpieza neuronal DeepFilterNet3.
 
 ## Qué funciona en esta build
 
@@ -13,6 +13,8 @@ Aplicación nativa y exclusiva para macOS Apple Silicon. **VocalForge Studio 0.2
 - Modos Preview, High, Studio y Ultra siempre visibles.
 - Importación segura de `.vfvoice` con manifiesto, consentimiento y SHA-256.
 - Entrenamiento local real y selección directa del checkpoint entrenado en la pantalla de conversión.
+- Selector por proyecto para alternar entre todas las voces entrenadas.
+- Limpieza opcional Sin limpieza, Natural o Profunda; conserva también el render original.
 - Gestión de espacio; limpiar caché nunca borra voces ni proyectos.
 - Pruebas automatizadas y empaquetado DMG.
 

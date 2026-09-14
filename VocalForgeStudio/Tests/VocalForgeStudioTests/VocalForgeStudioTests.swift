@@ -10,14 +10,21 @@ final class VocalForgeStudioTests: XCTestCase {
 
     func testProjectRoundTripKeepsLyricsLockAndQuality() throws {
         var project = StudioProject(name: "Canción")
-        project.quality = .ultra; project.lyricsLock = true; project.lyrics = "hola"
+        project.quality = .ultra; project.lyricsLock = true; project.lyrics = "hola"; project.vocalCleanup = .deep
         let data = try JSONEncoder.vocalForge.encode(project)
         let decoded = try JSONDecoder.vocalForge.decode(StudioProject.self, from: data)
         XCTAssertEqual(decoded.id, project.id)
         XCTAssertEqual(decoded.name, project.name)
         XCTAssertEqual(decoded.quality, .ultra)
+        XCTAssertEqual(decoded.vocalCleanup, .deep)
         XCTAssertTrue(decoded.lyricsLock)
         XCTAssertEqual(decoded.lyrics, "hola")
+    }
+
+    func testVocalCleanupDefaultsProtectSingingTimbre() {
+        let project = StudioProject(name: "Canción")
+        XCTAssertEqual(project.vocalCleanup ?? .natural, .natural)
+        XCTAssertEqual(VocalCleanupProfile.allCases.map(\.rawValue), ["Sin limpieza", "Natural", "Profunda"])
     }
 
     func testAllQualityModesRemainAvailable() {

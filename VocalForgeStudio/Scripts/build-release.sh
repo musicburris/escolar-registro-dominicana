@@ -2,7 +2,7 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-VERSION="0.2.0"
+VERSION="0.3.0"
 DIST="$PWD/dist"
 APP="$DIST/VocalForge Studio.app"
 CONTENTS="$APP/Contents"

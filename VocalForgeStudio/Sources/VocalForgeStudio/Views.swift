@@ -74,9 +74,10 @@ struct ConversionView: View {
                             HStack { Text("Calidad"); Spacer(); Picker("", selection: qualityBinding) { ForEach(QualityProfile.allCases) { Text($0.rawValue).tag($0) } }.pickerStyle(.segmented).frame(width: 440) }
                             Text(project.quality.detail).foregroundStyle(.secondary)
                             Toggle("Lyrics Lock — guía de letra experimental", isOn: lyricsLockBinding)
-                            if !store.voices.isEmpty {
-                                HStack { Text("Voz entrenada"); Spacer(); Picker("Voz entrenada", selection: voiceBinding) { Text("Zero-shot (referencia)").tag(Optional<UUID>.none); ForEach(store.voices) { voice in Text(voice.displayName).tag(Optional(voice.id)) } }.frame(width: 360) }
-                            }
+                            HStack { Text("Voz para esta canción"); Spacer(); Picker("Voz para esta canción", selection: voiceBinding) { Text("Solo referencia (sin entrenamiento)").tag(Optional<UUID>.none); ForEach(store.voices) { voice in Text(voice.displayName).tag(Optional(voice.id)) } }.frame(width: 360) }
+                            if store.voices.isEmpty { Text("Cuando entrenes voces, aparecerán aquí para poder intercambiarlas entre proyectos.").font(.caption).foregroundStyle(.secondary) }
+                            HStack { Text("Limpieza de voz"); Spacer(); Picker("Limpieza de voz", selection: cleanupBinding) { ForEach(VocalCleanupProfile.allCases) { Text($0.rawValue).tag($0) } }.pickerStyle(.segmented).frame(width: 440) }
+                            Text(cleanupBinding.wrappedValue.detail).font(.caption).foregroundStyle(.secondary)
                             TextEditor(text: lyricsBinding).font(.body.monospaced()).frame(minHeight: 92).overlay(RoundedRectangle(cornerRadius: 6).stroke(.quaternary))
                             Text("La letra queda guardada como referencia del proyecto. Seed-VC preserva el contenido de la interpretación, pero esta versión no garantiza alineación fonética palabra por palabra.").font(.caption).foregroundStyle(.secondary)
                             HStack { Text("Transposición"); Slider(value: transposeBinding, in: -12...12, step: 1); Text("\(Int(project.transpose)) st").monospacedDigit().frame(width: 50) }
@@ -100,6 +101,7 @@ struct ConversionView: View {
     private var lyricsBinding: Binding<String> { .init(get: { store.selectedProject?.lyrics ?? "" }, set: { v in store.updateProject { $0.lyrics = v } }) }
     private var transposeBinding: Binding<Double> { .init(get: { store.selectedProject?.transpose ?? 0 }, set: { v in store.updateProject { $0.transpose = v } }) }
     private var voiceBinding: Binding<UUID?> { .init(get: { store.selectedProject?.voiceModelID }, set: { v in store.updateProject { $0.voiceModelID = v } }) }
+    private var cleanupBinding: Binding<VocalCleanupProfile> { .init(get: { store.selectedProject?.vocalCleanup ?? .natural }, set: { v in store.updateProject { $0.vocalCleanup = v } }) }
 }
 
 struct FileWell: View {

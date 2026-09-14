@@ -13,6 +13,20 @@ enum QualityProfile: String, Codable, CaseIterable, Identifiable {
     }
 }
 
+enum VocalCleanupProfile: String, Codable, CaseIterable, Identifiable {
+    case off = "Sin limpieza"
+    case natural = "Natural"
+    case deep = "Profunda"
+    var id: String { rawValue }
+    var detail: String {
+        switch self {
+        case .off: "Conserva exactamente la salida del clonador"
+        case .natural: "Reduce ruido y ambiente protegiendo respiraciones y armónicos"
+        case .deep: "Mayor reducción de ruido, reverb residual y artefactos"
+        }
+    }
+}
+
 struct StudioProject: Codable, Identifiable, Equatable {
     var id = UUID()
     var name: String
@@ -24,6 +38,7 @@ struct StudioProject: Codable, Identifiable, Equatable {
     var referenceFilename: String?
     var voiceModelID: UUID?
     var quality: QualityProfile = .high
+    var vocalCleanup: VocalCleanupProfile?
     var lyrics = ""
     var lyricsLock = true
     var transpose = 0.0

@@ -90,7 +90,7 @@ final class NeuralEngineManager: ObservableObject {
         }
     }
 
-    func convert(source: URL, reference: URL, checkpoint: URL?, quality: QualityProfile, semitones: Int, outputDirectory: URL) async throws -> URL {
+    func convert(source: URL, reference: URL, checkpoint: URL?, quality: QualityProfile, semitones: Int, cleanup: VocalCleanupProfile, outputDirectory: URL) async throws -> URL {
         guard FileManager.default.isExecutableFile(atPath: python.path) else { throw NeuralEngineError.missingResource("motor profesional") }
         state = .running("Clonando timbre con red neuronal…"); progress = 0.1
         let job = outputDirectory.appendingPathComponent("job-\(UUID().uuidString)")
@@ -105,8 +105,23 @@ final class NeuralEngineManager: ObservableObject {
             append(output); progress = 0.95
             let result = try FileManager.default.contentsOfDirectory(at: job, includingPropertiesForKeys: nil).first { $0.pathExtension.lowercased() == "wav" }
             guard let result else { throw NeuralEngineError.noOutput }
-            let destination = outputDirectory.appendingPathComponent("VocalForge-\(UUID().uuidString.prefix(8)).wav")
-            try FileManager.default.moveItem(at: result, to: destination)
+            let renderID = String(UUID().uuidString.prefix(8))
+            let original = outputDirectory.appendingPathComponent("VocalForge-\(renderID)-original.wav")
+            try FileManager.default.moveItem(at: result, to: original)
+            var destination = original
+            if cleanup != .off {
+                state = .running("Limpiando ruido y ambiente con IA…"); progress = 0.96
+                let cleanDirectory = job.appendingPathComponent("clean")
+                try FileManager.default.createDirectory(at: cleanDirectory, withIntermediateDirectories: true)
+                var cleanArguments = ["-m", "df.enhance", "--output-dir", cleanDirectory.path, "--no-suffix", "--atten-lim", cleanup == .natural ? "12" : "24", "--log-level", "INFO"]
+                if cleanup == .deep { cleanArguments.append("--pf") }
+                cleanArguments.append(original.path)
+                append(try await Self.run(python, cleanArguments, cwd: sourceRoot, env: environment))
+                let enhanced = cleanDirectory.appendingPathComponent(original.lastPathComponent)
+                guard FileManager.default.fileExists(atPath: enhanced.path) else { throw NeuralEngineError.noOutput }
+                destination = outputDirectory.appendingPathComponent("VocalForge-\(renderID)-clean.wav")
+                try FileManager.default.moveItem(at: enhanced, to: destination)
+            }
             try? FileManager.default.removeItem(at: job)
             progress = 1; state = .ready(Self.backendLabel)
             return destination
