@@ -1,0 +1,30 @@
+name: Construir y probar en Mac ARM64
+on:
+  workflow_dispatch:
+  push:
+    branches: [aulalocal-macos-build]
+    paths:
+      - 'AulaLocal-App/**'
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: macos-14
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verificar máquina Apple Silicon
+        run: test "$(uname -m)" = arm64 && sw_vers && system_profiler SPHardwareDataType
+      - name: Construir y ejecutar pruebas
+        working-directory: AulaLocal-App
+        run: bash scripts/build_macos.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AulaLocal-macOS-arm64
+          path: |
+            AulaLocal-App/dist/*.dmg
+            AulaLocal-App/dist/*.pkg
+            AulaLocal-App/dist/SHA256SUMS.txt
+            AulaLocal-App/docs/evidencias/tests-macos.xml
+            AulaLocal-App/docs/evidencias/validacion-m1.json
+          if-no-files-found: error
