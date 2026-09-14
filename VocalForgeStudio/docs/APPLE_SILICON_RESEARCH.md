@@ -4,13 +4,13 @@
 
 La arquitectura seleccionada combina una aplicación nativa SwiftUI/AppKit, AVFoundation/Core Audio y Accelerate para audio, un contrato de motores fuera de proceso y una futura implementación MLX como ruta principal de investigación. PyTorch MPS queda como adaptador de compatibilidad; Core ML se reserva para submodelos de inferencia con grafos convertibles y formas acotadas. No existe una única tecnología óptima para todo el pipeline.
 
-La evidencia disponible no permite afirmar que un motor SVC abierto actual ofrezca simultáneamente calidad profesional, entrenamiento mantenido, empaquetado comercial sencillo y comportamiento demostrado en M1 8 GB. Por eso el Core se entrega sin simular SVC, con las fronteras necesarias para incorporar un motor validado sin rehacer la aplicación.
+Seed-VC se integra como motor profesional sustituible por ofrecer inferencia de canto F0 a 44.1 kHz y fine-tuning local. La validación automatizada confirmó conversión y creación de un checkpoint en Apple M1. Su condición GPL-3.0 y estado archivado impiden tratarlo como dependencia irrevocable; MLX sigue siendo la ruta futura para un motor propio.
 
 ## Matriz comparativa
 
 | Candidato | MPS | MLX | Core ML | Entrenamiento local | M1 8 GB | Licencia / distribución | Calidad SVC | Decisión |
 |---|---|---|---|---|---|---|---|---|
-| Seed-VC V1/V2 | Soporte Mac añadido; PyTorch | No oficial | Conversión no demostrada end-to-end | Fine-tuning publicado | Posible con un solo set y chunks, sin benchmark oficial M1 8 GB | GPL-3.0; repositorio archivado 21-nov-2025; pesos se descargan aparte | Buen candidato zero-shot y canto 44.1 kHz | Adaptador opcional, no núcleo |
+| Seed-VC V1/V2 | Soporte Mac añadido; PyTorch | No oficial | No seleccionada para el pipeline dinámico | Fine-tuning validado | Validado en CPU ARM64 segura; MPS completo requiere más memoria | GPL-3.0; repositorio archivado 21-nov-2025; pesos se descargan aparte | Canto F0 a 44.1 kHz | Motor profesional integrado y sustituible |
 | RVC | MPS comunitario, ruta oficial centrada históricamente en CUDA | No oficial | No demostrada | Sí, arquitectura ligera | Inferencia razonable; entrenamiento no validado aquí | Código principal MIT; revisar cada peso y dependencia | Buena identidad con dataset por voz; menor generalidad zero-shot | Compatibilidad futura |
 | so-vits-svc 4.x | Incidencias MPS conocidas | No oficial | No demostrada | Sí | Riesgo de fallbacks/errores | Proyecto original archivado en 2023 | Históricamente fuerte en canto | Rechazado como base |
 | Amphion / Vevo | Stack de investigación, no Mac-first | No oficial | No demostrada | Principalmente investigación | Demasiado incierto | Apache-2.0 para toolkit; revisar pesos/datasets | Investigación valiosa | Banco de evaluación, no runtime inicial |
