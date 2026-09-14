@@ -30,7 +30,10 @@ enum StorageScanner {
     static func size(_ url: URL) -> Int64 {
         let keys: Set<URLResourceKey> = [.isRegularFileKey, .fileSizeKey]
         guard let files = FileManager.default.enumerator(at: url, includingPropertiesForKeys: Array(keys)) else { return 0 }
-        return files.compactMap { ($0 as? URL)?.resourceValues(forKeys: keys) }.filter { $0.isRegularFile == true }.reduce(0) { $0 + Int64($1.fileSize ?? 0) }
+        return files.compactMap { item -> URLResourceValues? in
+            guard let url = item as? URL else { return nil }
+            return try? url.resourceValues(forKeys: keys)
+        }.filter { $0.isRegularFile == true }.reduce(0) { $0 + Int64($1.fileSize ?? 0) }
     }
     static func bundleSize() -> Int64 { size(Bundle.main.bundleURL) }
 }
