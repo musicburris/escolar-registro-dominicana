@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=75,<81"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aulalocal"
+version = "0.1.0"
+description = "Gestión escolar local para macOS Apple Silicon"
+requires-python = ">=3.11,<3.14"
+dependencies = ["PySide6==6.8.3", "reportlab==4.4.9", "openpyxl==3.1.5", "cryptography==46.0.0"]
+
+[project.scripts]
+aulalocal = "aulalocal.__main__:main"
+
+[tool.setuptools.package-data]
+aulalocal = ["schema.sql"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.setuptools.packages.find]
+include = ["aulalocal*"]
