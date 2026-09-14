@@ -38,7 +38,7 @@ swift test
 
 El producto no tiene código x86_64, Windows, Linux, CUDA ni NVIDIA.
 
-La automatización oficial también instala el runtime administrado y comprueba que PyTorch fue compilado con soporte MPS en un runner Apple M1 ARM64.
+La automatización oficial instala el runtime administrado, confirma MPS disponible y ejecuta una conversión neuronal y un paso real de entrenamiento en un runner Apple M1 ARM64.
 
 ## Privacidad y uso responsable
 

@@ -36,6 +36,21 @@ jobs:
           "$UV" venv --python 3.10.16 --seed "$ENGINE_TEST/venv"
           "$UV" pip install --python "$ENGINE_TEST/venv/bin/python" -r Resources/engine-requirements.txt
           "$ENGINE_TEST/venv/bin/python" -c "import torch, torchaudio, librosa, transformers; print('torch', torch.__version__); print('mps_built', torch.backends.mps.is_built()); print('mps_available', torch.backends.mps.is_available()); assert torch.backends.mps.is_built()"
+          export HF_HOME="$ENGINE_TEST/models"
+          export HF_HUB_CACHE="$ENGINE_TEST/models/hub"
+          export PYTORCH_ENABLE_MPS_FALLBACK=1
+          say -v Samantha -o "$ENGINE_TEST/source.aiff" "I will sing this melody with feeling"
+          say -v Daniel -o "$ENGINE_TEST/reference.aiff" "This is the authorized reference voice"
+          afconvert -f WAVE -d LEI16@44100 "$ENGINE_TEST/source.aiff" "$ENGINE_TEST/source.wav"
+          afconvert -f WAVE -d LEI16@44100 "$ENGINE_TEST/reference.aiff" "$ENGINE_TEST/reference.wav"
+          mkdir -p "$ENGINE_TEST/output" "$ENGINE_TEST/dataset"
+          cp "$ENGINE_TEST/source.wav" "$ENGINE_TEST/dataset/one.wav"
+          cp "$ENGINE_TEST/reference.wav" "$ENGINE_TEST/dataset/two.wav"
+          cd "dist/VocalForge Studio.app/Contents/Resources/seed-vc"
+          "$ENGINE_TEST/venv/bin/python" inference.py --source "$ENGINE_TEST/source.wav" --target "$ENGINE_TEST/reference.wav" --output "$ENGINE_TEST/output" --diffusion-steps 4 --f0-condition True --fp16 False
+          find "$ENGINE_TEST/output" -name '*.wav' -size +1k | grep -q .
+          "$ENGINE_TEST/venv/bin/python" train.py --config configs/presets/config_dit_mel_seed_uvit_whisper_base_f0_44k.yml --dataset-dir "$ENGINE_TEST/dataset" --run-name ci_m1_training --batch-size 1 --max-steps 1 --save-every 1 --num-workers 0
+          find . -path '*ci_m1_training*' -name '*.pth' -size +1k | grep -q .
       - uses: actions/upload-artifact@v4
         with:
           name: VocalForgeStudio-0.2.0-AppleSilicon
