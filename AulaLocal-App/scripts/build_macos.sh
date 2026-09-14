@@ -13,17 +13,20 @@ BUILD_PYTHON="${AULALOCAL_BUILD_PYTHON:-python3}"
 mkdir -p docs/evidencias
 QT_QPA_PLATFORM=offscreen .venv-build/bin/python -m pytest -q --junitxml=docs/evidencias/tests-macos.xml
 export MACOSX_DEPLOYMENT_TARGET=12.0
-SIGN_ARGS=()
+build_app() {
+  .venv-build/bin/python -m PyInstaller --noconfirm --clean --windowed --onedir \
+    --name AulaLocal --target-architecture arm64 \
+    --osx-bundle-identifier com.aulalocal.desktop \
+    --add-data 'aulalocal/schema.sql:aulalocal' \
+    --collect-data reportlab --collect-data openpyxl \
+    --exclude-module PySide6.QtWebEngineCore --exclude-module PySide6.QtWebEngineWidgets \
+    "$@" launcher.py
+}
 if [ -n "${AULALOCAL_SIGN_IDENTITY:-}" ]; then
-  SIGN_ARGS=(--codesign-identity "$AULALOCAL_SIGN_IDENTITY" --osx-entitlements-file scripts/entitlements.plist)
+  build_app --codesign-identity "$AULALOCAL_SIGN_IDENTITY" --osx-entitlements-file scripts/entitlements.plist
+else
+  build_app
 fi
-.venv-build/bin/python -m PyInstaller --noconfirm --clean --windowed --onedir \
-  --name AulaLocal --target-architecture arm64 \
-  --osx-bundle-identifier com.aulalocal.desktop \
-  --add-data 'aulalocal/schema.sql:aulalocal' \
-  --collect-data reportlab --collect-data openpyxl \
-  --exclude-module PySide6.QtWebEngineCore --exclude-module PySide6.QtWebEngineWidgets \
-  "${SIGN_ARGS[@]}" launcher.py
 /usr/libexec/PlistBuddy -c 'Set :LSMinimumSystemVersion 12.0' dist/AulaLocal.app/Contents/Info.plist
 # El cambio del plist requiere volver a sellar el bundle; PyInstaller firma los binarios internos.
 if [ -n "${AULALOCAL_SIGN_IDENTITY:-}" ]; then
@@ -51,9 +54,11 @@ cp -R dist/AulaLocal.app "$STAGING_DIR/"
 ln -s /Applications "$STAGING_DIR/Applications"
 cp docs/INSTALACION.md "$STAGING_DIR/LEEME.md"
 hdiutil create -volname AulaLocal -srcfolder "$STAGING_DIR" -ov -format UDZO dist/AulaLocal-0.1.0-arm64.dmg
-PKG_SIGN=()
-if [ -n "${AULALOCAL_INSTALLER_IDENTITY:-}" ]; then PKG_SIGN=(--sign "$AULALOCAL_INSTALLER_IDENTITY"); fi
-productbuild --component dist/AulaLocal.app /Applications "${PKG_SIGN[@]}" dist/AulaLocal-0.1.0-arm64.pkg
+if [ -n "${AULALOCAL_INSTALLER_IDENTITY:-}" ]; then
+  productbuild --component dist/AulaLocal.app /Applications --sign "$AULALOCAL_INSTALLER_IDENTITY" dist/AulaLocal-0.1.0-arm64.pkg
+else
+  productbuild --component dist/AulaLocal.app /Applications dist/AulaLocal-0.1.0-arm64.pkg
+fi
 shasum -a 256 dist/*.dmg dist/*.pkg > dist/SHA256SUMS.txt
 echo 'Paquetes creados en dist. La prueba manual de aceptación en Mac sigue siendo obligatoria.'
 if [ -z "${AULALOCAL_NOTARY_PROFILE:-}" ]; then
