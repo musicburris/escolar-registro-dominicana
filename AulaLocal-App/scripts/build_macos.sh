@@ -43,7 +43,12 @@ python3 - <<'PY'
 import json
 data=json.load(open('docs/evidencias/validacion-m1.json'))
 assert data['status']=='ok' and data['arquitectura']=='arm64'
-assert all(data[k] for k in ('persistencia','pdf','excel','respaldo','sin_red'))
+assert all(data[k] for k in (
+    'persistencia','pdf','excel','respaldo','sin_red','estructura_academica',
+    'importacion_excel','sesion_persistente','recuperacion_local','planta_y_visitas',
+    'importacion_ponchador','reportes_supervision','filtros_grado_seccion',
+    'fotos_alimentacion','reportes_alimentacion_con_fotos','selectores_fecha_hora',
+    'tipos_alimentacion_configurables','eliminacion_menu_controlada','observaciones_alimentacion'))
 PY
 if [ -n "${AULALOCAL_NOTARY_PROFILE:-}" ]; then
   ditto -c -k --keepParent dist/AulaLocal.app dist/AulaLocal-notarizar.zip
@@ -55,11 +60,11 @@ trap 'rm -rf "$STAGING_DIR"' EXIT
 cp -R dist/AulaLocal.app "$STAGING_DIR/"
 ln -s /Applications "$STAGING_DIR/Applications"
 cp docs/INSTALACION.md "$STAGING_DIR/LEEME.md"
-hdiutil create -volname AulaLocal -srcfolder "$STAGING_DIR" -ov -format UDZO dist/AulaLocal-0.1.0-arm64.dmg
+hdiutil create -volname AulaLocal -srcfolder "$STAGING_DIR" -ov -format UDZO dist/AulaLocal-0.4.0-arm64.dmg
 if [ -n "${AULALOCAL_INSTALLER_IDENTITY:-}" ]; then
-  productbuild --component dist/AulaLocal.app /Applications --sign "$AULALOCAL_INSTALLER_IDENTITY" dist/AulaLocal-0.1.0-arm64.pkg
+  productbuild --component dist/AulaLocal.app /Applications --sign "$AULALOCAL_INSTALLER_IDENTITY" dist/AulaLocal-0.4.0-arm64.pkg
 else
-  productbuild --component dist/AulaLocal.app /Applications dist/AulaLocal-0.1.0-arm64.pkg
+  productbuild --component dist/AulaLocal.app /Applications dist/AulaLocal-0.4.0-arm64.pkg
 fi
 shasum -a 256 dist/*.dmg dist/*.pkg > dist/SHA256SUMS.txt
 echo 'Paquetes creados en dist. La prueba manual de aceptación en Mac sigue siendo obligatoria.'
