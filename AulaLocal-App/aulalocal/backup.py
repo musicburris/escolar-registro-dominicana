@@ -60,7 +60,7 @@ def validate_database(raw):
             query="SELECT type,name,tbl_name,sql FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' ORDER BY type,name"
             if db.execute(query).fetchall()!=expected.execute(query).fetchall(): raise AppError('La estructura del respaldo no corresponde a esta versión.')
         finally: expected.close()
-        if db.execute("SELECT value FROM meta WHERE key='schema_version'").fetchone()!=('1',): raise AppError('Versión de respaldo incompatible.')
+        if db.execute("SELECT value FROM meta WHERE key='schema_version'").fetchone()!=('2',): raise AppError('Versión de respaldo incompatible.')
         if not db.execute("SELECT 1 FROM users WHERE active=1 AND role='admin'").fetchone(): raise AppError('El respaldo no contiene un administrador activo.')
         for content,digest in db.execute('SELECT content,sha256 FROM attachments'):
             if hashlib.sha256(content).hexdigest()!=digest: raise AppError('Un adjunto del respaldo está dañado.')
@@ -84,7 +84,7 @@ def restore_backup(store,path,password,current_password):
     try:
         create_backup(store,recovery,password)
         source.backup(store.db)
-        store.user=None
+        store.user=None;store.session_hash=None;store.session_file.unlink(missing_ok=True)
         with store.db: store._audit('restaurar_respaldo',detail='Copia previa: antes-de-restaurar.aulabackup; inicie sesión con una cuenta del respaldo.')
     finally: source.close()
     return recovery
