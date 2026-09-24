@@ -1,35 +1,64 @@
-name: Construir y probar en Mac ARM64
+name: Construir AulaLocal 0.2.0 para Mac ARM64
+
 on:
   workflow_dispatch:
   push:
     branches: [aulalocal-macos-build]
     paths:
-      - 'AulaLocal-App/**'
+      - 'AulaLocal-0.2.0-codigo-fuente.zip'
+      - '.github/workflows/aulalocal-macos.yml'
+
 permissions:
   contents: read
+
 jobs:
   build:
     runs-on: macos-14
     timeout-minutes: 45
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v6
+      - name: Obtener repositorio
+        uses: actions/checkout@v4
+
+      - name: Preparar código 0.2.0
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f AulaLocal-0.2.0-codigo-fuente.zip
+          rm -rf "$RUNNER_TEMP/AulaLocal-0.2.0"
+          ditto -x -k AulaLocal-0.2.0-codigo-fuente.zip "$RUNNER_TEMP"
+          test -f "$RUNNER_TEMP/AulaLocal-0.2.0/scripts/build_macos.sh"
+
+      - name: Preparar Python ARM64
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
           architecture: arm64
-      - name: Verificar máquina Apple Silicon
-        run: test "$(uname -m)" = arm64 && sw_vers && system_profiler SPHardwareDataType
-      - name: Construir y ejecutar pruebas
-        working-directory: AulaLocal-App
-        run: bash scripts/build_macos.sh
-      - uses: actions/upload-artifact@v4
-        with:
-          name: AulaLocal-macOS-arm64
-          path: |
-            AulaLocal-App/dist/*.dmg
-            AulaLocal-App/dist/*.pkg
-            AulaLocal-App/dist/SHA256SUMS.txt
-            AulaLocal-App/docs/evidencias/tests-macos.xml
-            AulaLocal-App/docs/evidencias/validacion-m1.json
-          if-no-files-found: error
 
+      - name: Verificar máquina Apple Silicon
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(uname -m)" = arm64
+          sw_vers
+          system_profiler SPHardwareDataType
+
+      - name: Construir y ejecutar pruebas
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/AulaLocal-0.2.0"
+          bash scripts/build_macos.sh
+
+      - name: Publicar instaladores y evidencias
+        uses: actions/upload-artifact@v4
+        with:
+          name: AulaLocal-0.2.0-macOS-arm64
+          path: |
+            ${{ runner.temp }}/AulaLocal-0.2.0/dist/*.dmg
+            ${{ runner.temp }}/AulaLocal-0.2.0/dist/*.pkg
+            ${{ runner.temp }}/AulaLocal-0.2.0/dist/SHA256SUMS.txt
+            ${{ runner.temp }}/AulaLocal-0.2.0/docs/evidencias/tests-macos.xml
+            ${{ runner.temp }}/AulaLocal-0.2.0/docs/evidencias/validacion-m1.json
+          if-no-files-found: error
+          retention-days: 30
