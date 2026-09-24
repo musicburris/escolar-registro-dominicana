@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication,QDateEdit,QTimeEdit,QComboBox,QLineEdit,QPushButton
 from aulalocal.ui import MainWindow,Form
 from aulalocal.catalog import MODULES
 from conftest import student,staff,menu,receipt,expense
@@ -24,6 +24,18 @@ def test_navigation_hides_previous_page(store):
     assert not old_title.isVisible()
     assert window.current=='students'
     window.timer.stop();window.close()
+
+def test_food_form_uses_visual_date_and_time_selectors(store):
+    app=QApplication.instance() or QApplication([]);mid=store.save_record('menus',1,menu());form=Form(None,'Recepción',MODULES['receipts'][1],receipt(mid),store,1)
+    assert isinstance(form.inputs['fecha'],QDateEdit) and form.inputs['fecha'].calendarPopup();assert isinstance(form.inputs['hora'],QTimeEdit)
+    buttons={item.text():item for item in form.findChildren(QPushButton)};assert 'Abrir calendario' in buttons and 'Usar hora actual' in buttons
+    buttons['Abrir calendario'].click();app.processEvents();assert form.inputs['fecha'].calendarWidget().isVisible();form.inputs['fecha'].calendarWidget().hide()
+    values=form.values();assert values['fecha']=='2026-09-01' and values['hora']=='11:30';form.close();app.processEvents()
+
+def test_custom_food_type_appears_and_center_fields_are_readable(store):
+    app=QApplication.instance() or QApplication([]);store.save_food_service('Merienda escolar')
+    form=Form(None,'Menú',MODULES['menus'][1],store=store,year=1);service=form.inputs['servicio'];assert isinstance(service,QComboBox) and service.findText('Merienda escolar')>=0;form.close()
+    window=MainWindow(store);window.current='settings';window._render();app.processEvents();fields=[item for item in window.findChildren(QLineEdit) if item.text()=='Centro de prueba'];assert fields and fields[0].minimumHeight()>=44;assert window.school.toolTip()=='Centro de prueba';window.timer.stop();window.close()
 
 def test_manual_lock_and_login_reopens_window(store):
     from PySide6.QtCore import QTimer

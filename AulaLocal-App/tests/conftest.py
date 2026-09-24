@@ -12,7 +12,7 @@ def store(tmp_path):
     s.close()
 
 def student(code='E001',name='María de Prueba'):
-    return dict(codigo=code,nombre=name,nacimiento='2013-02-10',sexo='Femenino',tutor='Tutor de prueba',telefono='809-000-0000',grado='1.º secundaria',seccion='A',fecha='2026-09-01',estado='Activo')
+    return dict(codigo=code,nombre=name,nacimiento='2013-02-10',sexo='Femenino',tutor='Tutor de prueba',telefono='809-000-0000',nivel='Nivel Secundario',grado='1.º de Secundaria',seccion='A',fecha='2026-09-01',estado='Activo')
 def staff():
     return dict(codigo='P001',nombre='Ana de Prueba',cargo='Docente',ingreso='2020-08-01',vinculo='Fijo',salario='30000.00',estado='Activo')
 def menu(service='Almuerzo'):
