@@ -4,7 +4,7 @@ Este instalador fue construido y probado en un Mac Apple Silicon M1 con macOS 14
 
 ## Instalación recomendada con el DMG
 
-1. Abra `AulaLocal-0.1.0-arm64.dmg`.
+1. Abra `AulaLocal-0.4.0-arm64.dmg`.
 2. Arrastre **AulaLocal** sobre la carpeta **Applications** que aparece en esa ventana.
 3. Abra la carpeta Aplicaciones de su Mac.
 4. La primera vez, haga clic secundario sobre AulaLocal y elija **Abrir**. Luego pulse **Abrir** en el aviso. Las siguientes veces se abre normalmente con doble clic.
@@ -15,7 +15,7 @@ Al iniciar, escriba el nombre del centro, nombre del director, usuario y una con
 
 ## Instalación alternativa
 
-El archivo `AulaLocal-0.1.0-arm64.pkg` instala la misma aplicación directamente en Aplicaciones. Si macOS bloquea el PKG por no identificar al desarrollador, use el DMG mediante los pasos anteriores.
+El archivo `AulaLocal-0.4.0-arm64.pkg` instala la misma aplicación directamente en Aplicaciones. Si macOS bloquea el PKG por no identificar al desarrollador, use el DMG mediante los pasos anteriores.
 
 ## Firma
 
@@ -23,4 +23,6 @@ La aplicación tiene firma técnica local y su integridad se verificó durante l
 
 ## Datos y copias
 
-Los datos quedan en `~/Library/Application Support/AulaLocal/`. No borre esa carpeta. Desde Copias y restauración puede guardar un archivo cifrado en una memoria USB o disco externo. Conserve la contraseña del respaldo; no existe recuperación por internet.
+Los datos quedan en `~/Library/Application Support/AulaLocal/`. La actualización desde 0.1.0 conserva y adapta automáticamente los registros existentes. No borre esa carpeta. Desde Copias y restauración puede guardar un archivo cifrado en una memoria USB o disco externo. Conserve la contraseña del respaldo.
+
+Al configurar la primera cuenta se muestra un código de recuperación local. Guárdelo fuera del Mac: permite cambiar el usuario y la contraseña sin internet. La sesión puede permanecer iniciada hasta que usted pulse **Cerrar sesión**.
