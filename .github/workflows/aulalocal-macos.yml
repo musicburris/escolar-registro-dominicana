@@ -1,10 +1,10 @@
-name: AulaLocal 0.5.1 para macOS ARM64
+name: AulaLocal 0.6.0 para macOS ARM64
 on:
   workflow_dispatch:
   push:
     branches: [aulalocal-macos-build]
     paths:
-      - 'AulaLocal-0.5.1-codigo-fuente.zip'
+      - 'AulaLocal-0.6.0-codigo-fuente.zip'
       - '.github/workflows/aulalocal-macos.yml'
 permissions:
   contents: write
@@ -25,34 +25,34 @@ jobs:
           system_profiler SPHardwareDataType
       - name: Extraer código fuente verificado
         run: |
-          mkdir -p "$RUNNER_TEMP/AulaLocal-0.5.1"
-          ditto -x -k AulaLocal-0.5.1-codigo-fuente.zip "$RUNNER_TEMP/AulaLocal-0.5.1"
-          test -f "$RUNNER_TEMP/AulaLocal-0.5.1/scripts/build_macos.sh"
+          mkdir -p "$RUNNER_TEMP/AulaLocal-0.6.0"
+          ditto -x -k AulaLocal-0.6.0-codigo-fuente.zip "$RUNNER_TEMP/AulaLocal-0.6.0"
+          test -f "$RUNNER_TEMP/AulaLocal-0.6.0/scripts/build_macos.sh"
       - name: Construir, probar y empaquetar
-        working-directory: ${{ runner.temp }}/AulaLocal-0.5.1
+        working-directory: ${{ runner.temp }}/AulaLocal-0.6.0
         run: bash scripts/build_macos.sh
       - name: Publicar instaladores descargables
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if ! gh release view aulalocal-v0.5.1 >/dev/null 2>&1; then
-            gh release create aulalocal-v0.5.1 --target "$GITHUB_SHA" \
-              --title "AulaLocal 0.5.1 para macOS Apple Silicon" \
-              --notes "Corrección del guardado y PDF en macOS, protección contra tablas Qt eliminadas y botón visible para eliminar o recuperar menús por ciclo sin perder el historial."
+          if ! gh release view aulalocal-v0.6.0 >/dev/null 2>&1; then
+            gh release create aulalocal-v0.6.0 --target "$GITHUB_SHA" \
+              --title "AulaLocal 0.6.0 para macOS Apple Silicon" \
+              --notes "Importación automática de asistencia desde ponchadores Excel/XLS/CSV, revisión previa, consolidación de entrada y salida, detección de tardanzas e informes organizados por período."
           fi
-          gh release upload aulalocal-v0.5.1 --clobber \
-            "$RUNNER_TEMP/AulaLocal-0.5.1/dist/AulaLocal-0.5.1-arm64.dmg" \
-            "$RUNNER_TEMP/AulaLocal-0.5.1/dist/AulaLocal-0.5.1-arm64.pkg" \
-            "$RUNNER_TEMP/AulaLocal-0.5.1/dist/SHA256SUMS.txt" \
-            "$GITHUB_WORKSPACE/AulaLocal-0.5.1-codigo-fuente.zip"
+          gh release upload aulalocal-v0.6.0 --clobber \
+            "$RUNNER_TEMP/AulaLocal-0.6.0/dist/AulaLocal-0.6.0-arm64.dmg" \
+            "$RUNNER_TEMP/AulaLocal-0.6.0/dist/AulaLocal-0.6.0-arm64.pkg" \
+            "$RUNNER_TEMP/AulaLocal-0.6.0/dist/SHA256SUMS.txt" \
+            "$GITHUB_WORKSPACE/AulaLocal-0.6.0-codigo-fuente.zip"
       - uses: actions/upload-artifact@v4
         with:
-          name: AulaLocal-0.5.1-macOS-arm64
+          name: AulaLocal-0.6.0-macOS-arm64
           path: |
-            ${{ runner.temp }}/AulaLocal-0.5.1/dist/AulaLocal-0.5.1-arm64.dmg
-            ${{ runner.temp }}/AulaLocal-0.5.1/dist/AulaLocal-0.5.1-arm64.pkg
-            ${{ runner.temp }}/AulaLocal-0.5.1/dist/SHA256SUMS.txt
-            ${{ runner.temp }}/AulaLocal-0.5.1/docs/evidencias/tests-macos.xml
-            ${{ runner.temp }}/AulaLocal-0.5.1/docs/evidencias/validacion-m1.json
+            ${{ runner.temp }}/AulaLocal-0.6.0/dist/AulaLocal-0.6.0-arm64.dmg
+            ${{ runner.temp }}/AulaLocal-0.6.0/dist/AulaLocal-0.6.0-arm64.pkg
+            ${{ runner.temp }}/AulaLocal-0.6.0/dist/SHA256SUMS.txt
+            ${{ runner.temp }}/AulaLocal-0.6.0/docs/evidencias/tests-macos.xml
+            ${{ runner.temp }}/AulaLocal-0.6.0/docs/evidencias/validacion-m1.json
           if-no-files-found: error
           retention-days: 30
