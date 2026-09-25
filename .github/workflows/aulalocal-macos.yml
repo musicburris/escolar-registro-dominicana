@@ -1,16 +1,13 @@
-name: AulaLocal 0.3.0 para macOS ARM64
-
+name: AulaLocal 0.4.0 para macOS ARM64
 on:
   workflow_dispatch:
   push:
     branches: [aulalocal-macos-build]
     paths:
-      - 'AulaLocal-0.3.0-codigo-fuente.zip'
+      - 'AulaLocal-0.4.0-codigo-fuente.zip'
       - '.github/workflows/aulalocal-macos.yml'
-
 permissions:
   contents: read
-
 jobs:
   build:
     runs-on: macos-14
@@ -28,19 +25,20 @@ jobs:
           system_profiler SPHardwareDataType
       - name: Extraer código fuente verificado
         run: |
-          ditto -x -k AulaLocal-0.3.0-codigo-fuente.zip "$RUNNER_TEMP"
-          test -f "$RUNNER_TEMP/AulaLocal-0.3.0/scripts/build_macos.sh"
+          mkdir -p "$RUNNER_TEMP/AulaLocal-0.4.0"
+          ditto -x -k AulaLocal-0.4.0-codigo-fuente.zip "$RUNNER_TEMP/AulaLocal-0.4.0"
+          test -f "$RUNNER_TEMP/AulaLocal-0.4.0/scripts/build_macos.sh"
       - name: Construir, probar y empaquetar
-        working-directory: ${{ runner.temp }}/AulaLocal-0.3.0
+        working-directory: ${{ runner.temp }}/AulaLocal-0.4.0
         run: bash scripts/build_macos.sh
       - uses: actions/upload-artifact@v4
         with:
-          name: AulaLocal-0.3.0-macOS-arm64
+          name: AulaLocal-0.4.0-macOS-arm64
           path: |
-            ${{ runner.temp }}/AulaLocal-0.3.0/dist/AulaLocal-0.3.0-arm64.dmg
-            ${{ runner.temp }}/AulaLocal-0.3.0/dist/AulaLocal-0.3.0-arm64.pkg
-            ${{ runner.temp }}/AulaLocal-0.3.0/dist/SHA256SUMS.txt
-            ${{ runner.temp }}/AulaLocal-0.3.0/docs/evidencias/tests-macos.xml
-            ${{ runner.temp }}/AulaLocal-0.3.0/docs/evidencias/validacion-m1.json
+            ${{ runner.temp }}/AulaLocal-0.4.0/dist/AulaLocal-0.4.0-arm64.dmg
+            ${{ runner.temp }}/AulaLocal-0.4.0/dist/AulaLocal-0.4.0-arm64.pkg
+            ${{ runner.temp }}/AulaLocal-0.4.0/dist/SHA256SUMS.txt
+            ${{ runner.temp }}/AulaLocal-0.4.0/docs/evidencias/tests-macos.xml
+            ${{ runner.temp }}/AulaLocal-0.4.0/docs/evidencias/validacion-m1.json
           if-no-files-found: error
           retention-days: 30
