@@ -7,7 +7,7 @@ on:
       - 'AulaLocal-0.4.0-codigo-fuente.zip'
       - '.github/workflows/aulalocal-macos.yml'
 permissions:
-  contents: read
+  contents: write
 jobs:
   build:
     runs-on: macos-14
@@ -31,6 +31,19 @@ jobs:
       - name: Construir, probar y empaquetar
         working-directory: ${{ runner.temp }}/AulaLocal-0.4.0
         run: bash scripts/build_macos.sh
+      - name: Publicar instaladores descargables
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! gh release view aulalocal-v0.4.0 >/dev/null 2>&1; then
+            gh release create aulalocal-v0.4.0 --target "$GITHUB_SHA" \
+              --title "AulaLocal 0.4.0 para macOS Apple Silicon" \
+              --notes "Instaladores ARM64 para Mac con Apple Silicon. Incluye DMG, PKG y archivo de verificación SHA-256."
+          fi
+          gh release upload aulalocal-v0.4.0 --clobber \
+            "$RUNNER_TEMP/AulaLocal-0.4.0/dist/AulaLocal-0.4.0-arm64.dmg" \
+            "$RUNNER_TEMP/AulaLocal-0.4.0/dist/AulaLocal-0.4.0-arm64.pkg" \
+            "$RUNNER_TEMP/AulaLocal-0.4.0/dist/SHA256SUMS.txt"
       - uses: actions/upload-artifact@v4
         with:
           name: AulaLocal-0.4.0-macOS-arm64
