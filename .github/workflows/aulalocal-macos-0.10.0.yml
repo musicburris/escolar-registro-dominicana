@@ -55,3 +55,14 @@ jobs:
             ${{ runner.temp }}/AulaLocal-0.10.0/docs/evidencias/validacion-m1.json
             ${{ runner.temp }}/AulaLocal-0.10.0/docs/evidencias/validacion-ia-real.json
             ${{ runner.temp }}/AulaLocal-0.10.0/dist/AulaLocal.app/Contents/Resources/ai/manifest.json
+
+      - name: Diagnóstico de IA
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: AulaLocal-0.10.0-diagnostico
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/AulaLocal-0.10.0/docs/evidencias/
+            ${{ runner.temp }}/AulaLocal-0.10.0/build-assets/ollama-download.log
+            ~/Library/Application Support/AulaLocal/ai-runtime/engine.log
