@@ -1,0 +1,57 @@
+name: AulaLocal 0.10.0 para macOS ARM64
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - aulalocal-macos-build
+    paths:
+      - AulaLocal-0.10.0-codigo-fuente.zip
+      - .github/workflows/aulalocal-macos-0.10.0.yml
+
+permissions:
+  contents: read
+
+jobs:
+  build-arm64:
+    runs-on: macos-14
+    timeout-minutes: 45
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+
+      - name: Usar Python estable ARM64
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          architecture: arm64
+
+      - name: Preparar código fuente
+        run: |
+          mkdir -p "$RUNNER_TEMP/AulaLocal-0.10.0"
+          ditto -x -k AulaLocal-0.10.0-codigo-fuente.zip "$RUNNER_TEMP/AulaLocal-0.10.0"
+
+      - name: Construir y validar en Apple Silicon
+        working-directory: ${{ runner.temp }}/AulaLocal-0.10.0
+        run: |
+          chmod +x scripts/build_macos.sh
+          AULALOCAL_FULL_AI=1 ./scripts/build_macos.sh
+
+      - name: Empaquetar resultados
+        working-directory: ${{ runner.temp }}/AulaLocal-0.10.0
+        run: |
+          shasum -a 256 dist/AulaLocal-0.10.0-arm64.dmg dist/AulaLocal-0.10.0-arm64.pkg > dist/SHA256SUMS.txt
+
+      - name: Publicar instaladores verificados
+        uses: actions/upload-artifact@v4
+        with:
+          name: AulaLocal-0.10.0-macOS-arm64
+          if-no-files-found: error
+          compression-level: 0
+          path: |
+            ${{ runner.temp }}/AulaLocal-0.10.0/dist/AulaLocal-0.10.0-arm64.dmg
+            ${{ runner.temp }}/AulaLocal-0.10.0/dist/SHA256SUMS.txt
+            ${{ runner.temp }}/AulaLocal-0.10.0/docs/evidencias/tests-macos.xml
+            ${{ runner.temp }}/AulaLocal-0.10.0/docs/evidencias/validacion-m1.json
+            ${{ runner.temp }}/AulaLocal-0.10.0/docs/evidencias/validacion-ia-real.json
+            ${{ runner.temp }}/AulaLocal-0.10.0/dist/AulaLocal.app/Contents/Resources/ai/manifest.json
