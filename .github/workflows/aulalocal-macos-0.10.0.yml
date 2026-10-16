@@ -31,6 +31,25 @@ jobs:
           mkdir -p "$RUNNER_TEMP/AulaLocal-0.10.0"
           ditto -x -k AulaLocal-0.10.0-codigo-fuente.zip "$RUNNER_TEMP/AulaLocal-0.10.0"
 
+      - name: Recuperar motor y modelo verificados
+        id: ai-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ runner.temp }}/AulaLocal-0.10.0/build-assets/ai
+          key: aulalocal-ai-0405-qwen35-4b-arm64-v1
+
+      - name: Descargar motor y modelo completos
+        if: steps.ai-cache.outputs.cache-hit != 'true'
+        working-directory: ${{ runner.temp }}/AulaLocal-0.10.0
+        run: python3 scripts/prepare_bundled_ai.py
+
+      - name: Conservar componentes verificados
+        if: steps.ai-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ runner.temp }}/AulaLocal-0.10.0/build-assets/ai
+          key: aulalocal-ai-0405-qwen35-4b-arm64-v1
+
       - name: Construir y validar en Apple Silicon
         working-directory: ${{ runner.temp }}/AulaLocal-0.10.0
         run: |
