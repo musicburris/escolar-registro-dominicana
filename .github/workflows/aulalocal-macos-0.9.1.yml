@@ -20,6 +20,12 @@ jobs:
       - name: Descargar código
         uses: actions/checkout@v4
 
+      - name: Usar Python estable ARM64
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          architecture: arm64
+
       - name: Preparar código fuente
         run: |
           mkdir -p "$RUNNER_TEMP/AulaLocal-0.9.1"
