@@ -1,0 +1,47 @@
+{
+  "filename": "AulaLocal-0.10.0-arm64.dmg",
+  "size": 3325826634,
+  "sha256": "194c27e4ab446e0f761058ad65404dfe833f07680bfbc4edca050105725d1cae",
+  "parts": [
+    {
+      "name": "AulaLocal-0.10.0-parte-1.bin",
+      "size": 419430400,
+      "sha256": "55a6f70950d6378576585b457856fe575abb7cb66c00252a2364e672bc788a05"
+    },
+    {
+      "name": "AulaLocal-0.10.0-parte-2.bin",
+      "size": 419430400,
+      "sha256": "928f3b2e8ffa9a276701820baac29fa4d5fc3b42564a6b27d52194abfdef2692"
+    },
+    {
+      "name": "AulaLocal-0.10.0-parte-3.bin",
+      "size": 419430400,
+      "sha256": "a31b6b3c639d5fefa28a94784982440342f9ecdd97bc02af0022ee170a9d762b"
+    },
+    {
+      "name": "AulaLocal-0.10.0-parte-4.bin",
+      "size": 419430400,
+      "sha256": "feecafb565801938bd9fe00d013caaf53a335eddfa392baaeb750099f7b06f93"
+    },
+    {
+      "name": "AulaLocal-0.10.0-parte-5.bin",
+      "size": 419430400,
+      "sha256": "a1b85b33bc9a04662522371dc09e50226770072913d0036d4e7d73c8eb1daf8e"
+    },
+    {
+      "name": "AulaLocal-0.10.0-parte-6.bin",
+      "size": 419430400,
+      "sha256": "f575cae0f9fe9c26a66deb6847e7e1fd1d2f314dd1ece46f25ec95cbcd75e786"
+    },
+    {
+      "name": "AulaLocal-0.10.0-parte-7.bin",
+      "size": 419430400,
+      "sha256": "81dc86467d9996554552d72d8af983de965d564d43c5b1450aaf4320f1664bba"
+    },
+    {
+      "name": "AulaLocal-0.10.0-parte-8.bin",
+      "size": 389813834,
+      "sha256": "770eb042683c8d40709b924bf6e0b7443936719e0f978295a97ed92634fc47e4"
+    }
+  ]
+}

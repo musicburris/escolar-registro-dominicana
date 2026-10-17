@@ -1,0 +1,78 @@
+name: Preparador nativo de AulaLocal completa
+on:
+  workflow_dispatch:
+  push:
+    branches: [aulalocal-macos-build]
+    paths:
+      - AulaLocal-instalador/**
+      - .github/workflows/aulalocal-preparador-0.10.0.yml
+permissions:
+  contents: read
+  actions: read
+jobs:
+  preparador:
+    runs-on: macos-14
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Recuperar partes del instalador aprobado
+        uses: actions/download-artifact@v4
+        with:
+          pattern: AulaLocal-completa-parte-*
+          merge-multiple: true
+          run-id: 39035458883
+          github-token: ${{ github.token }}
+          path: partes
+      - name: Compilar asistente nativo ARM64
+        run: |
+          mkdir -p dist/PrepararAulaLocal.app/Contents/MacOS dist/PrepararAulaLocal.app/Contents/Resources
+          xcrun swiftc -O -swift-version 5 -target arm64-apple-macos14.0 -framework AppKit -framework CryptoKit AulaLocal-instalador/PrepararAulaLocal.swift -o dist/PrepararAulaLocal.app/Contents/MacOS/PrepararAulaLocal
+          cp AulaLocal-instalador/manifest.json dist/PrepararAulaLocal.app/Contents/Resources/manifest.json
+          python3 - <<'PY'
+          import plistlib,json
+          from pathlib import Path
+          info={'CFBundleExecutable':'PrepararAulaLocal','CFBundleIdentifier':'com.aulalocal.preparador','CFBundleName':'Preparar AulaLocal','CFBundlePackageType':'APPL','CFBundleShortVersionString':'0.10.0','CFBundleVersion':'20261017','LSMinimumSystemVersion':'14.0','NSHighResolutionCapable':True,'NSDownloadsFolderUsageDescription':'Leer las partes descargadas y preparar el instalador de AulaLocal.'}
+          with open('dist/PrepararAulaLocal.app/Contents/Info.plist','wb') as target:plistlib.dump(info,target)
+          manifest=json.loads(Path('AulaLocal-instalador/manifest.json').read_text())
+          for i,part in enumerate(manifest['parts'],1):Path('partes',f'parte-{chr(96+i)}.bin').rename(Path('partes',part['name']))
+          PY
+          codesign --force --sign - dist/PrepararAulaLocal.app
+          codesign --verify --deep --strict dist/PrepararAulaLocal.app
+          lipo dist/PrepararAulaLocal.app/Contents/MacOS/PrepararAulaLocal -verify_arch arm64
+      - name: Probar integridad, cancelación y recuperación
+        run: |
+          dist/PrepararAulaLocal.app/Contents/MacOS/PrepararAulaLocal --self-test | tee dist/pruebas-preparador.json
+          dist/PrepararAulaLocal.app/Contents/MacOS/PrepararAulaLocal --verify-parts partes "$RUNNER_TEMP/AulaLocal-completa-verificada.dmg" | tee dist/instalador-completo-verificado.json
+      - name: Empaquetar asistente
+        run: |
+          mkdir -p imagen
+          cp -R dist/PrepararAulaLocal.app imagen/
+          cat > imagen/LEEME.txt <<'TXT'
+          AULALOCAL COMPLETA CON IA LOCAL
+
+          1. Guarde las ocho partes .bin en una misma carpeta (por ejemplo, Descargas).
+          2. Abra PrepararAulaLocal. Pulse Elegir carpeta y preparar instalación.
+          3. Seleccione la carpeta donde guardó las ocho partes.
+          4. Espere la comprobación automática. Se abrirá el instalador completo.
+          5. Arrastre AulaLocal a Aplicaciones y ábrala desde allí.
+
+          Requiere Mac Apple Silicon con macOS 14 o posterior.
+          Necesita al menos 3,5 GB libres para preparar el DMG; la instalación completa requiere espacio adicional.
+          Puede borrar las partes y el DMG después de instalar AulaLocal.
+          No necesita Terminal, Ollama, cuenta de IA ni descargas adicionales.
+
+          Firma técnica local: esta entrega no está notarizada por Apple.
+          Si macOS bloquea la apertura, abra Ajustes del Sistema > Privacidad y seguridad > Abrir de todos modos.
+          Esto puede ser necesario tanto para el preparador como para AulaLocal.
+          TXT
+          hdiutil create -volname PrepararAulaLocal -srcfolder imagen -ov -format UDZO dist/PrepararAulaLocal-0.10.0-arm64.dmg
+          shasum -a 256 dist/PrepararAulaLocal-0.10.0-arm64.dmg > dist/SHA256SUMS-preparador.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PrepararAulaLocal-0.10.0-arm64
+          if-no-files-found: error
+          path: |
+            dist/PrepararAulaLocal-0.10.0-arm64.dmg
+            dist/pruebas-preparador.json
+            dist/instalador-completo-verificado.json
+            dist/SHA256SUMS-preparador.txt
