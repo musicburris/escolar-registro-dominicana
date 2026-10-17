@@ -36,7 +36,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ${{ runner.temp }}/AulaLocal-0.10.0/build-assets/ai
-          key: aulalocal-ai-0405-qwen35-4b-arm64-v1
+          key: aulalocal-ai-0182-qwen35-4b-q4-arm64-v1
 
       - name: Descargar motor y modelo completos
         if: steps.ai-cache.outputs.cache-hit != 'true'
@@ -48,7 +48,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: ${{ runner.temp }}/AulaLocal-0.10.0/build-assets/ai
-          key: aulalocal-ai-0405-qwen35-4b-arm64-v1
+          key: aulalocal-ai-0182-qwen35-4b-q4-arm64-v1
 
       - name: Construir y validar en Apple Silicon
         working-directory: ${{ runner.temp }}/AulaLocal-0.10.0
