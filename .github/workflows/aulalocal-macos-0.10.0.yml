@@ -54,7 +54,7 @@ jobs:
         working-directory: ${{ runner.temp }}/AulaLocal-0.10.0
         run: |
           chmod +x scripts/build_macos.sh
-          AULALOCAL_FULL_AI=1 ./scripts/build_macos.sh
+          AULALOCAL_FULL_AI=1 AULALOCAL_AI_TEST_CPU=1 ./scripts/build_macos.sh
 
       - name: Empaquetar resultados
         working-directory: ${{ runner.temp }}/AulaLocal-0.10.0
