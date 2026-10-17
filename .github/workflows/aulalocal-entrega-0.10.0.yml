@@ -1,0 +1,87 @@
+name: Preparar descarga AulaLocal completa
+on:
+  workflow_dispatch:
+  push:
+    branches: [aulalocal-macos-build]
+    paths: [.github/workflows/aulalocal-entrega-0.10.0.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  preparar:
+    runs-on: macos-14
+    timeout-minutes: 20
+    steps:
+      - name: Recuperar instalador aprobado
+        uses: actions/download-artifact@v4
+        with:
+          name: AulaLocal-0.10.0-macOS-arm64
+          run-id: 39034449618
+          github-token: ${{ github.token }}
+          path: entrega
+      - name: Preparar transferencia verificada
+        run: |
+          python3 - <<'PY'
+          import hashlib,json,zipfile
+          from pathlib import Path
+          root=Path('entrega');items=list(root.rglob('AulaLocal-0.10.0-arm64.dmg'));assert len(items)==1
+          dmg=items[0];out=Path('transferencia');out.mkdir()
+          parts=[];complete=hashlib.sha256()
+          with dmg.open('rb') as source:
+            index=0
+            while block:=source.read(400*1024*1024):
+              name=f'parte-{chr(97+index)}.bin';(out/name).write_bytes(block)
+              complete.update(block);parts.append({'name':name,'size':len(block),'sha256':hashlib.sha256(block).hexdigest()});index+=1
+          assert len(parts)==8
+          meta={'filename':dmg.name,'size':dmg.stat().st_size,'sha256':complete.hexdigest(),'parts':parts}
+          (out/'index.json').write_text(json.dumps(meta,indent=2))
+          with zipfile.ZipFile(out/'verificacion.zip','w',zipfile.ZIP_DEFLATED) as archive:
+            archive.write(out/'index.json','index.json')
+            for path in root.rglob('*'):
+              if path.is_file() and path!=dmg:archive.write(path,str(path.relative_to(root)))
+          print(json.dumps(meta))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AulaLocal-completa-parte-a
+          path: transferencia/parte-a.bin
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AulaLocal-completa-parte-b
+          path: transferencia/parte-b.bin
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AulaLocal-completa-parte-c
+          path: transferencia/parte-c.bin
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AulaLocal-completa-parte-d
+          path: transferencia/parte-d.bin
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AulaLocal-completa-parte-e
+          path: transferencia/parte-e.bin
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AulaLocal-completa-parte-f
+          path: transferencia/parte-f.bin
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AulaLocal-completa-parte-g
+          path: transferencia/parte-g.bin
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AulaLocal-completa-parte-h
+          path: transferencia/parte-h.bin
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AulaLocal-completa-verificacion
+          path: transferencia/verificacion.zip
